@@ -22,7 +22,8 @@ String preamble = `{` _ :rawCode _ `}` { rawCode };
 Statement statement =
   | namespace
   | fragment
-  | rule;
+  | rule
+  | generic;
 
 @fragment
 String name =
@@ -33,38 +34,59 @@ String name =
 Node body = `=` :choice `;` { choice };
 
 Statement namespace =
+  | kw::fragment name:identifier `{` statements:_.statement+ `}` {
+      NamespaceStatement(name, statements, tag: Tag.fragment)
+    }
+  | kw::rule name:identifier `{` statements:_.statement+ `}` {
+      NamespaceStatement(name, statements, tag: Tag.rule)
+    }
   | name:identifier `{` statements:_.statement+ `}` {
-      NamespaceStatement(name, statements)
+      NamespaceStatement(name, statements, tag: Tag.none)
     }
   ;
 
 Statement rule =
-  | kw::var :name :body {
-      DeclarationStatement(MapEntry((null, name), body), isFragment: false)
+  | kw::rule? kw::var :name :body {
+      DeclarationStatement(MapEntry((null, name), body), tag: $0 == null ? Tag.none : Tag.rule)
     }
-  | :name :body {
-      DeclarationStatement(MapEntry((null, name), body), isFragment: false)
+  | kw::rule? :name :body {
+      DeclarationStatement(MapEntry((null, name), body), tag: $0 == null ? Tag.none : Tag.rule)
     }
-  | type:(type::nonNullable) :name :body {
-      DeclarationStatement(MapEntry((type, name), body), isFragment: false)
+  | kw::rule? type:(type::nonNullable) :name :body {
+      DeclarationStatement(MapEntry((type, name), body), tag: $0 == null ? Tag.none : Tag.rule)
     }
-  | :name `:` type:(type::nonNullable) :body {
-      DeclarationStatement(MapEntry((type, name), body), isFragment: false)
+  | kw::rule? :name `:` type:(type::nonNullable) :body {
+      DeclarationStatement(MapEntry((type, name), body), tag: $0 == null ? Tag.none : Tag.rule)
     }
   ;
 
 Statement fragment =
   | kw::fragment kw::var :name :body {
-      DeclarationStatement(MapEntry((null, name), body), isFragment: true)
+      DeclarationStatement(MapEntry((null, name), body), tag: Tag.fragment)
     }
   | kw::fragment :name :body {
-      DeclarationStatement(MapEntry((null, name), body), isFragment: true)
+      DeclarationStatement(MapEntry((null, name), body), tag: Tag.fragment)
     }
   | kw::fragment type:(type::nonNullable) :name :body {
-      DeclarationStatement(MapEntry((type, name), body), isFragment: true)
+      DeclarationStatement(MapEntry((type, name), body), tag: Tag.fragment)
     }
   | kw::fragment :name `:` type:(type::nonNullable) :body {
-      DeclarationStatement(MapEntry((type, name), body), isFragment: true)
+      DeclarationStatement(MapEntry((type, name), body), tag: Tag.fragment)
+    }
+  ;
+
+Statement generic =
+  | kw::var :name :body {
+      DeclarationStatement(MapEntry((null, name), body), tag: Tag.none)
+    }
+  | :name :body {
+      DeclarationStatement(MapEntry((null, name), body), tag: Tag.none)
+    }
+  | type:(type::nonNullable) :name :body {
+      DeclarationStatement(MapEntry((type, name), body), tag: Tag.none)
+    }
+  | :name `:` type:(type::nonNullable) :body {
+      DeclarationStatement(MapEntry((type, name), body), tag: Tag.none)
     }
   ;
 
@@ -262,20 +284,20 @@ mac {
   String parse     = _ "=>" _ @1;
 }
 
-regexEscape {
-  @fragment String backslash       = _ (\\ \\  { buffer.substring(from, to) }) _ @1;
-  @fragment String digit           = _ (\\ "d" { buffer.substring(from, to) }) _ @1;
-  @fragment String word            = _ (\\ "w" { buffer.substring(from, to) }) _ @1;
-  @fragment String space           = _ (\\ "s" { buffer.substring(from, to) }) _ @1;
-  @fragment String tab             = _ (\\ "t" { buffer.substring(from, to) }) _ @1;
-  @fragment String formFeed        = _ (\\ "f" { buffer.substring(from, to) }) _ @1;
-  @fragment String verticalTab     = _ (\\ "v" { buffer.substring(from, to) }) _ @1;
-  @fragment String null            = _ (\\ "0" { buffer.substring(from, to) }) _ @1;
-  @fragment String control         = _ (\\ "c" { buffer.substring(from, to) }) _ @1;
-  @fragment String hex             = _ (\\ "x" { buffer.substring(from, to) }) _ @1;
-  @fragment String unicode         = _ (\\ "u" { buffer.substring(from, to) }) _ @1;
-  @fragment String unicodeExtended = _ (\\ "U" { buffer.substring(from, to) }) _ @1;
-  @fragment String literal         = _ (\\ "." { buffer.substring(from, to) }) _ @1;
+@fragment regexEscape {
+  String backslash       = _ (\\ \\  { buffer.substring(from, to) }) _ @1;
+  String digit           = _ (\\ "d" { buffer.substring(from, to) }) _ @1;
+  String word            = _ (\\ "w" { buffer.substring(from, to) }) _ @1;
+  String space           = _ (\\ "s" { buffer.substring(from, to) }) _ @1;
+  String tab             = _ (\\ "t" { buffer.substring(from, to) }) _ @1;
+  String formFeed        = _ (\\ "f" { buffer.substring(from, to) }) _ @1;
+  String verticalTab     = _ (\\ "v" { buffer.substring(from, to) }) _ @1;
+  String null            = _ (\\ "0" { buffer.substring(from, to) }) _ @1;
+  String control         = _ (\\ "c" { buffer.substring(from, to) }) _ @1;
+  String hex             = _ (\\ "x" { buffer.substring(from, to) }) _ @1;
+  String unicode         = _ (\\ "u" { buffer.substring(from, to) }) _ @1;
+  String unicodeExtended = _ (\\ "U" { buffer.substring(from, to) }) _ @1;
+  String literal         = _ (\\ "." { buffer.substring(from, to) }) _ @1;
 }
 
 

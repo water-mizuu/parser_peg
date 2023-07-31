@@ -1,6 +1,4 @@
 // cspell:disable
-// ignore_for_file: use_to_and_as_if_applicable, always_specify_types
-
 import "dart:io";
 
 import "package:parser_peg/src/generator.dart";
@@ -39,5 +37,5 @@ void main(List<String> arguments) {
   }
 
   PlaygroundParser parser = PlaygroundParser();
-  print(parser.parse("(())()()"));
+  stdout.writeln(parser.parse("(())(())"));
 }

@@ -36,11 +36,6 @@ class ImperativeVisitor implements SimpleNodeVisitor<String> {
   @override
   String visitCountedNode(CountedNode node) => "${node.min}..${node.max}"
       ".${node.child.acceptSimpleVisitor(this).delimit()}";
-  // CountedNode(
-  //       node.min,
-  //       node.max,
-  //       node.child.acceptSimpleVisitor(this),
-  //     );
 
   @override
   String visitPlusSeparatedNode(PlusSeparatedNode node) => "${node.separator.acceptSimpleVisitor(this).delimit()}."
