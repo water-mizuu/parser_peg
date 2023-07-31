@@ -107,15 +107,6 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
 
   @override
   Node visitReferenceNode(ReferenceNode node) {
-    /// We check if the reference exists.
-
-    switch (node.ruleName.replaceAll("::", "__")) {
-      case String safe when rules.containsKey(safe):
-        return ReferenceNode(safe);
-      case String safe when fragments.containsKey(safe):
-        return FragmentNode(safe);
-    }
-
     for (int i = prefixes.length; i >= 0; --i) {
       switch (<String>[
         ...prefixes.sublist(0, i),
