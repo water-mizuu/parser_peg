@@ -3,7 +3,8 @@ _ = full? { $ != null };
 @fragment {
   full = ^ rec $;
 
-  @rule rec: Object =
+  @rule
+  Object rec =
     | rec rec
     | "(" rec ")"
     | "[" rec "]"
