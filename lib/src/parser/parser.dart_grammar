@@ -97,8 +97,6 @@ Node acted =
   /// Dart code action
   | :sequence `(``)``{` _ :rawCode _ `}`  { ActionNode(sequence, rawCode, areIndicesProvided: true) }
   | :sequence       `{` _ :rawCode _ `}`  { InlineActionNode(sequence, rawCode, areIndicesProvided: true ) }
-  /// Node code.
-  // | :sequence mac::parse `{` body:choice `}` { throw UnsupportedError("Not yet!") }
   | sequence
   ;
 
@@ -106,10 +104,12 @@ Node acted =
 ///   By default, a sequence parser returns a [Record] of the results of the parsers.
 Node sequence =
   /// By specifying which item to keep, the specific item can be returned.
-  | body:_.labeled+ `@` :number {
-      body.length == 1
-        ? body.single
-        : SequenceNode(body, choose: number)
+  | body:_.labeled+ `@` :number () {
+      if (body.length == 1) {
+        return body.single;
+      } else {
+        return SequenceNode(body, choose: number);
+      }
     }
   | _.labeled+ { $.length == 1 ? $.single : SequenceNode($, choose: null) }
   ;
@@ -131,6 +131,7 @@ Node labeled =
 /// A parser that is separated by a separator.
 ///   For ambiguity, both the separator and the body must be an atomic parser.
 Node separated =
+  /// Parsers with a specific count.
   | :number `.` :atom                              { CountedNode(number, number, atom) }
   | `[` :number `]` `.`? :atom                     { CountedNode(number, number, atom) }
   | `[` min:number `..` `]` `.`? :atom             { CountedNode(min, null, atom) }
@@ -267,39 +268,39 @@ type {
 }
 
 /// Tokens used in the grammar.
-kw {
-  String rule      = _ "@rule" _        @1;
-  String fragment  = _ "@fragment" _    @1;
-  String start     = _ "startOfInput" _ @1;
-  String end       = _ "endOfInput" _   @1;
-  String backslash = _ "backslash" _    @1;
-  String epsilon   = _ "epsilon" _    @1;
-  String any       = _ "any" _          @1;
-  String var       = _ "var" _          @1;
-}
+@fragment {
+  kw {
+    rule      = _ "@rule" _        @1;
+    fragment  = _ "@fragment" _    @1;
+    start     = _ "startOfInput" _ @1;
+    end       = _ "endOfInput" _   @1;
+    backslash = _ "backslash" _    @1;
+    epsilon   = _ "epsilon" _      @1;
+    any       = _ "any" _          @1;
+    var       = _ "var" _          @1;
+  }
 
-/// Tokens used in "macro-like" rules.
-mac {
-  String sep       = _ "sep!" _   @1;
-  String parse     = _ "=>" _ @1;
-}
+  /// Tokens used in "macro-like" rules.
+  mac {
+    sep       = _ "sep!" _   @1;
+  }
 
-@fragment regexEscape {
-  String backslash       = _ (\\ \\  { buffer.substring(from, to) }) _ @1;
-  String digit           = _ (\\ "d" { buffer.substring(from, to) }) _ @1;
-  String word            = _ (\\ "w" { buffer.substring(from, to) }) _ @1;
-  String space           = _ (\\ "s" { buffer.substring(from, to) }) _ @1;
-  String tab             = _ (\\ "t" { buffer.substring(from, to) }) _ @1;
-  String formFeed        = _ (\\ "f" { buffer.substring(from, to) }) _ @1;
-  String verticalTab     = _ (\\ "v" { buffer.substring(from, to) }) _ @1;
-  String null            = _ (\\ "0" { buffer.substring(from, to) }) _ @1;
-  String control         = _ (\\ "c" { buffer.substring(from, to) }) _ @1;
-  String hex             = _ (\\ "x" { buffer.substring(from, to) }) _ @1;
-  String unicode         = _ (\\ "u" { buffer.substring(from, to) }) _ @1;
-  String unicodeExtended = _ (\\ "U" { buffer.substring(from, to) }) _ @1;
-  String literal         = _ (\\ "." { buffer.substring(from, to) }) _ @1;
+  regexEscape {
+    backslash       = _ (\\ \\  { buffer.substring(from, to) }) _ @1;
+    digit           = _ (\\ "d" { buffer.substring(from, to) }) _ @1;
+    word            = _ (\\ "w" { buffer.substring(from, to) }) _ @1;
+    space           = _ (\\ "s" { buffer.substring(from, to) }) _ @1;
+    tab             = _ (\\ "t" { buffer.substring(from, to) }) _ @1;
+    formFeed        = _ (\\ "f" { buffer.substring(from, to) }) _ @1;
+    verticalTab     = _ (\\ "v" { buffer.substring(from, to) }) _ @1;
+    null            = _ (\\ "0" { buffer.substring(from, to) }) _ @1;
+    control         = _ (\\ "c" { buffer.substring(from, to) }) _ @1;
+    hex             = _ (\\ "x" { buffer.substring(from, to) }) _ @1;
+    unicode         = _ (\\ "u" { buffer.substring(from, to) }) _ @1;
+    unicodeExtended = _ (\\ "U" { buffer.substring(from, to) }) _ @1;
+    literal         = _ (\\ "." { buffer.substring(from, to) }) _ @1;
+  }
 }
-
 
 `..`  = _ 2."." _ @1;
 `::`  = _ 2.":" _ @1;

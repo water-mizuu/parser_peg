@@ -103,13 +103,21 @@ final class ParserGenerator {
                 rules[resolvedName] = (type, node);
             }
         }
-      case NamespaceStatement(:String name, :List<Statement> children, :Tag tag):
+      case NamespaceStatement(
+          :String name,
+          :List<Statement> children,
+          tag: Tag declaredTag,
+        ):
         for (Statement sub in children) {
-          addResolvedRules(sub, <String>[...prefix, name], tag);
+          addResolvedRules(sub, <String>[...prefix, name], declaredTag == Tag.none ? tag : declaredTag);
         }
-      case NamespaceStatement(name: null, :List<Statement> children, :Tag tag):
+      case NamespaceStatement(
+          name: null,
+          :List<Statement> children,
+          tag: Tag declaredTag,
+        ):
         for (Statement sub in children) {
-          addResolvedRules(sub, prefix, tag);
+          addResolvedRules(sub, prefix, declaredTag == Tag.none ? tag : declaredTag);
         }
     }
   }
@@ -139,13 +147,13 @@ final class ParserGenerator {
                 rules[resolvedName] = (type, resolvedNode);
             }
         }
-      case NamespaceStatement(:String name, :List<Statement> children, :Tag tag):
+      case NamespaceStatement(:String name, :List<Statement> children, tag: Tag declaredTag):
         for (Statement sub in children) {
-          processStatement(sub, <String>[...prefixes, name], tag);
+          processStatement(sub, <String>[...prefixes, name], declaredTag == Tag.none ? tag : declaredTag);
         }
-      case NamespaceStatement(name: null, :List<Statement> children, :Tag tag):
+      case NamespaceStatement(name: null, :List<Statement> children, tag: Tag declaredTag):
         for (Statement sub in children) {
-          processStatement(sub, prefixes, tag);
+          processStatement(sub, prefixes, declaredTag == Tag.none ? tag : declaredTag);
         }
     }
   }
