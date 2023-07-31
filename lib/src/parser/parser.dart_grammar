@@ -1,0 +1,311 @@
+{
+import "package:parser_peg/src/node.dart";
+import "package:parser_peg/src/generator.dart";
+import "package:parser_peg/src/statement.dart";
+
+typedef ParserArgument = MapEntry<(String?, String), Node>;
+typedef ParserArguments = ({Map<(String?, String), Node> rules, Map<(String?, String), Node> fragments});
+}
+
+/// A grammar file contains an optional preamble and statements.
+ParserGenerator document = ^ :preamble? statements:_.statement+? $ {
+  ParserGenerator.fromParsed(preamble: preamble, statements: statements)
+};
+
+/// The preamble is simple.
+String preamble = `{` _ :rawCode _ `}` { rawCode };
+
+/// A statement can either be a namespace, a fragment or a rule.
+///  A namespace is a collection of statements.
+///  A fragment is a declaration that is faster, but doesn't support left recursion / memoization.
+///  A rule is a declaration, that supports left recursion & memoization.
+Statement statement =
+  | namespace
+  | fragment
+  | rule;
+
+@fragment
+String name =
+  | (identifier "::" @0)* rawLiteral { $0.isEmpty ? $1 : "${$0.join("__")}__${$1}" }
+  | identifier ("::" identifier @1)* { $1.isEmpty ? $0 : "${$0}__${$1.join("__")}" };
+
+@fragment
+Node body = `=` :choice `;` { choice };
+
+Statement namespace =
+  | name:identifier `{` statements:_.statement+ `}` {
+      NamespaceStatement(name, statements)
+    }
+  ;
+
+Statement rule =
+  | kw::var :name :body {
+      DeclarationStatement(MapEntry((null, name), body), isFragment: false)
+    }
+  | :name :body {
+      DeclarationStatement(MapEntry((null, name), body), isFragment: false)
+    }
+  | type:(type::nonNullable) :name :body {
+      DeclarationStatement(MapEntry((type, name), body), isFragment: false)
+    }
+  | :name `:` type:(type::nonNullable) :body {
+      DeclarationStatement(MapEntry((type, name), body), isFragment: false)
+    }
+  ;
+
+Statement fragment =
+  | kw::fragment kw::var :name :body {
+      DeclarationStatement(MapEntry((null, name), body), isFragment: true)
+    }
+  | kw::fragment :name :body {
+      DeclarationStatement(MapEntry((null, name), body), isFragment: true)
+    }
+  | kw::fragment type:(type::nonNullable) :name :body {
+      DeclarationStatement(MapEntry((type, name), body), isFragment: true)
+    }
+  | kw::fragment :name `:` type:(type::nonNullable) :body {
+      DeclarationStatement(MapEntry((type, name), body), isFragment: true)
+    }
+  ;
+
+Node choice = `|`? options:`|`.acted+ { options.length == 1 ? options.single : ChoiceNode(options) };
+
+/// A parser with a bound action.
+Node acted =
+  /// Dart code action
+  | :sequence `(``)``{` _ :rawCode _ `}`  { ActionNode(sequence, rawCode, areIndicesProvided: true) }
+  | :sequence       `{` _ :rawCode _ `}`  { InlineActionNode(sequence, rawCode, areIndicesProvided: true ) }
+  /// Node code.
+  // | :sequence mac::parse `{` body:choice `}` { throw UnsupportedError("Not yet!") }
+  | sequence
+  ;
+
+/// A parser that parses a sequence of parsers.
+///   By default, a sequence parser returns a [Record] of the results of the parsers.
+Node sequence =
+  /// By specifying which item to keep, the specific item can be returned.
+  | body:_.labeled+ `@` :number {
+      body.length == 1
+        ? body.single
+        : SequenceNode(body, choose: number)
+    }
+  | _.labeled+ { $.length == 1 ? $.single : SequenceNode($, choose: null) }
+  ;
+
+/// A parser that adds the label to the declaration of the value.
+Node labeled =
+  /// The default label. You can label any expression by adding a colon and an identifier.
+  /// The label must not have a space before the colon.
+  | :identifier ":" _ :separated { NamedNode(identifier, separated) }
+
+  /// Special cases, where the name can be inferred from the context.
+  | ":" identifier `?` { NamedNode($1, OptionalNode(ReferenceNode($1))) }
+  | ":" identifier `*` { NamedNode($1, StarNode(ReferenceNode($1))) }
+  | ":" identifier `+` { NamedNode($1, PlusNode(ReferenceNode($1))) }
+  | ":" identifier     { NamedNode($1, ReferenceNode($1)) }
+  | separated
+  ;
+
+/// A parser that is separated by a separator.
+///   For ambiguity, both the separator and the body must be an atomic parser.
+Node separated =
+  | :number `.` :atom                              { CountedNode(number, number, atom) }
+  | `[` :number `]` `.`? :atom                     { CountedNode(number, number, atom) }
+  | `[` min:number `..` `]` `.`? :atom             { CountedNode(min, null, atom) }
+  | `[` min:number `..` max:number `]` `.`?  :atom { CountedNode(min, max, atom) }
+  /// Pegen style separators.
+  | sep:atom `.` expr:atom `+` `?` { PlusSeparatedNode(sep, expr, isTrailingAllowed: true) }
+  | sep:atom `.` expr:atom `*` `?` { StarSeparatedNode(sep, expr, isTrailingAllowed: true) }
+  | sep:atom `.` expr:atom `+`     { PlusSeparatedNode(sep, expr, isTrailingAllowed: false) }
+  | sep:atom `.` expr:atom `*`     { StarSeparatedNode(sep, expr, isTrailingAllowed: false) }
+  | postfix
+  ;
+
+/// A parser that is quantified.
+///   Can be nested, but shouldn't be used in practice.
+Node postfix =
+  | postfix `?` @0 { OptionalNode($) }
+  | postfix `*` @0 { StarNode($) }
+  | postfix `+` @0 { PlusNode($) }
+  | prefix
+  ;
+
+/// A parser that is prefixed.
+///   Usually with disambiguators such as `and-predicate` and `not-predicate`.
+Node prefix =
+  | `&` prefix @1 { AndPredicateNode($) }
+  | `!` prefix @1 { NotPredicateNode($) }
+  | atom
+  ;
+
+/// A parser that can be qualified as a group.
+///   These are usually parsers that are delimited.
+Node atom =
+  /// "Macro" style separators.
+  | mac::sep `(` `+` `?` `)` `{` sep:atom _ body:atom `}` { PlusSeparatedNode(sep, body, isTrailingAllowed: true) }
+  | mac::sep `(` `*` `?` `)` `{` sep:atom _ body:atom `}` { StarSeparatedNode(sep, body, isTrailingAllowed: true) }
+  | mac::sep `(` `+` `)` `{` sep:atom _ body:atom `}`     { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | mac::sep `(` `*` `)` `{` sep:atom _ body:atom `}`     { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | mac::sep `{` sep:atom _ body:atom `}`                 { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  /// Basic atomic parsers.
+  | `(` choice `)` @1
+  | specialSymbol
+  | regExpLiteral { RegExpNode(RegExp($)) }
+  | stringLiteral { StringLiteralNode($) }
+  | name          { ReferenceNode($) }
+  ;
+
+/// A special parser with their own syntax.
+Node specialSymbol =
+  | (`^`   | kw::start)     { const StartOfInputNode() }
+  | (`$`   | kw::end)       { const EndOfInputNode() }
+  | (`.`   | kw::any)       { const AnyCharacterNode() }
+  | (`ε`   | kw::epsilon)   { const EpsilonNode() }
+  // TODO: Add regex backslash symbols.
+  | regexEscape::backslash { const StringLiteralNode(r"\") }
+  | regexEscape::digit     { SimpleRegExpEscapeNode.digit }
+  | regexEscape::space     { SimpleRegExpEscapeNode.whitespace }
+  ;
+
+String rawCode = code:(!"{" !"}" . @2 | "{" :rawCode "}" @1 {"{${$}}"})* { code.join() };
+
+String identifier = /[a-zA-Z_][a-zA-Z\d_]*/;
+String regExpLiteral =
+  | "/" ((\\ . @1 { r"\" + $ } | !"/" . @1)+ { $.join() } ) "/" @1
+  | r'r"{3}((?:(?:\\.)|(?!"{3}).)*)"{3}' { $.substring(4, $.length - 3) }
+  | r"r'{3}((?:(?:\\.)|(?!'{3}).)*)'{3}" { $.substring(4, $.length - 3) }
+  | r'r"((?:(?:\\.)|[^"])*)"'            { $.substring(2, $.length - 1) }
+  | r"r'((?:(?:\\.)|[^'])*)'"            { $.substring(2, $.length - 1) };
+
+String stringLiteral =
+  | '"""' ((\\ . @1 | !'"""' . @1)* { $.join() }) '"""' @1
+  | "'''" ((\\ . @1 | !"'''" . @1)* { $.join() }) "'''" @1
+  | '"'   ((\\ . @1 | !'"'   . @1)* { $.join() }) '"'   @1
+  | "'"   ((\\ . @1 | !"'"   . @1)* { $.join() }) "'"   @1;
+
+String rawLiteral = "`" inner:(!"`" . @1)* "`" () {
+  StringBuffer buffer = StringBuffer(r"$");
+
+  for (var (int i, String character) in inner.indexed) {
+    int unit = character.codeUnits.single;
+
+    if (64 + 1 <= unit && unit <= 64 + 26 || 96 + 1 <= unit && unit <= 96 + 26) {
+      buffer.write(character);
+    } else {
+      buffer.write(unit);
+      if (i < inner.length - 1) {
+        buffer.write("_");
+      }
+    }
+  }
+
+  return buffer.toString();
+};
+int number = \d+ { int.parse(buffer.substring(from, to)) };
+
+/// Rules related to general expressions.
+
+/// Rules related to types declarations.
+type {
+  String nullable =
+    | _ :nonNullable _ `?` { "$nonNullable?" }
+    | _ nonNullable _ @1;
+
+  String nonNullable = _ (generic | record | base) _ @1;
+
+  /// A record type.
+  ///   The fields can be positional or named.
+  ///   The fields are separated by commas.
+  String record =
+    | `(` (`{` fields::named `}` @1)? `)` {
+        "(" + ($1 == null ? "" : "{" + $1 + "}") + ")"
+      }
+    | `(` field::positional `,` (`{` fields::named `}` @1)? `)` {
+        "(${$1}, ${$3 == null ? "" : "{${$3}}"})"
+      }
+    | `(` fields::positional (`,` `{` fields::named `}` @2)? `)` {
+        "(" + $1 + ($2 == null ? "" : ", {" + $2 + "}") + ")"
+      }
+    ;
+
+  String generic = :base `<` :arguments `>` { "$base<$arguments>" };
+  String arguments = `,`.nullable+          { $.join(", ") };
+
+  String base = `.`.identifier+ { $.join(".") };
+
+  fields {
+    String positional = `,`.field::positional+ { $.join(", ") };
+    String named      = `,`.field::named+      { $.join(", ") };
+  }
+
+  field {
+    String positional = nullable _ identifier? { "${$0} ${$2 ?? ""}".trimRight() };
+    String named      = nullable _ identifier  { "${$0} ${$2}" };
+  }
+}
+
+/// Tokens used in the grammar.
+kw {
+  String rule      = _ "@rule" _        @1;
+  String fragment  = _ "@fragment" _    @1;
+  String start     = _ "startOfInput" _ @1;
+  String end       = _ "endOfInput" _   @1;
+  String backslash = _ "backslash" _    @1;
+  String epsilon   = _ "epsilon" _    @1;
+  String any       = _ "any" _          @1;
+  String var       = _ "var" _          @1;
+}
+
+/// Tokens used in "macro-like" rules.
+mac {
+  String sep       = _ "sep!" _   @1;
+  String parse     = _ "=>" _ @1;
+}
+
+regexEscape {
+  @fragment String backslash       = _ (\\ \\  { buffer.substring(from, to) }) _ @1;
+  @fragment String digit           = _ (\\ "d" { buffer.substring(from, to) }) _ @1;
+  @fragment String word            = _ (\\ "w" { buffer.substring(from, to) }) _ @1;
+  @fragment String space           = _ (\\ "s" { buffer.substring(from, to) }) _ @1;
+  @fragment String tab             = _ (\\ "t" { buffer.substring(from, to) }) _ @1;
+  @fragment String formFeed        = _ (\\ "f" { buffer.substring(from, to) }) _ @1;
+  @fragment String verticalTab     = _ (\\ "v" { buffer.substring(from, to) }) _ @1;
+  @fragment String null            = _ (\\ "0" { buffer.substring(from, to) }) _ @1;
+  @fragment String control         = _ (\\ "c" { buffer.substring(from, to) }) _ @1;
+  @fragment String hex             = _ (\\ "x" { buffer.substring(from, to) }) _ @1;
+  @fragment String unicode         = _ (\\ "u" { buffer.substring(from, to) }) _ @1;
+  @fragment String unicodeExtended = _ (\\ "U" { buffer.substring(from, to) }) _ @1;
+  @fragment String literal         = _ (\\ "." { buffer.substring(from, to) }) _ @1;
+}
+
+
+`..`  = _ 2."." _ @1;
+`::`  = _ 2.":" _ @1;
+`%%`  = _ 2."%" _ @1;
+
+`ε`   = _ "ε"  _ @1;
+`@`   = _ "@"  _ @1;
+`<`   = _ "<"  _ @1;
+`>`   = _ ">"  _ @1;
+`]`   = _ "]"  _ @1;
+`[`   = _ "["  _ @1;
+`}`   = _ "}"  _ @1;
+`{`   = _ "{"  _ @1;
+`)`   = _ ")"  _ @1;
+`(`   = _ "("  _ @1;
+`^`   = _ "^"  _ @1;
+`$`   = _ "$"  _ @1;
+`.`   = _ "."  _ @1;
+`,`   = _ ","  _ @1;
+`:`   = _ ":"  _ @1;
+`;`   = _ ";"  _ @1;
+`|`   = _ "|"  _ @1;
+`=`   = _ "="  _ @1;
+`?`   = _ "?"  _ @1;
+`!`   = _ "!"  _ @1;
+`&`   = _ "&"  _ @1;
+`*`   = _ "*"  _ @1;
+`+`   = _ "+"  _ @1;
+
+/// Layout parser allows comments (like this) and space between parsers.
+_  = (\s | r"\/{2}.*(?:(?:\r?\n)|(?:$))")* { "" };

@@ -1,0 +1,9 @@
+_ = full? { $ != null };
+full = ^ rec $;
+rec: Object =
+  | rec rec
+  | "(" rec ")"
+  | "[" rec "]"
+  | "{" rec "}"
+  | ε
+  ;

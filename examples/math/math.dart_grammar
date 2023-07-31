@@ -1,0 +1,35 @@
+{
+import "dart:math" as math show pow;
+}
+
+num rule = ^ expr $ @1;
+
+num expr =
+  | :expr _ "+" _ :term { expr + term }
+  | :expr _ "-" _ :term { expr - term }
+  | term;
+
+num term =
+  | :term _ "*" _ :negative  { term * negative }
+  | :term _ "/" _ :negative  { term / negative }
+  | :term _ "%" _ :negative  { term % negative }
+  | :term _ "~/" _ :negative { term ~/ negative }
+  | negative;
+
+num negative =
+  | '-' _ :negative { -negative }
+  | factor
+  ;
+
+num factor =
+  | :primary _ "^" _ :factor { math.pow(primary, factor) }
+  | primary;
+
+num primary = "(" _ expr _ ")" @2 | number;
+
+num number =
+  | \d+ "." \d+ { double.parse(buffer.substring(from, to)) }
+  | \d+         { int.parse(buffer.substring(from, to)) };
+
+
+_ = (r"\s")* { "" };

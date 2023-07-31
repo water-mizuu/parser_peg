@@ -1,0 +1,8 @@
+name: parser_peg
+environment:
+  sdk: ">=3.1.0-0"
+
+dependencies:
+  code:
+    git:
+      url: https://github.com/water-mizuu/code.git
