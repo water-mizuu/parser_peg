@@ -55,57 +55,89 @@ const List<String> ignores = <String>[
 
 final class ParserGenerator {
   ParserGenerator.fromParsed({required List<Statement> statements, this.preamble}) {
-    statements
-      ..forEach(addReferencesRules)
-      ..forEach(processStatement);
+    /// We add ALL the rules in advance.
+    ///   Why? Because we need ALL the rules to be able to resolve references.
+    for (Statement statement in statements) {
+      addResolvedRules(statement, ["global"], Tag.none);
+    }
+
+    /// Resolve the references from inside namespaces.
+    for (Statement statement in statements) {
+      processStatement(statement, ["global"], Tag.none);
+    }
+
+    /// And finally, we simplify the rules to prepare for codegen.
     if (SimplifyVisitor() case SimplifyVisitor visitor) {
-      for (var (target, (name, (type, node))) in rules.pairs //
-          .map((v) => (rules, v))
-          .followedBy(fragments.pairs.map((v) => (fragments, v)))) {
-        target[name] = (type, node.acceptSimplifierVisitor(visitor, 0));
+      for (var (name, (type, node)) in rules.pairs) {
+        rules[name] = (type, node.acceptSimplifierVisitor(visitor, 0));
       }
+      for (var (name, (type, node)) in fragments.pairs) {
+        fragments[name] = (type, node.acceptSimplifierVisitor(visitor, 0));
+      }
+
+      /// Since the simplifier visitor can add new fragments, we need to add them.
       fragments.addAll(visitor.addedFragments);
     }
   }
 
-  void addReferencesRules(Statement statement, [List<String> prefix = const <String>[]]) {
+  /// Adds the rules from [Statement]s to the [rules] and [fragments] maps.
+  void addResolvedRules(Statement statement, List<String> prefix, Tag tag) {
     switch (statement) {
-      case DeclarationStatement(:Iterable<(DeclarationEntry, {bool isFragment})> entries):
-        for (var (
-              DeclarationEntry(key: (String? type, String name), value: Node node),
-              :bool isFragment,
-            ) in entries) {
-          if (isFragment) {
-            fragments[<String>[...prefix, name].join("__")] = (type, node);
-          } else {
-            rules[<String>[...prefix, name].join("__")] = (type, node);
-          }
+      case DeclarationStatement(
+          entry: DeclarationEntry(key: (String? type, String name), value: Node node),
+          tag: Tag declarationTag,
+        ):
+        String resolvedName = <String>[...prefix, name].join("__");
+        switch (declarationTag) {
+          case Tag.fragment:
+            fragments[resolvedName] = (type, node);
+          case Tag.rule:
+            rules[resolvedName] = (type, node);
+          case Tag.none:
+            switch (tag) {
+              case Tag.fragment:
+                fragments[resolvedName] = (type, node);
+              // Default tag is rule.
+              case Tag.none:
+              case Tag.rule:
+                rules[resolvedName] = (type, node);
+            }
         }
-      case NamespaceStatement(:String name, :List<Statement> children):
+      case NamespaceStatement(:String name, :List<Statement> children, :Tag tag):
         for (Statement sub in children) {
-          addReferencesRules(sub, <String>[...prefix, name]);
+          addResolvedRules(sub, <String>[...prefix, name], tag);
         }
     }
   }
 
-  void processStatement(Statement statement, [List<String> prefixes = const <String>[]]) {
+  void processStatement(Statement statement, List<String> prefixes, Tag tag) {
     switch (statement) {
-      case NamespaceStatement(:String name, :List<Statement> children):
+      case NamespaceStatement(:String name, :List<Statement> children, :Tag tag):
         for (Statement sub in children) {
-          processStatement(sub, <String>[...prefixes, name]);
+          processStatement(sub, <String>[...prefixes, name], tag);
         }
       case DeclarationStatement(
           entry: DeclarationEntry(key: (String? type, String name), value: Node node),
-          :bool isFragment,
+          tag: Tag declarationTag,
         ):
         ResolveReferencesVisitor visitor = ResolveReferencesVisitor(prefixes, rules, fragments);
         String resolvedName = <String>[...prefixes, name].join("__");
         Node resolvedNode = node.acceptSimpleVisitor(visitor);
 
-        if (isFragment) {
-          fragments[resolvedName] = (type, resolvedNode);
-        } else {
-          rules[resolvedName] = (type, resolvedNode);
+        switch (declarationTag) {
+          case Tag.fragment:
+            fragments[resolvedName] = (type, resolvedNode);
+          case Tag.rule:
+            rules[resolvedName] = (type, resolvedNode);
+          case Tag.none:
+            switch (tag) {
+              case Tag.fragment:
+                fragments[resolvedName] = (type, resolvedNode);
+              // Default tag is rule.
+              case Tag.none:
+              case Tag.rule:
+                rules[resolvedName] = (type, resolvedNode);
+            }
         }
     }
   }

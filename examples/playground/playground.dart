@@ -251,22 +251,12 @@ final class PlaygroundParser extends _PegParser<Object> {
   PlaygroundParser();
 
   @override
-  get start => _;
+  get start => global___;
 
 
-  late final _ = () {
-    if (this.pos case var from) {
-      if (this.apply(this.full) case var $) {
-        if (this.pos case var to) {
-          return $ != null ;
-        }
-      }
-    }
-  };
-
-  late final full = () {
+  late final global__fragment__full = () {
     if (this.pos case var $0 when this.pos <= 0) {
-      if (this.applyNonNull(this.rec) case var $1) {
+      if (this.applyNonNull(this.global__fragment__rec) case var $1) {
         if (this.pos case var $2 when this.pos >= this.buffer.length) {
           return ($0, $1, $2);
         }
@@ -274,16 +264,26 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  Object rec() {
+  late final global___ = () {
+    if (this.pos case var from) {
+      if (this.global__fragment__full() case var $) {
+        if (this.pos case var to) {
+          return $ != null ;
+        }
+      }
+    }
+  };
+
+  Object global__fragment__rec() {
     if (this.pos case var mark) {
-      if (this.apply(this.rec) case var $0?) {
-        if (this.applyNonNull(this.rec) case var $1) {
+      if (this.apply(this.global__fragment__rec) case var $0?) {
+        if (this.applyNonNull(this.global__fragment__rec) case var $1) {
           return ($0, $1);
         }
       }
       this.pos = mark;
       if (matchPattern("(") case var $0?) {
-        if (this.applyNonNull(this.rec) case var $1) {
+        if (this.applyNonNull(this.global__fragment__rec) case var $1) {
           if (matchPattern(")") case var $2?) {
             return ($0, $1, $2);
           }
@@ -291,7 +291,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (matchPattern("[") case var $0?) {
-        if (this.applyNonNull(this.rec) case var $1) {
+        if (this.applyNonNull(this.global__fragment__rec) case var $1) {
           if (matchPattern("]") case var $2?) {
             return ($0, $1, $2);
           }
@@ -299,7 +299,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (matchPattern("{") case var $0?) {
-        if (this.applyNonNull(this.rec) case var $1) {
+        if (this.applyNonNull(this.global__fragment__rec) case var $1) {
           if (matchPattern("}") case var $2?) {
             return ($0, $1, $2);
           }

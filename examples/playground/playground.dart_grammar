@@ -1,9 +1,13 @@
-_ = full? { $ != null };
-full = ^ rec $;
-rec: Object =
-  | rec rec
-  | "(" rec ")"
-  | "[" rec "]"
-  | "{" rec "}"
-  | ε
-  ;
+_ = fragment::full? { $ != null };
+
+@fragment fragment {
+  full = ^ rec $;
+
+  @rule rec: Object =
+    | rec rec
+    | "(" rec ")"
+    | "[" rec "]"
+    | "{" rec "}"
+    | ε
+    ;
+}
