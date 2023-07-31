@@ -34,13 +34,13 @@ String name =
 Node body = `=` :choice `;` { choice };
 
 Statement namespace =
-  | kw::fragment name:identifier `{` statements:_.statement+ `}` {
+  | kw::fragment name:identifier? `{` statements:_.statement+ `}` {
       NamespaceStatement(name, statements, tag: Tag.fragment)
     }
-  | kw::rule name:identifier `{` statements:_.statement+ `}` {
+  | kw::rule name:identifier? `{` statements:_.statement+ `}` {
       NamespaceStatement(name, statements, tag: Tag.rule)
     }
-  | name:identifier `{` statements:_.statement+ `}` {
+  | name:identifier? `{` statements:_.statement+ `}` {
       NamespaceStatement(name, statements, tag: Tag.none)
     }
   ;

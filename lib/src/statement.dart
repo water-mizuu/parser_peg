@@ -11,7 +11,7 @@ sealed class Statement {}
 final class NamespaceStatement implements Statement {
   NamespaceStatement(this.name, this.children, {required this.tag});
 
-  final String name;
+  final String? name;
   final List<Statement> children;
   final Tag tag;
 }

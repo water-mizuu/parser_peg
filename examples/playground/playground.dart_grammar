@@ -1,6 +1,6 @@
-_ = fragment::full? { $ != null };
+_ = full? { $ != null };
 
-@fragment fragment {
+@fragment {
   full = ^ rec $;
 
   @rule rec: Object =

@@ -1128,7 +1128,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     if (this.pos case var mark) {
       if (this.pos case var from) {
         if (this.apply(this.global__kw__fragment) case var $0?) {
-          if (this.apply(this.global__identifier) case (var $1 && var name)?) {
+          if (this.apply(this.global__identifier) case (var $1 && var name)) {
             if (this.apply(this.global__$123) case var $2?) {
               if (this.apply(this.global__statement) case var _0?) {
                 if ([_0] case (var $3 && var statements && var _loop2)) {
@@ -1161,7 +1161,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.pos case var from) {
         if (this.apply(this.global__kw__rule) case var $0?) {
-          if (this.apply(this.global__identifier) case (var $1 && var name)?) {
+          if (this.apply(this.global__identifier) case (var $1 && var name)) {
             if (this.apply(this.global__$123) case var $2?) {
               if (this.apply(this.global__statement) case var _2?) {
                 if ([_2] case (var $3 && var statements && var _loop4)) {
@@ -1193,7 +1193,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
 
       this.pos = mark;
       if (this.pos case var from) {
-        if (this.apply(this.global__identifier) case (var $0 && var name)?) {
+        if (this.apply(this.global__identifier) case (var $0 && var name)) {
           if (this.apply(this.global__$123) case var $1?) {
             if (this.apply(this.global__statement) case var _4?) {
               if ([_4] case (var $2 && var statements && var _loop6)) {

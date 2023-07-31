@@ -107,15 +107,15 @@ final class ParserGenerator {
         for (Statement sub in children) {
           addResolvedRules(sub, <String>[...prefix, name], tag);
         }
+      case NamespaceStatement(name: null, :List<Statement> children, :Tag tag):
+        for (Statement sub in children) {
+          addResolvedRules(sub, prefix, tag);
+        }
     }
   }
 
   void processStatement(Statement statement, List<String> prefixes, Tag tag) {
     switch (statement) {
-      case NamespaceStatement(:String name, :List<Statement> children, :Tag tag):
-        for (Statement sub in children) {
-          processStatement(sub, <String>[...prefixes, name], tag);
-        }
       case DeclarationStatement(
           entry: DeclarationEntry(key: (String? type, String name), value: Node node),
           tag: Tag declarationTag,
@@ -138,6 +138,14 @@ final class ParserGenerator {
               case Tag.rule:
                 rules[resolvedName] = (type, resolvedNode);
             }
+        }
+      case NamespaceStatement(:String name, :List<Statement> children, :Tag tag):
+        for (Statement sub in children) {
+          processStatement(sub, <String>[...prefixes, name], tag);
+        }
+      case NamespaceStatement(name: null, :List<Statement> children, :Tag tag):
+        for (Statement sub in children) {
+          processStatement(sub, prefixes, tag);
         }
     }
   }
