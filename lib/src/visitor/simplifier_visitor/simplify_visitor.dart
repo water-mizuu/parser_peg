@@ -2,12 +2,6 @@ import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
 class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
-  SimplifyVisitor() : addedFragments = <String, (String?, Node)>{};
-  SimplifyVisitor.withProcessed({
-    required this.addedFragments,
-    required this.fragmentId,
-  });
-
   Node createFragment(Node node) {
     String name = "fragment${fragmentId++}";
     addedFragments[name] = (null, node);
@@ -15,7 +9,7 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
     return FragmentNode(name);
   }
 
-  final Map<String, (String?, Node)> addedFragments;
+  final Map<String, (String?, Node)> addedFragments = <String, (String?, Node)>{};
 
   /// A unique identifier for each fragment.
   int fragmentId = 0;

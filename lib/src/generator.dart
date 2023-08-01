@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_expression_function_bodies, noop_primitive_operations, always_specify_types
+// ignore_for_file: prefer_expression_function_bodies, noop_primitive_operations
 
 import "dart:collection";
 import "dart:convert";
@@ -7,6 +7,7 @@ import "dart:io";
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
 import "package:parser_peg/src/visitor/compiler_visitor/compiler_visitor.dart";
+import "package:parser_peg/src/visitor/simple_visitor/rename_visitors.dart";
 import "package:parser_peg/src/visitor/simple_visitor/resolve_references_visitor.dart";
 import "package:parser_peg/src/visitor/simplifier_visitor/simplify_visitor.dart";
 
@@ -54,29 +55,60 @@ const List<String> ignores = <String>[
 ];
 
 final class ParserGenerator {
-  ParserGenerator.fromParsed({required List<Statement> statements, this.preamble}) {
+  ParserGenerator.fromParsed({required List<Statement> statements, required this.preamble}) {
     /// We add ALL the rules in advance.
     ///   Why? Because we need ALL the rules to be able to resolve references.
     for (Statement statement in statements) {
-      addResolvedRules(statement, ["global"], Tag.none);
+      addResolvedRules(statement, <String>["global"], Tag.none);
     }
 
     /// Resolve the references from inside namespaces.
     for (Statement statement in statements) {
-      processStatement(statement, ["global"], Tag.none);
+      processStatement(statement, <String>["global"], Tag.none);
     }
 
-    /// And finally, we simplify the rules to prepare for codegen.
+    /// We simplify the rules to prepare for codegen.
     if (SimplifyVisitor() case SimplifyVisitor visitor) {
-      for (var (name, (type, node)) in rules.pairs) {
+      for (var (String name, (String? type, Node node)) in rules.pairs) {
         rules[name] = (type, node.acceptSimplifierVisitor(visitor, 0));
       }
-      for (var (name, (type, node)) in fragments.pairs) {
+      for (var (String name, (String? type, Node node)) in fragments.pairs) {
         fragments[name] = (type, node.acceptSimplifierVisitor(visitor, 0));
       }
 
       /// Since the simplifier visitor can add new fragments, we need to add them.
       fragments.addAll(visitor.addedFragments);
+    }
+
+    /// We rename the rules and fragments.
+
+    redirectId = 0;
+    for (var (String name, (String? type, Node node))
+        in Map<String, (String?, Node)>.fromEntries(rules.entries).pairs) {
+      String simplifiedName = "r${redirectId++}";
+
+      rules.remove(name);
+      rules[simplifiedName] = (type, node);
+      redirects[name] = simplifiedName;
+    }
+    redirectId = 0;
+    for (var (String name, (String? type, Node node))
+        in Map<String, (String?, Node)>.fromEntries(fragments.entries).pairs) {
+      String simplifiedName = "f${redirectId++}";
+
+      fragments.remove(name);
+      fragments[simplifiedName] = (type, node);
+      redirects[name] = simplifiedName;
+    }
+
+    /// We rename the references.
+    if (RenameDeclarationVisitor(redirects) case RenameDeclarationVisitor visitor) {
+      for (var (String name, (String? type, Node node)) in rules.pairs) {
+        rules[name] = (type, node.acceptSimpleVisitor(visitor));
+      }
+      for (var (String name, (String? type, Node node)) in fragments.pairs) {
+        fragments[name] = (type, node.acceptSimpleVisitor(visitor));
+      }
     }
   }
 
@@ -158,6 +190,8 @@ final class ParserGenerator {
     }
   }
 
+  int redirectId = 0;
+  final Map<String, String> redirects = <String, String>{};
   final Map<String, (String?, Node)> rules = <String, (String?, Node)>{};
   final Map<String, (String?, Node)> fragments = <String, (String?, Node)>{};
 

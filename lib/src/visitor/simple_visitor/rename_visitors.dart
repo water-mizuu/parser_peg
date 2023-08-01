@@ -1,16 +1,10 @@
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
-class FixReferencesVisitor implements SimpleNodeVisitor<Node> {
-  const FixReferencesVisitor({
-    required this.prefixes,
-    required this.rules,
-    required this.fragments,
-  });
+class RenameDeclarationVisitor implements SimpleNodeVisitor<Node> {
+  const RenameDeclarationVisitor(this.redirects);
 
-  final List<String> prefixes;
-  final Map<String, (String?, Node)> rules;
-  final Map<String, (String?, Node)> fragments;
+  final Map<String, String> redirects;
 
   @override
   Node visitEpsilonNode(EpsilonNode node) {
@@ -109,52 +103,12 @@ class FixReferencesVisitor implements SimpleNodeVisitor<Node> {
 
   @override
   Node visitReferenceNode(ReferenceNode node) {
-    /// We check if the reference exists.
-
-    switch (node.ruleName.replaceAll("::", "__")) {
-      case String safe when rules.containsKey(safe):
-        return ReferenceNode(safe);
-      case String safe when fragments.containsKey(safe):
-        return FragmentNode(safe);
-    }
-
-    for (int i = prefixes.length; i >= 0; --i) {
-      switch (<String>[
-        ...prefixes.sublist(0, i),
-        node.ruleName.replaceAll("::", "__"),
-      ].join("__")) {
-        case String name when rules.containsKey(name):
-          return ReferenceNode(name);
-        case String name when fragments.containsKey(name):
-          return FragmentNode(name);
-      }
-    }
-
-    return throw Exception("Unknown reference: ${node.ruleName}");
+    return ReferenceNode(redirects[node.ruleName] ?? node.ruleName);
   }
 
   @override
   Node visitFragmentNode(FragmentNode node) {
-    switch (node.fragmentName.replaceAll("::", "__")) {
-      case String safe when rules.containsKey(safe):
-        return ReferenceNode(safe);
-      case String safe when fragments.containsKey(safe):
-        return FragmentNode(safe);
-    }
-
-    for (int i = prefixes.length; i >= 0; --i) {
-      switch (<String>[
-        ...prefixes.sublist(0, i),
-        node.fragmentName.replaceAll("::", "__"),
-      ].join("__")) {
-        case String name when rules.containsKey(name):
-          return ReferenceNode(name);
-        case String name when fragments.containsKey(name):
-          return FragmentNode(name);
-      }
-    }
-
-    return throw Exception("Unknown reference: ${node.fragmentName}");
+    return FragmentNode(redirects[node.fragmentName] ?? node.fragmentName);
   }
 
   @override

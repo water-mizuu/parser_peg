@@ -211,7 +211,6 @@ abstract base class _PegParser<R extends Object> {
 }
 
 typedef _Rule<T extends Object> = T? Function();
-typedef _NonNullableRule<T extends Object> = T Function();
 
 class _Head<T extends Object> {
   const _Head({
@@ -248,10 +247,10 @@ final class PlaygroundParser extends _PegParser<Object> {
   PlaygroundParser();
 
   @override
-  get start => global__A;
+  get start => r0;
 
 
-  Object? global__A() {
+  Object? r0() {
     if (this.pos case var mark) {
       if (matchPattern("n") case var _0?) {
         if ([_0] case var _loop2) {

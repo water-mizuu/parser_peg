@@ -104,13 +104,7 @@ Node acted =
 ///   By default, a sequence parser returns a [Record] of the results of the parsers.
 Node sequence =
   /// By specifying which item to keep, the specific item can be returned.
-  | body:_.labeled+ (`@` | `=>`) :number () {
-      if (body.length == 1) {
-        return body.single;
-      } else {
-        return SequenceNode(body, choose: number);
-      }
-    }
+  | body:_.labeled+ (`@` | `=>`) :number { body.length == 1 ? body.single : SequenceNode(body, choose: number) }
   | _.labeled+ { $.length == 1 ? $.single : SequenceNode($, choose: null) }
   ;
 
@@ -133,7 +127,7 @@ Node labeled =
 Node separated =
   /// Parsers with a specific count.
   | min:number `..` max:number? :atom { CountedNode(min, max, atom) }
-  | :number :atom                    { CountedNode(number, number, atom) }
+  | :number :atom                     { CountedNode(number, number, atom) }
   /// Pegen style separators.
   | sep:atom DOT expr:atom `+` trailing:`?`? { PlusSeparatedNode(sep, expr, isTrailingAllowed: trailing != null) }
   | sep:atom DOT expr:atom `*` trailing:`?`? { StarSeparatedNode(sep, expr, isTrailingAllowed: trailing != null) }
@@ -222,9 +216,10 @@ String rawCode = code:(!"{" !"}" . @2 | "{" :rawCode "}" @1 {"{" + $ + "}"})* { 
     main = `[` :elements `]` { RangeNode(elements) };
     elements = _.element+ { $.toSet() };
     element =
-      | l:any "-" r:any { (l.codeUnitAt(0), r.codeUnitAt(0)) }
-      | any             { ($.codeUnitAt(0), $.codeUnitAt(0)) }
+      | l:atom "-" r:atom { (l.codeUnitAt(0), r.codeUnitAt(0)) }
+      | atom              { ($.codeUnitAt(0), $.codeUnitAt(0)) }
       ;
+    atom = !"]" any @1;
   }
 
   raw = "`" inner:(!"`" . @1)* "`" () {
@@ -310,19 +305,19 @@ type {
   }
 
   regexEscape {
-    backslash       = _ (\\ \\  { buffer.substring(from, to) }) _ @1;
-    digit           = _ (\\ "d" { buffer.substring(from, to) }) _ @1;
-    word            = _ (\\ "w" { buffer.substring(from, to) }) _ @1;
-    space           = _ (\\ "s" { buffer.substring(from, to) }) _ @1;
-    tab             = _ (\\ "t" { buffer.substring(from, to) }) _ @1;
-    formFeed        = _ (\\ "f" { buffer.substring(from, to) }) _ @1;
-    verticalTab     = _ (\\ "v" { buffer.substring(from, to) }) _ @1;
-    null            = _ (\\ "0" { buffer.substring(from, to) }) _ @1;
-    control         = _ (\\ "c" { buffer.substring(from, to) }) _ @1;
-    hex             = _ (\\ "x" { buffer.substring(from, to) }) _ @1;
-    unicode         = _ (\\ "u" { buffer.substring(from, to) }) _ @1;
-    unicodeExtended = _ (\\ "U" { buffer.substring(from, to) }) _ @1;
-    literal         = _ (\\ "." { buffer.substring(from, to) }) _ @1;
+    backslash       = _ (\\ r"\" { buffer.substring(from, to) }) _ @1;
+    digit           = _ (\\ r"d" { buffer.substring(from, to) }) _ @1;
+    word            = _ (\\ r"w" { buffer.substring(from, to) }) _ @1;
+    space           = _ (\\ r"s" { buffer.substring(from, to) }) _ @1;
+    tab             = _ (\\ r"t" { buffer.substring(from, to) }) _ @1;
+    formFeed        = _ (\\ r"f" { buffer.substring(from, to) }) _ @1;
+    verticalTab     = _ (\\ r"v" { buffer.substring(from, to) }) _ @1;
+    null            = _ (\\ r"0" { buffer.substring(from, to) }) _ @1;
+    control         = _ (\\ r"c" { buffer.substring(from, to) }) _ @1;
+    hex             = _ (\\ r"x" { buffer.substring(from, to) }) _ @1;
+    unicode         = _ (\\ r"u" { buffer.substring(from, to) }) _ @1;
+    unicodeExtended = _ (\\ r"U" { buffer.substring(from, to) }) _ @1;
+    literal         = _ (\\ r"." { buffer.substring(from, to) }) _ @1;
   }
 
   /// Literal tokens

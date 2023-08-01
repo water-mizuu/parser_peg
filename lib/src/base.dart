@@ -210,7 +210,6 @@ abstract base class _PegParser<R extends Object> {
 }
 
 typedef _Rule<T extends Object> = T? Function();
-typedef _NonNullableRule<T extends Object> = T Function();
 
 class _Head<T extends Object> {
   const _Head({
