@@ -22,9 +22,13 @@ Statement statement =
   | rule;
 
 @fragment
-String name =
-  | (identifier "::" @0)* literal::raw { $0.isEmpty ? $1 : "${$0.join("::")}::${$1}" }
-  | identifier ("::" identifier @1)*   { $1.isEmpty ? $0 : "${$0}::${$1.join("::")}" };
+String namespacedRaw = (identifier "::" @0)* literal::raw { $0.isEmpty ? $1 : "${$0.join("::")}::${$1}" };
+
+@fragment
+String namespacedIdentifier = "::".identifier+ { $.join("::") };
+
+@fragment
+String name = namespacedRaw | namespacedIdentifier;
 
 @fragment
 Node body = `=` :choice `;` { choice };
@@ -96,10 +100,22 @@ Node labeled =
   | :identifier ":" _ :separated { NamedNode(identifier, separated) }
 
   /// Special cases, where the name can be inferred from the context.
-  | ":" identifier `?` { NamedNode($1, OptionalNode(ReferenceNode($1))) }
-  | ":" identifier `*` { NamedNode($1, StarNode(ReferenceNode($1))) }
-  | ":" identifier `+` { NamedNode($1, PlusNode(ReferenceNode($1))) }
-  | ":" identifier     { NamedNode($1, ReferenceNode($1)) }
+  | ":" id:namespacedIdentifier `?` { switch ((id, id.split("::"))) {
+    (var ref, [..., var name]) => NamedNode(name, OptionalNode(ReferenceNode(ref))),
+    _ => null,
+  } }
+  | ":" id:namespacedIdentifier `*` { switch ((id, id.split("::"))) {
+    (var ref, [..., var name]) => NamedNode(name, StarNode(ReferenceNode(ref))),
+    _ => null,
+  } }
+  | ":" id:namespacedIdentifier `+` { switch ((id, id.split("::"))) {
+    (var ref, [..., var name]) => NamedNode(name, PlusNode(ReferenceNode(ref))),
+    _ => null,
+  } }
+  | ":" id:namespacedIdentifier { switch ((id, id.split("::"))) {
+    (var ref, [..., var name]) => NamedNode(name, ReferenceNode(ref)),
+    _ => null,
+  } }
   /// Fallback
   | separated
   ;
@@ -270,7 +286,7 @@ dart {
 
 /// Rules related to types declarations.
 type {
-  String main = raw | nonNullable;
+  String main = _ raw _ @1 | nonNullable;
   String nullable    = _ :nonNullable _ `?`? { $3 == null ? "$nonNullable" : "$nonNullable?" };
   String nonNullable = _ (generic | record | base) _ @1;
 

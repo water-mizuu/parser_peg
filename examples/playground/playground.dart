@@ -317,7 +317,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       if (this.pos case var mark) {
         if (this.matchPattern("\$") case var $0?) {
           this.pos = mark;
-          if (this.apply(this.r2) case var $1?) {
+          if (this.apply(this.r3) case var $1?) {
             return ($0, $1);
           }
         }
@@ -352,7 +352,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       if (this.pos case var mark) {
         if (this.matchPattern("\$") case var $0?) {
           this.pos = mark;
-          if (this.apply(this.r2) case var $1?) {
+          if (this.apply(this.r3) case var $1?) {
             return ($0, $1);
           }
         }
@@ -387,7 +387,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       if (this.pos case var mark) {
         if (this.matchPattern("\$") case var $0?) {
           this.pos = mark;
-          if (this.apply(this.r2) case var $1?) {
+          if (this.apply(this.r3) case var $1?) {
             return ($0, $1);
           }
         }
@@ -422,7 +422,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       if (this.pos case var mark) {
         if (this.matchPattern("\$") case var $0?) {
           this.pos = mark;
-          if (this.apply(this.r2) case var $1?) {
+          if (this.apply(this.r3) case var $1?) {
             return ($0, $1);
           }
         }
@@ -446,7 +446,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   late final f8 = () {
     if (this.pos case var mark) {
       if (this.matchPattern("{") case var $0?) {
-        if (this.apply(this.r3)! case var $1) {
+        if (this.apply(this.r4)! case var $1) {
           if (this.matchPattern("}") case var $2?) {
             return $1;
           }
@@ -472,15 +472,26 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
+  /// global::root
+  late final r0 = () {
+    if (this.pos case var from) {
+      if (this.apply(this.r1) case (var $ && var string)?) {
+        if (this.pos case var to) {
+          return [string, string] ;
+        }
+      }
+    }
+  };
+
   /// global::dart::literal::string
-  Object? r0() {
-    if (this.apply(this.r1) case var $?) {
+  Object? r1() {
+    if (this.apply(this.r2) case var $?) {
       return $;
     }
   }
 
   /// global::dart::literal::string::main
-  Object? r1() {
+  Object? r2() {
     if (this.pos case var mark) {
       if (this.matchPattern("r") case var $0?) {
         if (this.matchPattern("\"\"\"") case var $1?) {
@@ -701,11 +712,11 @@ final class PlaygroundParser extends _PegParser<Object> {
   }
 
   /// global::dart::literal::string::interpolation
-  Object? r2() {
+  Object? r3() {
     if (this.pos case var mark) {
       if (this.matchPattern("\$") case var $0?) {
         if (this.matchPattern("{") case var $1?) {
-          if (this.apply(this.r3)! case var $2) {
+          if (this.apply(this.r4)! case var $2) {
             if (this.matchPattern("}") case var $3?) {
               return ($0, $1, $2, $3);
             }
@@ -714,7 +725,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.matchPattern("\$") case var $0?) {
-        if (this.apply(this.r4) case var $1?) {
+        if (this.apply(this.r5) case var $1?) {
           return ($0, $1);
         }
       }
@@ -722,7 +733,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   }
 
   /// global::dart::literal::string::balanced
-  Object r3() {
+  Object r4() {
     if (this.pos case var mark) {
       if (this.f8() case var _0) {
         if ([if (_0 case var _0?) _0] case (var code && var _loop2)) {
@@ -747,7 +758,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   }
 
   /// global::dart::literal::identifier
-  String? r4() {
+  String? r5() {
     if (this.pos case var from) {
       if (this.matchRange({ (97, 122), (65, 90), (95, 95), (36, 36) }) case var $0?) {
         if (this.pos case var mark) {
@@ -780,7 +791,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   }
 
   /// global::std::any
-  String? r5() {
+  String? r6() {
     if (pos < buffer.length) {
       if (buffer[pos] case var $) {
         pos++;
@@ -790,49 +801,49 @@ final class PlaygroundParser extends _PegParser<Object> {
   }
 
   /// global::std::epsilon
-  String r6() {
+  String r7() {
     if ('' case var $) {
       return $;
     }
   }
 
   /// global::std::start
-  int? r7() {
+  int? r8() {
     if (this.pos case var $ when this.pos <= 0) {
       return $;
     }
   }
 
   /// global::std::end
-  int? r8() {
+  int? r9() {
     if (this.pos case var $ when this.pos >= this.buffer.length) {
       return $;
     }
   }
 
   /// global::std::digit
-  String? r9() {
+  String? r10() {
     if (matchPattern(_regexp.$1) case var $?) {
       return $;
     }
   }
 
   /// global::std::alpha
-  String? r10() {
+  String? r11() {
     if (matchPattern(_regexp.$2) case var $?) {
       return $;
     }
   }
 
   /// global::std::alpha::lower
-  String? r11() {
+  String? r12() {
     if (matchPattern(_regexp.$3) case var $?) {
       return $;
     }
   }
 
   /// global::std::alpha::upper
-  String? r12() {
+  String? r13() {
     if (matchPattern(_regexp.$4) case var $?) {
       return $;
     }

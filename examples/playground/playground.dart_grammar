@@ -1,3 +1,4 @@
+root = :dart::literal::string { [string, string] };
 
 dart {
   literal {
