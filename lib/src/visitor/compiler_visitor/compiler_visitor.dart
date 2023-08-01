@@ -256,13 +256,21 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
       loopBuffer.writeln("      break;");
       loopBuffer.writeln("    }");
       loopBuffer.writeln("  }");
-      loopBuffer.writeln("  if ($containerName.length >= ${node.min}) {");
-      if (inner != null) {
-        loopBuffer.writeln(inner.indent(2));
+      if (node.min > 1) {
+        loopBuffer.writeln("  if ($containerName.length >= ${node.min}) {");
+        if (inner != null) {
+          loopBuffer.writeln(inner.indent(2));
+        } else {
+          loopBuffer.writeln("return $containerName;".indent(2));
+        }
+        loopBuffer.writeln("  }");
       } else {
-        loopBuffer.writeln("return $containerName;".indent(2));
+        if (inner != null) {
+          loopBuffer.writeln(inner.indent());
+        } else {
+          loopBuffer.writeln("return $containerName;".indent());
+        }
       }
-      loopBuffer.writeln("  }");
       loopBuffer.writeln("}");
 
       return node.child.acceptCompilerVisitor(
@@ -291,13 +299,15 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
         "case ${withNames.varNames}) {",
       );
       loopBuffer.writeln("    if ($containerName.isNotEmpty) {");
-      loopBuffer.writeln("      while ($containerName.length < ${node.max}) {");
+      loopBuffer.writeln("      while (${node.max == null ? "true" : "$containerName.length < ${node.max}"}) {");
       loopBuffer.writeln("        if (this.pos case var mark) {");
       loopBuffer.writeln(loopBody);
       loopBuffer.writeln("          this.pos = mark;");
       loopBuffer.writeln("          break;");
       loopBuffer.writeln("        }");
       loopBuffer.writeln("      }");
+      loopBuffer.writeln("    } else {");
+      loopBuffer.writeln("      this.pos = mark;");
       loopBuffer.writeln("    }");
       if (inner case String inner) {
         loopBuffer.writeln(inner.indent(2));
@@ -647,7 +657,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     String ruleName = fixName(node.ruleName);
 
     List<String> buffer = <String>[
-      "if (this.apply${ruleIsNullable ? "NonNull" : ""}(this.$ruleName) case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
+      "if (this.apply(this.$ruleName)${ruleIsNullable ? "!" : ""} case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
       if (inner != null) //
         inner.indent()
       else

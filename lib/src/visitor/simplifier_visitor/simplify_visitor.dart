@@ -75,8 +75,8 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
 
   @override
   Node visitChoiceNode(ChoiceNode node, int depth) {
-    StringLiteralNode? strings = node.children.whereType<StringLiteralNode>().firstOrNull;
-    if (strings == null) {
+    List<StringLiteralNode> strings = node.children.whereType<StringLiteralNode>().toList();
+    if (strings.length < 2) {
       if (depth > 0) {
         Node generated = createFragment(
           ChoiceNode(<Node>[for (Node child in node.children) child.acceptSimplifierVisitor(this, 0)]),

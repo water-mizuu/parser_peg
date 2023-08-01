@@ -37,5 +37,5 @@ void main(List<String> arguments) {
   }
 
   PlaygroundParser parser = PlaygroundParser();
-  stdout.writeln(parser.parse("(())(())"));
+  stdout.writeln(parser.parse("nnnnnnnn"));
 }

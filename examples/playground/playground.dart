@@ -75,9 +75,6 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
-  @pragma("vm:prefer-inline")
-  T applyNonNull<T extends Object>(_NonNullableRule<T> r, [int? p]) => apply<T>(r, p)!;
-
   T? apply<T extends Object>(_Rule<T> r, [int? p]) {
     p ??= this.pos;
 
@@ -251,63 +248,41 @@ final class PlaygroundParser extends _PegParser<Object> {
   PlaygroundParser();
 
   @override
-  get start => global___;
+  get start => global__A;
 
 
-  late final global__full = () {
-    if (this.pos case var $0 when this.pos <= 0) {
-      if (this.applyNonNull(this.global__rec) case var $1) {
-        if (this.pos case var $2 when this.pos >= this.buffer.length) {
-          return ($0, $1, $2);
-        }
-      }
-    }
-  };
-
-  late final global___ = () {
-    if (this.pos case var from) {
-      if (this.global__full() case var $) {
-        if (this.pos case var to) {
-          return $ != null ;
-        }
-      }
-    }
-  };
-
-  Object global__rec() {
+  Object? global__A() {
     if (this.pos case var mark) {
-      if (this.apply(this.global__rec) case var $0?) {
-        if (this.applyNonNull(this.global__rec) case var $1) {
-          return ($0, $1);
-        }
-      }
-      this.pos = mark;
-      if (matchPattern("(") case var $0?) {
-        if (this.applyNonNull(this.global__rec) case var $1) {
-          if (matchPattern(")") case var $2?) {
-            return ($0, $1, $2);
+      if (matchPattern("n") case var _0?) {
+        if ([_0] case var _loop2) {
+          while (true) {
+            if (this.pos case var mark) {
+              if (matchPattern("n") case var _0?) {
+                _loop2.add(_0);
+                continue;
+              }
+              this.pos = mark;
+              break;
+            }
           }
+          return _loop2;
         }
       }
       this.pos = mark;
-      if (matchPattern("[") case var $0?) {
-        if (this.applyNonNull(this.global__rec) case var $1) {
-          if (matchPattern("]") case var $2?) {
-            return ($0, $1, $2);
+      if (matchPattern("n") case var _2?) {
+        if ([_2] case var _loop4) {
+          for (;;) {
+            if (this.pos case var mark) {
+              if (matchPattern("n") case var _2?) {
+                _loop4.add(_2);
+                continue;
+              }
+              this.pos = mark;
+              break;
+            }
           }
+          return _loop4;
         }
-      }
-      this.pos = mark;
-      if (matchPattern("{") case var $0?) {
-        if (this.applyNonNull(this.global__rec) case var $1) {
-          if (matchPattern("}") case var $2?) {
-            return ($0, $1, $2);
-          }
-        }
-      }
-      this.pos = mark;
-      if ('' case var $) {
-        return $;
       }
     }
   }

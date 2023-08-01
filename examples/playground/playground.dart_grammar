@@ -1,14 +1,1 @@
-_ = full? { $ != null };
-
-@fragment {
-  full = ^ rec $;
-
-  @rule
-  Object rec =
-    | rec rec
-    | "(" rec ")"
-    | "[" rec "]"
-    | "{" rec "}"
-    | ε
-    ;
-}
+Object A = 1.."n" | "n"+;

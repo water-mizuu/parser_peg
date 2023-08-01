@@ -74,9 +74,6 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
-  @pragma("vm:prefer-inline")
-  T applyNonNull<T extends Object>(_NonNullableRule<T> r, [int? p]) => apply<T>(r, p)!;
-
   T? apply<T extends Object>(_Rule<T> r, [int? p]) {
     p ??= this.pos;
 
