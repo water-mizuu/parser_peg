@@ -116,7 +116,9 @@ final class ParserGenerator {
   void addResolvedRules(Statement statement, List<String> prefix, Tag? tag) {
     switch (statement) {
       case DeclarationStatement(
-          entry: DeclarationEntry(key: (String? type, String name), value: Node node),
+          :String? type,
+          :String name,
+          :Node node,
           tag: Tag? declarationTag,
         ):
         String resolvedName = <String>[...prefix, name].join("::");
@@ -157,7 +159,9 @@ final class ParserGenerator {
   void processStatement(Statement statement, List<String> prefixes, Tag? tag) {
     switch (statement) {
       case DeclarationStatement(
-          entry: DeclarationEntry(key: (String? type, String name), value: Node node),
+          :String? type,
+          :String name,
+          :Node node,
           tag: Tag? declarationTag,
         ):
         ResolveReferencesVisitor visitor = ResolveReferencesVisitor(prefixes, rules, fragments);

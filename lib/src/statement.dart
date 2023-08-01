@@ -16,8 +16,10 @@ final class NamespaceStatement implements Statement {
 }
 
 final class DeclarationStatement implements Statement {
-  DeclarationStatement(this.entry, {required this.tag});
+  DeclarationStatement(this.type, this.name, this.node, {required this.tag});
 
-  final MapEntry<(String?, String), Node> entry;
+  final String? type;
+  final String name;
+  final Node node;
   final Tag? tag;
 }

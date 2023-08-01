@@ -5,9 +5,10 @@
 
 import "dart:collection";
 import "dart:math" as math;
+
+import "package:parser_peg/src/generator.dart";
 // PREAMBLE
 import "package:parser_peg/src/node.dart";
-import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
 
 typedef ParserArgument = MapEntry<(String?, String), Node>;
@@ -2591,7 +2592,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
               if (this.f1() case (var $3 && var body)?) {
                 if (($0, $1, $2, $3) case var $) {
                   if (this.pos case var to) {
-                    return DeclarationStatement(MapEntry((null, name), body), tag: $0 == null ? null : Tag.rule);
+                    return DeclarationStatement(null, name, body, tag: $0 == null ? null : Tag.rule);
                   }
                 }
               }
@@ -2607,7 +2608,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
             if (this.f1() case (var $2 && var body)?) {
               if (($0, $1, $2) case var $) {
                 if (this.pos case var to) {
-                  return DeclarationStatement(MapEntry((null, name), body), tag: $0 == null ? null : Tag.rule);
+                  return DeclarationStatement(null, name, body, tag: $0 == null ? null : Tag.rule);
                 }
               }
             }
@@ -2623,7 +2624,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
               if (this.f1() case (var $3 && var body)?) {
                 if (($0, $1, $2, $3) case var $) {
                   if (this.pos case var to) {
-                    return DeclarationStatement(MapEntry((type, name), body), tag: $0 == null ? null : Tag.rule);
+                    return DeclarationStatement(type, name, body, tag: $0 == null ? null : Tag.rule);
                   }
                 }
               }
@@ -2641,7 +2642,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
                 if (this.f1() case (var $4 && var body)?) {
                   if (($0, $1, $2, $3, $4) case var $) {
                     if (this.pos case var to) {
-                      return DeclarationStatement(MapEntry((type, name), body), tag: $0 == null ? null : Tag.rule);
+                      return DeclarationStatement(type, name, body, tag: $0 == null ? null : Tag.rule);
                     }
                   }
                 }
@@ -2663,7 +2664,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
               if (this.f1() case (var $3 && var body)?) {
                 if (($0, $1, $2, $3) case var $) {
                   if (this.pos case var to) {
-                    return DeclarationStatement(MapEntry((null, name), body), tag: Tag.fragment);
+                    return DeclarationStatement(null, name, body, tag: Tag.fragment);
                   }
                 }
               }
@@ -2679,7 +2680,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
             if (this.f1() case (var $2 && var body)?) {
               if (($0, $1, $2) case var $) {
                 if (this.pos case var to) {
-                  return DeclarationStatement(MapEntry((null, name), body), tag: Tag.fragment);
+                  return DeclarationStatement(null, name, body, tag: Tag.fragment);
                 }
               }
             }
@@ -2695,7 +2696,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
               if (this.f1() case (var $3 && var body)?) {
                 if (($0, $1, $2, $3) case var $) {
                   if (this.pos case var to) {
-                    return DeclarationStatement(MapEntry((type, name), body), tag: Tag.fragment);
+                    return DeclarationStatement(type, name, body, tag: Tag.fragment);
                   }
                 }
               }
@@ -2713,7 +2714,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
                 if (this.f1() case (var $4 && var body)?) {
                   if (($0, $1, $2, $3, $4) case var $) {
                     if (this.pos case var to) {
-                      return DeclarationStatement(MapEntry((type, name), body), tag: Tag.fragment);
+                      return DeclarationStatement(type, name, body, tag: Tag.fragment);
                     }
                   }
                 }

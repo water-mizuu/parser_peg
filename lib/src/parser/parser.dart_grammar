@@ -2,9 +2,6 @@
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
-
-typedef ParserArgument = MapEntry<(String?, String), Node>;
-typedef ParserArguments = ({Map<(String?, String), Node> rules, Map<(String?, String), Node> fragments});
 }
 
 /// A grammar file contains an optional preamble and statements.
@@ -46,31 +43,31 @@ Statement namespace =
 
 Statement rule =
   | kw::rule? kw::var :name :body {
-      DeclarationStatement(MapEntry((null, name), body), tag: $0 == null ? null : Tag.rule)
+      DeclarationStatement(null, name, body, tag: $0 == null ? null : Tag.rule)
     }
   | kw::rule? :name :body {
-      DeclarationStatement(MapEntry((null, name), body), tag: $0 == null ? null : Tag.rule)
+      DeclarationStatement(null, name, body, tag: $0 == null ? null : Tag.rule)
     }
   | kw::rule? type:(type::main) :name :body {
-      DeclarationStatement(MapEntry((type, name), body), tag: $0 == null ? null : Tag.rule)
+      DeclarationStatement(type, name, body, tag: $0 == null ? null : Tag.rule)
     }
   | kw::rule? :name `:` type:(type::main) :body {
-      DeclarationStatement(MapEntry((type, name), body), tag: $0 == null ? null : Tag.rule)
+      DeclarationStatement(type, name, body, tag: $0 == null ? null : Tag.rule)
     }
   ;
 
 Statement fragment =
   | kw::fragment kw::var :name :body {
-      DeclarationStatement(MapEntry((null, name), body), tag: Tag.fragment)
+      DeclarationStatement(null, name, body, tag: Tag.fragment)
     }
   | kw::fragment :name :body {
-      DeclarationStatement(MapEntry((null, name), body), tag: Tag.fragment)
+      DeclarationStatement(null, name, body, tag: Tag.fragment)
     }
   | kw::fragment type:(type::main) :name :body {
-      DeclarationStatement(MapEntry((type, name), body), tag: Tag.fragment)
+      DeclarationStatement(type, name, body, tag: Tag.fragment)
     }
   | kw::fragment :name `:` type:(type::main) :body {
-      DeclarationStatement(MapEntry((type, name), body), tag: Tag.fragment)
+      DeclarationStatement(type, name, body, tag: Tag.fragment)
     }
   ;
 
@@ -88,7 +85,7 @@ Node acted =
 ///   By default, a sequence parser returns a [Record] of the results of the parsers.
 Node sequence =
   /// By specifying which item to keep, the specific item can be returned.
-  | body:_.labeled+ (`@` | `=>`) :number { body.length == 1 ? body.single : SequenceNode(body, choose: number) }
+  | body:_.labeled+ `@` :number { body.length == 1 ? body.single : SequenceNode(body, choose: number) }
   | _.labeled+ { $.length == 1 ? $.single : SequenceNode($, choose: null) }
   ;
 
@@ -103,8 +100,7 @@ Node labeled =
   | ":" identifier `*` { NamedNode($1, StarNode(ReferenceNode($1))) }
   | ":" identifier `+` { NamedNode($1, PlusNode(ReferenceNode($1))) }
   | ":" identifier     { NamedNode($1, ReferenceNode($1)) }
-  /// When all hope is lost, we add an anonymous name.
-  | ":" :atom { NamedNode(r"$", atom) }
+  /// Fallback
   | separated
   ;
 
