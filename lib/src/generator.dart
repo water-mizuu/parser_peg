@@ -59,12 +59,12 @@ final class ParserGenerator {
     /// We add ALL the rules in advance.
     ///   Why? Because we need ALL the rules to be able to resolve references.
     for (Statement statement in statements) {
-      addResolvedRules(statement, <String>["global"], Tag.none);
+      addResolvedRules(statement, <String>["global"], null);
     }
 
     /// Resolve the references from inside namespaces.
     for (Statement statement in statements) {
-      processStatement(statement, <String>["global"], Tag.none);
+      processStatement(statement, <String>["global"], null);
     }
 
     /// We simplify the rules to prepare for codegen.
@@ -90,6 +90,7 @@ final class ParserGenerator {
       rules.remove(name);
       rules[simplifiedName] = (type, node);
       redirects[name] = simplifiedName;
+      reverseRedirects[simplifiedName] = name;
     }
     redirectId = 0;
     for (var (String name, (String? type, Node node))
@@ -99,6 +100,7 @@ final class ParserGenerator {
       fragments.remove(name);
       fragments[simplifiedName] = (type, node);
       redirects[name] = simplifiedName;
+      reverseRedirects[simplifiedName] = name;
     }
 
     /// We rename the references.
@@ -113,55 +115,55 @@ final class ParserGenerator {
   }
 
   /// Adds the rules from [Statement]s to the [rules] and [fragments] maps.
-  void addResolvedRules(Statement statement, List<String> prefix, Tag tag) {
+  void addResolvedRules(Statement statement, List<String> prefix, Tag? tag) {
     switch (statement) {
       case DeclarationStatement(
           entry: DeclarationEntry(key: (String? type, String name), value: Node node),
-          tag: Tag declarationTag,
+          tag: Tag? declarationTag,
         ):
-        String resolvedName = <String>[...prefix, name].join("__");
+        String resolvedName = <String>[...prefix, name].join("::");
         switch (declarationTag) {
           case Tag.fragment:
             fragments[resolvedName] = (type, node);
           case Tag.rule:
             rules[resolvedName] = (type, node);
-          case Tag.none:
+          case null:
             switch (tag) {
               case Tag.fragment:
                 fragments[resolvedName] = (type, node);
-              // Default tag is rule.
-              case Tag.none:
               case Tag.rule:
+              // Default tag is rule.
+              case null:
                 rules[resolvedName] = (type, node);
             }
         }
       case NamespaceStatement(
           :String name,
           :List<Statement> children,
-          tag: Tag declaredTag,
+          tag: Tag? declaredTag,
         ):
         for (Statement sub in children) {
-          addResolvedRules(sub, <String>[...prefix, name], declaredTag == Tag.none ? tag : declaredTag);
+          addResolvedRules(sub, <String>[...prefix, name], declaredTag ?? tag);
         }
       case NamespaceStatement(
           name: null,
           :List<Statement> children,
-          tag: Tag declaredTag,
+          tag: Tag? declaredTag,
         ):
         for (Statement sub in children) {
-          addResolvedRules(sub, prefix, declaredTag == Tag.none ? tag : declaredTag);
+          addResolvedRules(sub, prefix, declaredTag ?? tag);
         }
     }
   }
 
-  void processStatement(Statement statement, List<String> prefixes, Tag tag) {
+  void processStatement(Statement statement, List<String> prefixes, Tag? tag) {
     switch (statement) {
       case DeclarationStatement(
           entry: DeclarationEntry(key: (String? type, String name), value: Node node),
-          tag: Tag declarationTag,
+          tag: Tag? declarationTag,
         ):
         ResolveReferencesVisitor visitor = ResolveReferencesVisitor(prefixes, rules, fragments);
-        String resolvedName = <String>[...prefixes, name].join("__");
+        String resolvedName = <String>[...prefixes, name].join("::");
         Node resolvedNode = node.acceptSimpleVisitor(visitor);
 
         switch (declarationTag) {
@@ -169,29 +171,30 @@ final class ParserGenerator {
             fragments[resolvedName] = (type, resolvedNode);
           case Tag.rule:
             rules[resolvedName] = (type, resolvedNode);
-          case Tag.none:
+          case null:
             switch (tag) {
               case Tag.fragment:
                 fragments[resolvedName] = (type, resolvedNode);
-              // Default tag is rule.
-              case Tag.none:
               case Tag.rule:
+              // Default tag is rule.
+              case null:
                 rules[resolvedName] = (type, resolvedNode);
             }
         }
-      case NamespaceStatement(:String name, :List<Statement> children, tag: Tag declaredTag):
+      case NamespaceStatement(:String name, :List<Statement> children, tag: Tag? declaredTag):
         for (Statement sub in children) {
-          processStatement(sub, <String>[...prefixes, name], declaredTag == Tag.none ? tag : declaredTag);
+          processStatement(sub, <String>[...prefixes, name], declaredTag ?? tag);
         }
-      case NamespaceStatement(name: null, :List<Statement> children, tag: Tag declaredTag):
+      case NamespaceStatement(name: null, :List<Statement> children, tag: Tag? declaredTag):
         for (Statement sub in children) {
-          processStatement(sub, prefixes, declaredTag == Tag.none ? tag : declaredTag);
+          processStatement(sub, prefixes, declaredTag ?? tag);
         }
     }
   }
 
   int redirectId = 0;
   final Map<String, String> redirects = <String, String>{};
+  final Map<String, String> reverseRedirects = <String, String>{};
   final Map<String, (String?, Node)> rules = <String, (String?, Node)>{};
   final Map<String, (String?, Node)> fragments = <String, (String?, Node)>{};
 
@@ -257,6 +260,9 @@ final class ParserGenerator {
           .indent();
 
       inner.writeln();
+      inner.writeln("/// ```");
+      inner.writeln("/// @fragment ${reverseRedirects[rawName]}");
+      inner.writeln("/// ```");
       if (type == null) {
         inner.writeln("late final $fragmentName = () {");
         inner.writeln(body);
@@ -286,6 +292,9 @@ final class ParserGenerator {
           .indent();
 
       inner.writeln();
+      inner.writeln("/// ```");
+      inner.writeln("/// @rule ${reverseRedirects[rawName]}");
+      inner.writeln("/// ```");
       if (type == null) {
         inner.writeln("late final $ruleName = () {");
         inner.writeln(body);
@@ -356,11 +365,13 @@ final class ParserGenerator {
       SpecialSymbolNode() => false,
       EpsilonNode() => true,
       RangeNode() => false,
-      CountedNode() => node.min <= 0 || isNullable(node.child),
-      TriePatternNode() => node.options.contains(""),
-      StringLiteralNode() => node.value.isEmpty,
-      RegExpNode() => node.value.hasMatch(""),
+      TriePatternNode() => false,
+
+      /// Absolutely false, because [matchPattern] is nullable.
+      RegExpNode() => false,
       RegExpEscapeNode() => false,
+      CountedNode() => node.min <= 0 || isNullable(node.child),
+      StringLiteralNode() => node.value.isEmpty,
       SequenceNode() => (_isNullable[node] = true, node.children.every(isNullable)).$2,
       ChoiceNode() => (_isNullable[node] = false, node.children.any(isNullable)).$2,
       PlusSeparatedNode() => isNullable(node.child) && isNullable(node.separator),

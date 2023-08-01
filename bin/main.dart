@@ -4,8 +4,6 @@ import "dart:io";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/parser/parser.dart";
 
-import "../examples/playground/playground.dart";
-
 String readFile(String path) => File(path).readAsStringSync().replaceAll("\r", "").trim();
 
 void main(List<String> arguments) {
@@ -35,7 +33,4 @@ void main(List<String> arguments) {
       }
     }
   }
-
-  PlaygroundParser parser = PlaygroundParser();
-  stdout.writeln(parser.parse("nnnnnnnn"));
 }

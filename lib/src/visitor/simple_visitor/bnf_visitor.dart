@@ -1,6 +1,5 @@
 import "dart:convert";
 
-import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
@@ -72,12 +71,10 @@ class ImperativeVisitor implements SimpleNodeVisitor<String> {
   String visitNamedNode(NamedNode node) => "${node.name}:${node.child.acceptSimpleVisitor(this).delimit()}";
 
   @override
-  String visitActionNode(ActionNode node) =>
-      "${node.child.acceptSimpleVisitor(this).delimit()} (){\n${node.action.indent()}\n}";
+  String visitActionNode(ActionNode node) => "${node.child.acceptSimpleVisitor(this).delimit()} (){ ... }";
 
   @override
-  String visitInlineActionNode(InlineActionNode node) =>
-      "${node.child.acceptSimpleVisitor(this).delimit()} { ${node.action} }";
+  String visitInlineActionNode(InlineActionNode node) => "${node.child.acceptSimpleVisitor(this).delimit()} { ... }";
 
   @override
   String visitStartOfInputNode(StartOfInputNode node) => "^";

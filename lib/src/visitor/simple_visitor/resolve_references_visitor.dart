@@ -105,13 +105,13 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
     return OptionalNode(node.child.acceptSimpleVisitor(this));
   }
 
-  @override
-  Node visitReferenceNode(ReferenceNode node) {
+  Node resolveReference(String name) {
     for (int i = prefixes.length; i >= 0; --i) {
-      switch (<String>[
+      String potentialName = <String>[
         ...prefixes.sublist(0, i),
-        node.ruleName.replaceAll("::", "__"),
-      ].join("__")) {
+        name,
+      ].join("::");
+      switch (potentialName) {
         case String name when rules.containsKey(name):
           return ReferenceNode(name);
         case String name when fragments.containsKey(name):
@@ -119,12 +119,17 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
       }
     }
 
-    return throw Exception("Unknown reference: ${node.ruleName}");
+    return throw Exception("Unknown reference: $name");
+  }
+
+  @override
+  Node visitReferenceNode(ReferenceNode node) {
+    return resolveReference(node.ruleName);
   }
 
   @override
   Node visitFragmentNode(FragmentNode node) {
-    return visitReferenceNode(ReferenceNode(node.fragmentName));
+    return resolveReference(node.fragmentName);
   }
 
   @override

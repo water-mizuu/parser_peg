@@ -13,7 +13,7 @@ ParserGenerator document = ^ :preamble? statements:_.statement+? $ {
 };
 
 /// The preamble is simple.
-String preamble = `{` _ :rawCode _ `}` { rawCode };
+String preamble = `{` _ code:code::curly _ `}` { code };
 
 /// A statement can either be a namespace, a fragment or a rule.
 ///  A namespace is a collection of statements.
@@ -22,13 +22,12 @@ String preamble = `{` _ :rawCode _ `}` { rawCode };
 Statement statement =
   | namespace
   | fragment
-  | rule
-  | generic;
+  | rule;
 
 @fragment
 String name =
-  | (identifier "::" @0)* literal::raw { $0.isEmpty ? $1 : "${$0.join("__")}__${$1}" }
-  | identifier ("::" identifier @1)*   { $1.isEmpty ? $0 : "${$0}__${$1.join("__")}" };
+  | (identifier "::" @0)* literal::raw { $0.isEmpty ? $1 : "${$0.join("::")}::${$1}" }
+  | identifier ("::" identifier @1)*   { $1.isEmpty ? $0 : "${$0}::${$1.join("::")}" };
 
 @fragment
 Node body = `=` :choice `;` { choice };
@@ -41,22 +40,22 @@ Statement namespace =
       NamespaceStatement(name, statements, tag: Tag.rule)
     }
   | name:identifier? `{` statements:_.statement+ `}` {
-      NamespaceStatement(name, statements, tag: Tag.none)
+      NamespaceStatement(name, statements, tag: null)
     }
   ;
 
 Statement rule =
   | kw::rule? kw::var :name :body {
-      DeclarationStatement(MapEntry((null, name), body), tag: $0 == null ? Tag.none : Tag.rule)
+      DeclarationStatement(MapEntry((null, name), body), tag: $0 == null ? null : Tag.rule)
     }
   | kw::rule? :name :body {
-      DeclarationStatement(MapEntry((null, name), body), tag: $0 == null ? Tag.none : Tag.rule)
+      DeclarationStatement(MapEntry((null, name), body), tag: $0 == null ? null : Tag.rule)
     }
   | kw::rule? type:(type::nonNullable) :name :body {
-      DeclarationStatement(MapEntry((type, name), body), tag: $0 == null ? Tag.none : Tag.rule)
+      DeclarationStatement(MapEntry((type, name), body), tag: $0 == null ? null : Tag.rule)
     }
   | kw::rule? :name `:` type:(type::nonNullable) :body {
-      DeclarationStatement(MapEntry((type, name), body), tag: $0 == null ? Tag.none : Tag.rule)
+      DeclarationStatement(MapEntry((type, name), body), tag: $0 == null ? null : Tag.rule)
     }
   ;
 
@@ -75,28 +74,13 @@ Statement fragment =
     }
   ;
 
-Statement generic =
-  | kw::var :name :body {
-      DeclarationStatement(MapEntry((null, name), body), tag: Tag.none)
-    }
-  | :name :body {
-      DeclarationStatement(MapEntry((null, name), body), tag: Tag.none)
-    }
-  | type:(type::nonNullable) :name :body {
-      DeclarationStatement(MapEntry((type, name), body), tag: Tag.none)
-    }
-  | :name `:` type:(type::nonNullable) :body {
-      DeclarationStatement(MapEntry((type, name), body), tag: Tag.none)
-    }
-  ;
-
 Node choice = `|`? options:`|`.acted+ { options.length == 1 ? options.single : ChoiceNode(options) };
 
 /// A parser with a bound action.
 Node acted =
   /// Dart code action
-  | :sequence `(` `)` `{` _ :rawCode _ `}`  { ActionNode(sequence, rawCode, areIndicesProvided: true) }
-  | :sequence         `{` _ :rawCode _ `}`  { InlineActionNode(sequence, rawCode, areIndicesProvided: true ) }
+  | :sequence `(` `)` `{` _ code:code::curly _ `}`  { ActionNode(sequence, code, areIndicesProvided: true) }
+  | :sequence         `{` _ code:code::curly _ `}`  { InlineActionNode(sequence, code, areIndicesProvided: true ) }
   | sequence
   ;
 
@@ -119,6 +103,8 @@ Node labeled =
   | ":" identifier `*` { NamedNode($1, StarNode(ReferenceNode($1))) }
   | ":" identifier `+` { NamedNode($1, PlusNode(ReferenceNode($1))) }
   | ":" identifier     { NamedNode($1, ReferenceNode($1)) }
+  /// When all hope is lost, we add an anonymous name.
+  | ":" :atom { NamedNode(r"$", atom) }
   | separated
   ;
 
@@ -138,8 +124,8 @@ Node separated =
 ///   Can be nested, but shouldn't be used in practice.
 Node postfix =
   | postfix `?` @0 { OptionalNode($) }
-  | postfix `*` @0     { StarNode($) }
-  | postfix `+` @0     { PlusNode($) }
+  | postfix `*` @0 { StarNode($) }
+  | postfix `+` @0 { PlusNode($) }
   | prefix
   ;
 
@@ -189,7 +175,16 @@ Node specialSymbol =
   | regexEscape::space     { SimpleRegExpEscapeNode.whitespace }
   ;
 
-String rawCode = code:(!"{" !"}" . @2 | "{" :rawCode "}" @1 {"{" + $ + "}"})* { code.join() };
+code {
+  String curly =
+    | "`" inner:(!"`" . @1)* "`" { inner.join() }
+    | balanced;
+  String balanced = code:(
+      | dart::literal::string
+      | "{" balanced "}" @1 {"{" + $ + "}"}
+      | !"{" !"}" . @2
+    )* { code.join() };
+}
 
 @fragment literal {
   regexp =
@@ -211,15 +206,21 @@ String rawCode = code:(!"{" !"}" . @2 | "{" :rawCode "}" @1 {"{" + $ + "}"})* { 
       ;
   }
 
-  range = range::main;
+  range =  _ range::main _ @1;
   range {
     main = `[` :elements `]` { RangeNode(elements) };
-    elements = _.element+ { $.toSet() };
+    elements = _.element+ { $.expand((v) => v).toSet() };
     element =
-      | l:atom "-" r:atom { (l.codeUnitAt(0), r.codeUnitAt(0)) }
-      | atom              { ($.codeUnitAt(0), $.codeUnitAt(0)) }
+      | escape
+      | l:atom "-" r:atom { {(l.codeUnitAt(0), r.codeUnitAt(0))} }
+      | atom              { {($.codeUnitAt(0), $.codeUnitAt(0))} }
       ;
-    atom = !"]" any @1;
+    escape =
+      | \\ r"d" { {(48, 57)} } // 0-9
+      | \\ r"w" { {(64 + 1, 64 + 26), (96 + 1, 96 + 26)} }
+      | \\ r"s" { {(9, 13), (32, 32)} }
+      ;
+    atom = \\ . @1 | !"]" any @1;
   }
 
   raw = "`" inner:(!"`" . @1)* "`" () {
@@ -244,6 +245,36 @@ String rawCode = code:(!"{" !"}" . @2 | "{" :rawCode "}" @1 {"{" + $ + "}"})* { 
 
 
 /// Rules related to general expressions.
+
+dart {
+  literal {
+    String string = _ string::main _ @1 { buffer.substring(from, to) };
+    string {
+      String main = (
+          /// Raw string literals
+          | "r" '"""' body:(!'"""' . @1)* '"""'
+          | "r" "'''" body:(!"'''" . @1)* "'''"
+          | "r" '"'   body:(!'"'   . @1)* '"'
+          | "r" "'"   body:(!"'"   . @1)* "'"
+          /// Escaped string literals
+          | '"""' body:(\\ . @1 | &"$" interpolation | !'"""' . @1)* '"""'
+          | "'''" body:(\\ . @1 | &"$" interpolation | !"'''" . @1)* "'''"
+          | '"'   body:(\\ . @1 | &"$" interpolation | !'"'   . @1)* '"'
+          | "'"   body:(\\ . @1 | &"$" interpolation | !"'"   . @1)* "'"
+        ) { buffer.substring(from, to) }
+        ;
+
+      Object interpolation =
+        | r"$" "{" balanced "}"
+        | r"$" identifier
+        ;
+      Object balanced = code:(
+        | "{" balanced "}" @1
+        | !"{" !"}" . @2
+      )*;
+    }
+  }
+}
 
 /// Rules related to types declarations.
 type {
@@ -284,8 +315,7 @@ type {
 /// Tokens used in the grammar.
 ///   Since they are not recursive, they are not defined as rules.
 @fragment {
-  String identifier = /[a-zA-Z_][a-zA-z0-9_]*/;
-  // String identifier = [a-zA-Z_][a-zA-Z0-9_]* { buffer.substring(from, to) };
+  String identifier = [a-zA-Z_$][a-zA-Z\d_$]* { $0 + $1.join() };
   int number = \d+ { int.parse($.join()) };
 
   kw {

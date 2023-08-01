@@ -1,1 +1,32 @@
-Object A = 1.."n" | "n"+;
+
+dart {
+  literal {
+    Object string = string::main;
+    string {
+      Object main = (
+          /// Raw string literals
+          | "r" '"""' body:(!'"""' . @1)* '"""'
+          | "r" "'''" body:(!"'''" . @1)* "'''"
+          | "r" '"'   body:(!'"'   . @1)* '"'
+          | "r" "'"   body:(!"'"   . @1)* "'"
+          /// Escaped string literals
+          | '"""' body:(\\ . @1 | &"$" interpolation | !'"""' . @1)* '"""'
+          | "'''" body:(\\ . @1 | &"$" interpolation | !"'''" . @1)* "'''"
+          | '"'   body:(\\ . @1 | &"$" interpolation | !'"'   . @1)* '"'
+          | "'"   body:(\\ . @1 | &"$" interpolation | !"'"   . @1)* "'"
+        )
+        ;
+
+      Object interpolation =
+        | r"$" "{" balanced "}"
+        | r"$" identifier
+        ;
+      Object balanced = code:(
+        | "{" balanced "}" @1
+        | !"{" !"}" . @2
+      )*;
+    }
+
+    String identifier = [a-zA-Z_$][a-zA-Z\d_$]* { $0 + $1.join() };
+  }
+}

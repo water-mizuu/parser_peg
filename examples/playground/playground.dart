@@ -250,37 +250,566 @@ final class PlaygroundParser extends _PegParser<Object> {
   get start => r0;
 
 
-  Object? r0() {
+  /// ```
+  /// @fragment fragment0
+  /// ```
+  late final f0 = () {
     if (this.pos case var mark) {
-      if (matchPattern("n") case var _0?) {
-        if ([_0] case var _loop2) {
-          while (true) {
-            if (this.pos case var mark) {
-              if (matchPattern("n") case var _0?) {
-                _loop2.add(_0);
-                continue;
-              }
-              this.pos = mark;
-              break;
+      if (this.matchPattern("\"\"\"") case (var $0 && null)) {
+        this.pos = mark;
+        if (pos < buffer.length) {
+          if (buffer[pos] case var $1) {
+            pos++;
+          return $1;
+          }
+        }
+      }
+    }
+  };
+
+  /// ```
+  /// @fragment fragment1
+  /// ```
+  late final f1 = () {
+    if (this.pos case var mark) {
+      if (this.matchPattern("'''") case (var $0 && null)) {
+        this.pos = mark;
+        if (pos < buffer.length) {
+          if (buffer[pos] case var $1) {
+            pos++;
+          return $1;
+          }
+        }
+      }
+    }
+  };
+
+  /// ```
+  /// @fragment fragment2
+  /// ```
+  late final f2 = () {
+    if (this.pos case var mark) {
+      if (this.matchPattern("\"") case (var $0 && null)) {
+        this.pos = mark;
+        if (pos < buffer.length) {
+          if (buffer[pos] case var $1) {
+            pos++;
+          return $1;
+          }
+        }
+      }
+    }
+  };
+
+  /// ```
+  /// @fragment fragment3
+  /// ```
+  late final f3 = () {
+    if (this.pos case var mark) {
+      if (this.matchPattern("'") case (var $0 && null)) {
+        this.pos = mark;
+        if (pos < buffer.length) {
+          if (buffer[pos] case var $1) {
+            pos++;
+          return $1;
+          }
+        }
+      }
+    }
+  };
+
+  /// ```
+  /// @fragment fragment4
+  /// ```
+  late final f4 = () {
+    if (this.pos case var mark) {
+      if (this.matchPattern("\\") case var $0?) {
+        if (pos < buffer.length) {
+          if (buffer[pos] case var $1) {
+            pos++;
+          return $1;
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.pos case var mark) {
+        if (this.matchPattern("\$") case var $0?) {
+          this.pos = mark;
+          if (this.apply(this.r2) case var $1?) {
+            return ($0, $1);
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.pos case var mark) {
+        if (this.matchPattern("\"\"\"") case (var $0 && null)) {
+          this.pos = mark;
+          if (pos < buffer.length) {
+            if (buffer[pos] case var $1) {
+              pos++;
+            return $1;
             }
+          }
+        }
+      }
+    }
+  };
+
+  /// ```
+  /// @fragment fragment5
+  /// ```
+  late final f5 = () {
+    if (this.pos case var mark) {
+      if (this.matchPattern("\\") case var $0?) {
+        if (pos < buffer.length) {
+          if (buffer[pos] case var $1) {
+            pos++;
+          return $1;
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.pos case var mark) {
+        if (this.matchPattern("\$") case var $0?) {
+          this.pos = mark;
+          if (this.apply(this.r2) case var $1?) {
+            return ($0, $1);
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.pos case var mark) {
+        if (this.matchPattern("'''") case (var $0 && null)) {
+          this.pos = mark;
+          if (pos < buffer.length) {
+            if (buffer[pos] case var $1) {
+              pos++;
+            return $1;
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /// ```
+  /// @fragment fragment6
+  /// ```
+  late final f6 = () {
+    if (this.pos case var mark) {
+      if (this.matchPattern("\\") case var $0?) {
+        if (pos < buffer.length) {
+          if (buffer[pos] case var $1) {
+            pos++;
+          return $1;
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.pos case var mark) {
+        if (this.matchPattern("\$") case var $0?) {
+          this.pos = mark;
+          if (this.apply(this.r2) case var $1?) {
+            return ($0, $1);
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.pos case var mark) {
+        if (this.matchPattern("\"") case (var $0 && null)) {
+          this.pos = mark;
+          if (pos < buffer.length) {
+            if (buffer[pos] case var $1) {
+              pos++;
+            return $1;
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /// ```
+  /// @fragment fragment7
+  /// ```
+  late final f7 = () {
+    if (this.pos case var mark) {
+      if (this.matchPattern("\\") case var $0?) {
+        if (pos < buffer.length) {
+          if (buffer[pos] case var $1) {
+            pos++;
+          return $1;
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.pos case var mark) {
+        if (this.matchPattern("\$") case var $0?) {
+          this.pos = mark;
+          if (this.apply(this.r2) case var $1?) {
+            return ($0, $1);
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.pos case var mark) {
+        if (this.matchPattern("'") case (var $0 && null)) {
+          this.pos = mark;
+          if (pos < buffer.length) {
+            if (buffer[pos] case var $1) {
+              pos++;
+            return $1;
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /// ```
+  /// @fragment fragment8
+  /// ```
+  late final f8 = () {
+    if (this.pos case var mark) {
+      if (this.matchPattern("{") case var $0?) {
+        if (this.apply(this.r3)! case var $1) {
+          if (this.matchPattern("}") case var $2?) {
+            return $1;
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.pos case var mark) {
+        if (this.matchPattern("{") case (var $0 && null)) {
+          this.pos = mark;
+          if (this.pos case var mark) {
+            if (this.matchPattern("}") case (var $1 && null)) {
+              this.pos = mark;
+              if (pos < buffer.length) {
+                if (buffer[pos] case var $2) {
+                  pos++;
+                return $2;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /// ```
+  /// @rule global::dart::literal::string
+  /// ```
+  Object? r0() {
+    if (this.apply(this.r1) case var $?) {
+      return $;
+    }
+  }
+
+  /// ```
+  /// @rule global::dart::literal::string::main
+  /// ```
+  Object? r1() {
+    if (this.pos case var mark) {
+      if (this.matchPattern("r") case var $0?) {
+        if (this.matchPattern("\"\"\"") case var $1?) {
+          if (this.pos case var mark) {
+            if (this.f0() case var _0) {
+              if ([if (_0 case var _0?) _0] case (var $2 && var body && var _loop2)) {
+                if (_loop2.isNotEmpty) {
+                  for (;;) {
+                    if (this.pos case var mark) {
+                      if (this.f0() case var _0?) {
+                        _loop2.add(_0);
+                        continue;
+                      }
+                      this.pos = mark;
+                      break;
+                    }
+                  }
+                } else {
+                  this.pos = mark;
+                }
+                if (this.matchPattern("\"\"\"") case var $3?) {
+                  return ($0, $1, $2, $3);
+                }
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.matchPattern("r") case var $0?) {
+        if (this.matchPattern("'''") case var $1?) {
+          if (this.pos case var mark) {
+            if (this.f1() case var _2) {
+              if ([if (_2 case var _2?) _2] case (var $2 && var body && var _loop4)) {
+                if (_loop4.isNotEmpty) {
+                  for (;;) {
+                    if (this.pos case var mark) {
+                      if (this.f1() case var _2?) {
+                        _loop4.add(_2);
+                        continue;
+                      }
+                      this.pos = mark;
+                      break;
+                    }
+                  }
+                } else {
+                  this.pos = mark;
+                }
+                if (this.matchPattern("'''") case var $3?) {
+                  return ($0, $1, $2, $3);
+                }
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.matchPattern("r") case var $0?) {
+        if (this.matchPattern("\"") case var $1?) {
+          if (this.pos case var mark) {
+            if (this.f2() case var _4) {
+              if ([if (_4 case var _4?) _4] case (var $2 && var body && var _loop6)) {
+                if (_loop6.isNotEmpty) {
+                  for (;;) {
+                    if (this.pos case var mark) {
+                      if (this.f2() case var _4?) {
+                        _loop6.add(_4);
+                        continue;
+                      }
+                      this.pos = mark;
+                      break;
+                    }
+                  }
+                } else {
+                  this.pos = mark;
+                }
+                if (this.matchPattern("\"") case var $3?) {
+                  return ($0, $1, $2, $3);
+                }
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.matchPattern("r") case var $0?) {
+        if (this.matchPattern("'") case var $1?) {
+          if (this.pos case var mark) {
+            if (this.f3() case var _6) {
+              if ([if (_6 case var _6?) _6] case (var $2 && var body && var _loop8)) {
+                if (_loop8.isNotEmpty) {
+                  for (;;) {
+                    if (this.pos case var mark) {
+                      if (this.f3() case var _6?) {
+                        _loop8.add(_6);
+                        continue;
+                      }
+                      this.pos = mark;
+                      break;
+                    }
+                  }
+                } else {
+                  this.pos = mark;
+                }
+                if (this.matchPattern("'") case var $3?) {
+                  return ($0, $1, $2, $3);
+                }
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.matchPattern("\"\"\"") case var $0?) {
+        if (this.pos case var mark) {
+          if (this.f4() case var _8) {
+            if ([if (_8 case var _8?) _8] case (var $1 && var body && var _loop10)) {
+              if (_loop10.isNotEmpty) {
+                for (;;) {
+                  if (this.pos case var mark) {
+                    if (this.f4() case var _8?) {
+                      _loop10.add(_8);
+                      continue;
+                    }
+                    this.pos = mark;
+                    break;
+                  }
+                }
+              } else {
+                this.pos = mark;
+              }
+              if (this.matchPattern("\"\"\"") case var $2?) {
+                return ($0, $1, $2);
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.matchPattern("'''") case var $0?) {
+        if (this.pos case var mark) {
+          if (this.f5() case var _10) {
+            if ([if (_10 case var _10?) _10] case (var $1 && var body && var _loop12)) {
+              if (_loop12.isNotEmpty) {
+                for (;;) {
+                  if (this.pos case var mark) {
+                    if (this.f5() case var _10?) {
+                      _loop12.add(_10);
+                      continue;
+                    }
+                    this.pos = mark;
+                    break;
+                  }
+                }
+              } else {
+                this.pos = mark;
+              }
+              if (this.matchPattern("'''") case var $2?) {
+                return ($0, $1, $2);
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.matchPattern("\"") case var $0?) {
+        if (this.pos case var mark) {
+          if (this.f6() case var _12) {
+            if ([if (_12 case var _12?) _12] case (var $1 && var body && var _loop14)) {
+              if (_loop14.isNotEmpty) {
+                for (;;) {
+                  if (this.pos case var mark) {
+                    if (this.f6() case var _12?) {
+                      _loop14.add(_12);
+                      continue;
+                    }
+                    this.pos = mark;
+                    break;
+                  }
+                }
+              } else {
+                this.pos = mark;
+              }
+              if (this.matchPattern("\"") case var $2?) {
+                return ($0, $1, $2);
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.matchPattern("'") case var $0?) {
+        if (this.pos case var mark) {
+          if (this.f7() case var _14) {
+            if ([if (_14 case var _14?) _14] case (var $1 && var body && var _loop16)) {
+              if (_loop16.isNotEmpty) {
+                for (;;) {
+                  if (this.pos case var mark) {
+                    if (this.f7() case var _14?) {
+                      _loop16.add(_14);
+                      continue;
+                    }
+                    this.pos = mark;
+                    break;
+                  }
+                }
+              } else {
+                this.pos = mark;
+              }
+              if (this.matchPattern("'") case var $2?) {
+                return ($0, $1, $2);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /// ```
+  /// @rule global::dart::literal::string::interpolation
+  /// ```
+  Object? r2() {
+    if (this.pos case var mark) {
+      if (this.matchPattern("\$") case var $0?) {
+        if (this.matchPattern("{") case var $1?) {
+          if (this.apply(this.r3)! case var $2) {
+            if (this.matchPattern("}") case var $3?) {
+              return ($0, $1, $2, $3);
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.matchPattern("\$") case var $0?) {
+        if (this.apply(this.r4) case var $1?) {
+          return ($0, $1);
+        }
+      }
+    }
+  }
+
+  /// ```
+  /// @rule global::dart::literal::string::balanced
+  /// ```
+  Object r3() {
+    if (this.pos case var mark) {
+      if (this.f8() case var _0) {
+        if ([if (_0 case var _0?) _0] case (var code && var _loop2)) {
+          if (_loop2.isNotEmpty) {
+            for (;;) {
+              if (this.pos case var mark) {
+                if (this.f8() case var _0?) {
+                  _loop2.add(_0);
+                  continue;
+                }
+                this.pos = mark;
+                break;
+              }
+            }
+          } else {
+            this.pos = mark;
           }
           return _loop2;
         }
       }
-      this.pos = mark;
-      if (matchPattern("n") case var _2?) {
-        if ([_2] case var _loop4) {
-          for (;;) {
-            if (this.pos case var mark) {
-              if (matchPattern("n") case var _2?) {
-                _loop4.add(_2);
-                continue;
+    }
+  }
+
+  /// ```
+  /// @rule global::dart::literal::identifier
+  /// ```
+  String? r4() {
+    if (this.pos case var from) {
+      if (this.matchRange({ (97, 122), (65, 90), (95, 95), (36, 36) }) case var $0?) {
+        if (this.pos case var mark) {
+          if (this.matchRange({ (97, 122), (65, 90), (48, 57), (95, 95), (36, 36) }) case var _0) {
+            if ([if (_0 case var _0?) _0] case (var $1 && var _loop2)) {
+              if (_loop2.isNotEmpty) {
+                for (;;) {
+                  if (this.pos case var mark) {
+                    if (this.matchRange({ (97, 122), (65, 90), (48, 57), (95, 95), (36, 36) }) case var _0?) {
+                      _loop2.add(_0);
+                      continue;
+                    }
+                    this.pos = mark;
+                    break;
+                  }
+                }
+              } else {
+                this.pos = mark;
               }
-              this.pos = mark;
-              break;
+              if (($0, $1) case var $) {
+                if (this.pos case var to) {
+                  return $0 + $1.join() ;
+                }
+              }
             }
           }
-          return _loop4;
         }
       }
     }
