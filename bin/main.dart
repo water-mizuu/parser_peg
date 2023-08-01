@@ -20,6 +20,7 @@ void main(List<String> arguments) {
       }
     }
   }
+
   if (readFile("examples/playground/playground.dart_grammar") case String input) {
     if (PegParser() case PegParser grammar) {
       switch (grammar.parse(input)) {

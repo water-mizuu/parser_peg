@@ -13,19 +13,15 @@ abstract base class _PegParser<R extends Object> {
     _Memo? m = _memo[(r, p)];
     _Head<void>? h = _heads[p];
 
-    // If the head is not being grown, return the memoized result.
     if (h == null) {
       return m;
     }
 
-    // If the current rule is not a part of the head and is not evaluated yet,
-    // Add a failure to it.
     if (m == null && h.rule != r && !h.involvedSet.contains(r)) {
       return _Memo(null, p);
     }
 
     if (m != null && h.evalSet.contains(r)) {
-      // Remove the current rule from the head's evaluation set.
       h.evalSet.remove(r);
 
       T? ans = r.call();
@@ -143,9 +139,9 @@ abstract base class _PegParser<R extends Object> {
     }
 
     if (isReported) {
-      failures[pos] ??= <String>[
+      (failures[pos] ??= <String>{}).addAll(<String>[
         for (var (int start, int end) in ranges) "${String.fromCharCode(start)}-${String.fromCharCode(end)}",
-      ];
+      ]);
     }
   }
 
@@ -159,9 +155,9 @@ abstract base class _PegParser<R extends Object> {
     if (isReported) {
       switch (pattern) {
         case RegExp(:String pattern):
-          (failures[pos] ??= <String>[]).add(pattern);
+          (failures[pos] ??= <String>{}).add(pattern);
         case String pattern:
-          (failures[pos] ??= <String>[]).add(pattern);
+          (failures[pos] ??= <String>{}).add(pattern);
       }
     }
   }
@@ -174,17 +170,13 @@ abstract base class _PegParser<R extends Object> {
 
   static (int column, int row) _columnRow(String buffer, int pos) {
     List<String> linesToIndex = "$buffer ".substring(0, pos + 1).split("\n");
-
-    ///
-    /// Counts all the newline tokens up until [index], adding 1.
-    ///
     return (linesToIndex.length, linesToIndex.last.length);
   }
 
   String reportFailures() {
-    var MapEntry<int, List<String>>(
+    var MapEntry<int, Set<String>>(
       key: int pos,
-      value: List<String> messages,
+      value: Set<String> messages,
     ) = failures.entries.last;
     var (int column, int row) = _columnRow(buffer, pos);
 
@@ -193,7 +185,7 @@ abstract base class _PegParser<R extends Object> {
 
   static final (RegExp, RegExp) whitespaceRegExp = (RegExp(r"\s"), RegExp(r"(?!\n)\s"));
 
-  final Map<int, List<String>> failures = <int, List<String>>{};
+  final Map<int, Set<String>> failures = <int, Set<String>>{};
   final Map<int, _Head<void>> _heads = <int, _Head<void>>{};
   final Queue<_Lr<void>> _lrStack = DoubleLinkedQueue<_Lr<void>>();
   final Map<(_Rule<void>, int), _Memo> _memo = <(_Rule<void>, int), _Memo>{};
@@ -250,9 +242,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   get start => r0;
 
 
-  /// ```
-  /// @fragment fragment0
-  /// ```
+  /// fragment0
   late final f0 = () {
     if (this.pos case var mark) {
       if (this.matchPattern("\"\"\"") case (var $0 && null)) {
@@ -267,9 +257,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// ```
-  /// @fragment fragment1
-  /// ```
+  /// fragment1
   late final f1 = () {
     if (this.pos case var mark) {
       if (this.matchPattern("'''") case (var $0 && null)) {
@@ -284,9 +272,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// ```
-  /// @fragment fragment2
-  /// ```
+  /// fragment2
   late final f2 = () {
     if (this.pos case var mark) {
       if (this.matchPattern("\"") case (var $0 && null)) {
@@ -301,9 +287,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// ```
-  /// @fragment fragment3
-  /// ```
+  /// fragment3
   late final f3 = () {
     if (this.pos case var mark) {
       if (this.matchPattern("'") case (var $0 && null)) {
@@ -318,9 +302,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// ```
-  /// @fragment fragment4
-  /// ```
+  /// fragment4
   late final f4 = () {
     if (this.pos case var mark) {
       if (this.matchPattern("\\") case var $0?) {
@@ -355,9 +337,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// ```
-  /// @fragment fragment5
-  /// ```
+  /// fragment5
   late final f5 = () {
     if (this.pos case var mark) {
       if (this.matchPattern("\\") case var $0?) {
@@ -392,9 +372,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// ```
-  /// @fragment fragment6
-  /// ```
+  /// fragment6
   late final f6 = () {
     if (this.pos case var mark) {
       if (this.matchPattern("\\") case var $0?) {
@@ -429,9 +407,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// ```
-  /// @fragment fragment7
-  /// ```
+  /// fragment7
   late final f7 = () {
     if (this.pos case var mark) {
       if (this.matchPattern("\\") case var $0?) {
@@ -466,9 +442,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// ```
-  /// @fragment fragment8
-  /// ```
+  /// fragment8
   late final f8 = () {
     if (this.pos case var mark) {
       if (this.matchPattern("{") case var $0?) {
@@ -498,18 +472,14 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// ```
-  /// @rule global::dart::literal::string
-  /// ```
+  /// global::dart::literal::string
   Object? r0() {
     if (this.apply(this.r1) case var $?) {
       return $;
     }
   }
 
-  /// ```
-  /// @rule global::dart::literal::string::main
-  /// ```
+  /// global::dart::literal::string::main
   Object? r1() {
     if (this.pos case var mark) {
       if (this.matchPattern("r") case var $0?) {
@@ -730,9 +700,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   }
 
-  /// ```
-  /// @rule global::dart::literal::string::interpolation
-  /// ```
+  /// global::dart::literal::string::interpolation
   Object? r2() {
     if (this.pos case var mark) {
       if (this.matchPattern("\$") case var $0?) {
@@ -753,9 +721,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   }
 
-  /// ```
-  /// @rule global::dart::literal::string::balanced
-  /// ```
+  /// global::dart::literal::string::balanced
   Object r3() {
     if (this.pos case var mark) {
       if (this.f8() case var _0) {
@@ -780,9 +746,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   }
 
-  /// ```
-  /// @rule global::dart::literal::identifier
-  /// ```
+  /// global::dart::literal::identifier
   String? r4() {
     if (this.pos case var from) {
       if (this.matchRange({ (97, 122), (65, 90), (95, 95), (36, 36) }) case var $0?) {

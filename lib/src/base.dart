@@ -12,19 +12,15 @@ abstract base class _PegParser<R extends Object> {
     _Memo? m = _memo[(r, p)];
     _Head<void>? h = _heads[p];
 
-    // If the head is not being grown, return the memoized result.
     if (h == null) {
       return m;
     }
 
-    // If the current rule is not a part of the head and is not evaluated yet,
-    // Add a failure to it.
     if (m == null && h.rule != r && !h.involvedSet.contains(r)) {
       return _Memo(null, p);
     }
 
     if (m != null && h.evalSet.contains(r)) {
-      // Remove the current rule from the head's evaluation set.
       h.evalSet.remove(r);
 
       T? ans = r.call();
@@ -142,9 +138,9 @@ abstract base class _PegParser<R extends Object> {
     }
 
     if (isReported) {
-      failures[pos] ??= <String>[
+      (failures[pos] ??= <String>{}).addAll(<String>[
         for (var (int start, int end) in ranges) "${String.fromCharCode(start)}-${String.fromCharCode(end)}",
-      ];
+      ]);
     }
   }
 
@@ -158,9 +154,9 @@ abstract base class _PegParser<R extends Object> {
     if (isReported) {
       switch (pattern) {
         case RegExp(:String pattern):
-          (failures[pos] ??= <String>[]).add(pattern);
+          (failures[pos] ??= <String>{}).add(pattern);
         case String pattern:
-          (failures[pos] ??= <String>[]).add(pattern);
+          (failures[pos] ??= <String>{}).add(pattern);
       }
     }
   }
@@ -173,17 +169,13 @@ abstract base class _PegParser<R extends Object> {
 
   static (int column, int row) _columnRow(String buffer, int pos) {
     List<String> linesToIndex = "$buffer ".substring(0, pos + 1).split("\n");
-
-    ///
-    /// Counts all the newline tokens up until [index], adding 1.
-    ///
     return (linesToIndex.length, linesToIndex.last.length);
   }
 
   String reportFailures() {
-    var MapEntry<int, List<String>>(
+    var MapEntry<int, Set<String>>(
       key: int pos,
-      value: List<String> messages,
+      value: Set<String> messages,
     ) = failures.entries.last;
     var (int column, int row) = _columnRow(buffer, pos);
 
@@ -192,7 +184,7 @@ abstract base class _PegParser<R extends Object> {
 
   static final (RegExp, RegExp) whitespaceRegExp = (RegExp(r"\s"), RegExp(r"(?!\n)\s"));
 
-  final Map<int, List<String>> failures = <int, List<String>>{};
+  final Map<int, Set<String>> failures = <int, Set<String>>{};
   final Map<int, _Head<void>> _heads = <int, _Head<void>>{};
   final Queue<_Lr<void>> _lrStack = DoubleLinkedQueue<_Lr<void>>();
   final Map<(_Rule<void>, int), _Memo> _memo = <(_Rule<void>, int), _Memo>{};
@@ -255,7 +247,7 @@ extension<R extends Object> on _PegParser<R> {
       return buffer.substring(start, end);
     }
 
-    (failures[pos] ??= <String>[]).addAll(trie._keys(trie._innerMap).map((List<String> v) => v.join()));
+    (failures[pos] ??= <String>{}).addAll(trie._keys(trie._innerMap).map((List<String> v) => v.join()));
     return null;
   }
 }

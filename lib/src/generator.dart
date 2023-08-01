@@ -83,8 +83,7 @@ final class ParserGenerator {
     /// We rename the rules and fragments.
 
     redirectId = 0;
-    for (var (String name, (String? type, Node node))
-        in Map<String, (String?, Node)>.fromEntries(rules.entries).pairs) {
+    for (var (String name, (String? type, Node node)) in rules.pairs.toList()) {
       String simplifiedName = "r${redirectId++}";
 
       rules.remove(name);
@@ -93,8 +92,7 @@ final class ParserGenerator {
       reverseRedirects[simplifiedName] = name;
     }
     redirectId = 0;
-    for (var (String name, (String? type, Node node))
-        in Map<String, (String?, Node)>.fromEntries(fragments.entries).pairs) {
+    for (var (String name, (String? type, Node node)) in fragments.pairs.toList()) {
       String simplifiedName = "f${redirectId++}";
 
       fragments.remove(name);
@@ -260,9 +258,7 @@ final class ParserGenerator {
           .indent();
 
       inner.writeln();
-      inner.writeln("/// ```");
-      inner.writeln("/// @fragment ${reverseRedirects[rawName]}");
-      inner.writeln("/// ```");
+      inner.writeln("/// ${reverseRedirects[rawName]}");
       if (type == null) {
         inner.writeln("late final $fragmentName = () {");
         inner.writeln(body);
@@ -292,9 +288,7 @@ final class ParserGenerator {
           .indent();
 
       inner.writeln();
-      inner.writeln("/// ```");
-      inner.writeln("/// @rule ${reverseRedirects[rawName]}");
-      inner.writeln("/// ```");
+      inner.writeln("/// ${reverseRedirects[rawName]}");
       if (type == null) {
         inner.writeln("late final $ruleName = () {");
         inner.writeln(body);
