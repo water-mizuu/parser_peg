@@ -58,7 +58,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     };
 
     List<String> buffer = <String>[
-      "if (matchTrie(_trie.\$$id) case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
+      "if (this.matchTrie(_trie.\$$id) case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
       if (inner != null) //
         inner.indent()
       else
@@ -78,7 +78,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required bool reported,
   }) {
     List<String> buffer = <String>[
-      "if (matchPattern(${encode(node.value)}) case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
+      "if (this.matchPattern(${encode(node.value)}) case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
       if (inner != null) //
         inner.indent()
       else
@@ -97,7 +97,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required bool reported,
   }) {
     List<String> buffer = <String>[
-      "if (matchRange({ ${node.ranges.join(", ")} }) case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
+      "if (this.matchRange({ ${node.ranges.join(", ")} }) case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
       if (inner != null) //
         inner.indent()
       else
@@ -422,22 +422,20 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
         .indent(5);
     String question = isNullable(node.child) ? "" : "?";
     StringBuffer loopBuffer = StringBuffer();
-    loopBuffer.writeln("if (this.pos case var mark) {");
     loopBuffer.writeln(
-      "  "
       "if ([if ($variableName case var $variableName$question) $variableName] "
       "case ${withNames.varNames}) {",
     );
-    loopBuffer.writeln("    if (${withNames.singleName}.isNotEmpty) {");
-    loopBuffer.writeln("      for (;;) {");
-    loopBuffer.writeln("        if (this.pos case var mark) {");
+    loopBuffer.writeln("  if (${withNames.singleName}.isNotEmpty) {");
+    loopBuffer.writeln("    for (;;) {");
+    loopBuffer.writeln("      if (this.pos case var mark) {");
     loopBuffer.writeln(loopBody);
-    loopBuffer.writeln("          this.pos = mark;");
-    loopBuffer.writeln("          break;");
-    loopBuffer.writeln("        }");
+    loopBuffer.writeln("        this.pos = mark;");
+    loopBuffer.writeln("        break;");
     loopBuffer.writeln("      }");
+    loopBuffer.writeln("    }");
     if (!isNullable(node) && node.isTrailingAllowed) {
-      loopBuffer.writeln("      if (this.pos case var mark) {");
+      loopBuffer.writeln("    if (this.pos case var mark) {");
       loopBuffer.writeln(
         node.separator
             .acceptCompilerVisitor(
@@ -447,30 +445,36 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
               inner: "this.pos = mark;",
               reported: reported,
             )
-            .indent(4),
+            .indent(3),
       );
-      loopBuffer.writeln("      }");
+      loopBuffer.writeln("    }");
     }
-    loopBuffer.writeln("    } else {");
-    loopBuffer.writeln("      this.pos = mark;");
-    loopBuffer.writeln("    }");
-    if (inner case String inner?) {
-      loopBuffer.writeln(inner.indent(2));
-    } else {
-      loopBuffer.writeln("    return $containerName;");
-    }
+    loopBuffer.writeln("  } else {");
+    loopBuffer.writeln("    this.pos = mark;");
     loopBuffer.writeln("  }");
+    if (inner case String inner?) {
+      loopBuffer.writeln(inner.indent());
+    } else {
+      loopBuffer.writeln("  return $containerName;");
+    }
     loopBuffer.writeln("}");
 
-    /// Kleene's star should have less code,
-    ///   But this is what we need so that we don't have type hints.
-    return node.child.acceptCompilerVisitor(
-      this,
-      withNames: <String>{variableName},
-      isNullAllowed: true,
-      inner: loopBuffer.toString(),
-      reported: reported,
+    StringBuffer fullBuffer = StringBuffer();
+    fullBuffer.writeln("if (this.pos case var mark) {");
+    fullBuffer.writeln(
+      node.child
+          .acceptCompilerVisitor(
+            this,
+            withNames: <String>{variableName},
+            isNullAllowed: true,
+            inner: loopBuffer.toString(),
+            reported: reported,
+          )
+          .indent(),
     );
+    fullBuffer.writeln("}");
+
+    return fullBuffer.toString();
   }
 
   @override
@@ -539,41 +543,47 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
           isNullAllowed: isNullable(node.child),
           reported: reported,
         )
-        .indent(5);
+        .indent(4);
     String question = isNullable(node.child) ? "" : "?";
     StringBuffer loopBuffer = StringBuffer();
-    loopBuffer.writeln("if (this.pos case var mark) {");
     loopBuffer.writeln(
-      "  if ([if ($variableName case var $variableName$question) $variableName] case ${withNames.varNames}) {",
+      "if ([if ($variableName case var $variableName$question) $variableName] "
+      "case ${withNames.varNames}) {",
     );
-    loopBuffer.writeln("    if ($containerName.isNotEmpty) {");
-    loopBuffer.writeln("      for (;;) {");
-    loopBuffer.writeln("        if (this.pos case var mark) {");
+    loopBuffer.writeln("  if ($containerName.isNotEmpty) {");
+    loopBuffer.writeln("    for (;;) {");
+    loopBuffer.writeln("      if (this.pos case var mark) {");
     loopBuffer.writeln(loopBody);
-    loopBuffer.writeln("          this.pos = mark;");
-    loopBuffer.writeln("          break;");
-    loopBuffer.writeln("        }");
+    loopBuffer.writeln("        this.pos = mark;");
+    loopBuffer.writeln("        break;");
     loopBuffer.writeln("      }");
-    loopBuffer.writeln("    } else {");
-    loopBuffer.writeln("      this.pos = mark;");
     loopBuffer.writeln("    }");
-    if (inner case String inner?) {
-      loopBuffer.writeln(inner.indent(2));
-    } else {
-      loopBuffer.writeln("    return $containerName;");
-    }
+    loopBuffer.writeln("  } else {");
+    loopBuffer.writeln("    this.pos = mark;");
     loopBuffer.writeln("  }");
+    if (inner case String inner?) {
+      loopBuffer.writeln(inner.indent());
+    } else {
+      loopBuffer.writeln("  return $containerName;");
+    }
     loopBuffer.writeln("}");
 
-    /// Kleene's star should have less code,
-    ///   But this is what we need so that we don't have type hints.
-    return node.child.acceptCompilerVisitor(
-      this,
-      withNames: <String>{variableName},
-      isNullAllowed: true,
-      inner: loopBuffer.toString(),
-      reported: reported,
+    StringBuffer fullBuffer = StringBuffer();
+    fullBuffer.writeln("if (this.pos case var mark) {");
+    fullBuffer.writeln(
+      node.child
+          .acceptCompilerVisitor(
+            this,
+            withNames: <String>{variableName},
+            isNullAllowed: true,
+            inner: loopBuffer.toString(),
+            reported: reported,
+          )
+          .indent(),
     );
+    fullBuffer.writeln("}");
+
+    return fullBuffer.toString();
   }
 
   @override
@@ -598,7 +608,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
       "}",
     ];
 
-    return buffer.toString();
+    return buffer.join("\n");
   }
 
   @override
