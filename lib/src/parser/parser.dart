@@ -975,11 +975,11 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// global::number
   int? f17() {
     if (this.pos case var from) {
-      if (matchPattern(_regexp.$1) case var _0?) {
+      if (this.apply(this.r32) case var _0?) {
         if ([_0] case (var $ && var _loop2)) {
           for (;;) {
             if (this.pos case var mark) {
-              if (matchPattern(_regexp.$1) case var _0?) {
+              if (this.apply(this.r32) case var _0?) {
                 _loop2.add(_0);
                 continue;
               }
@@ -2170,11 +2170,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     if (this.pos case var mark) {
       if (this.matchPattern("`") case (var $0 && null)) {
         this.pos = mark;
-        if (pos < buffer.length) {
-          if (buffer[pos] case var $1) {
-            pos++;
+        if (this.apply(this.r28) case var $1?) {
           return $1;
-          }
         }
       }
     }
@@ -2378,11 +2375,11 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// fragment43
   late final f111 = () {
     if (this.pos case var mark) {
-      if (matchPattern(_regexp.$2) case var $?) {
+      if (matchPattern(_regexp.$1) case var $?) {
         return $;
       }
       this.pos = mark;
-      if (matchPattern(_regexp.$3) case var $?) {
+      if (matchPattern(_regexp.$2) case var $?) {
         return $;
       }
     }
@@ -2932,19 +2929,6 @@ final class PegParser extends _PegParser<ParserGenerator> {
             if (($0, $1) case var $) {
               if (this.pos case var to) {
                 return NamedNode($1, ReferenceNode($1)) ;
-              }
-            }
-          }
-        }
-      }
-
-      this.pos = mark;
-      if (this.pos case var from) {
-        if (this.matchPattern(":") case var $0?) {
-          if (this.apply(this.r13) case (var $1 && var atom)?) {
-            if (($0, $1) case var $) {
-              if (this.pos case var to) {
-                return NamedNode(r"$", atom) ;
               }
             }
           }
@@ -3917,9 +3901,71 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
+  /// global::std::any
+  String? r28() {
+    if (pos < buffer.length) {
+      if (buffer[pos] case var $) {
+        pos++;
+        return $;
+      }
+    }
+  }
+
+  /// global::std::epsilon
+  String r29() {
+    if ('' case var $) {
+      return $;
+    }
+  }
+
+  /// global::std::start
+  int? r30() {
+    if (this.pos case var $ when this.pos <= 0) {
+      return $;
+    }
+  }
+
+  /// global::std::end
+  int? r31() {
+    if (this.pos case var $ when this.pos >= this.buffer.length) {
+      return $;
+    }
+  }
+
+  /// global::std::digit
+  String? r32() {
+    if (matchPattern(_regexp.$3) case var $?) {
+      return $;
+    }
+  }
+
+  /// global::std::alpha
+  String? r33() {
+    if (matchPattern(_regexp.$4) case var $?) {
+      return $;
+    }
+  }
+
+  /// global::std::alpha::lower
+  String? r34() {
+    if (matchPattern(_regexp.$5) case var $?) {
+      return $;
+    }
+  }
+
+  /// global::std::alpha::upper
+  String? r35() {
+    if (matchPattern(_regexp.$6) case var $?) {
+      return $;
+    }
+  }
+
   static final _regexp = (
-    RegExp("\\d"),
     RegExp("\\s"),
     RegExp("\\/{2}.*(?:(?:\\r?\\n)|(?:\$))"),
+    RegExp("\\d"),
+    RegExp("[a-zA-Z]"),
+    RegExp("[a-z]"),
+    RegExp("[A-Z]"),
   );
 }

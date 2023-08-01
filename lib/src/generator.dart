@@ -56,6 +56,9 @@ const List<String> ignores = <String>[
 
 final class ParserGenerator {
   ParserGenerator.fromParsed({required List<Statement> statements, required this.preamble}) {
+    /// We add all the special nodes :)
+    predefined.forEach(statements.add);
+
     /// We add ALL the rules in advance.
     ///   Why? Because we need ALL the rules to be able to resolve references.
     for (Statement statement in statements) {
@@ -111,6 +114,29 @@ final class ParserGenerator {
       }
     }
   }
+
+  static final List<Statement> predefined = <Statement>[
+    NamespaceStatement(
+      "std",
+      <Statement>[
+        const DeclarationStatement.predefined("any", AnyCharacterNode()),
+        const DeclarationStatement.predefined("epsilon", EpsilonNode()),
+        const DeclarationStatement.predefined("start", StartOfInputNode(), type: "int"),
+        const DeclarationStatement.predefined("end", EndOfInputNode(), type: "int"),
+        DeclarationStatement.predefined("digit", RegExpNode(RegExp(r"\d"))),
+        DeclarationStatement.predefined("alpha", RegExpNode(RegExp("[a-zA-Z]"))),
+        NamespaceStatement(
+          "alpha",
+          <Statement>[
+            DeclarationStatement.predefined("lower", RegExpNode(RegExp("[a-z]"))),
+            DeclarationStatement.predefined("upper", RegExpNode(RegExp("[A-Z]"))),
+          ],
+          tag: null,
+        ),
+      ],
+      tag: Tag.rule,
+    ),
+  ];
 
   /// Adds the rules from [Statement]s to the [rules] and [fragments] maps.
   void addResolvedRules(Statement statement, List<String> prefix, Tag? tag) {

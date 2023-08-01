@@ -8,7 +8,7 @@ enum Tag {
 sealed class Statement {}
 
 final class NamespaceStatement implements Statement {
-  NamespaceStatement(this.name, this.children, {required this.tag});
+  const NamespaceStatement(this.name, this.children, {required this.tag});
 
   final String? name;
   final List<Statement> children;
@@ -16,7 +16,8 @@ final class NamespaceStatement implements Statement {
 }
 
 final class DeclarationStatement implements Statement {
-  DeclarationStatement(this.type, this.name, this.node, {required this.tag});
+  const DeclarationStatement(this.type, this.name, this.node, {required this.tag});
+  const DeclarationStatement.predefined(this.name, this.node, {this.type = "String"}) : tag = null;
 
   final String? type;
   final String name;

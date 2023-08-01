@@ -779,4 +779,69 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   }
 
+  /// global::std::any
+  String? r5() {
+    if (pos < buffer.length) {
+      if (buffer[pos] case var $) {
+        pos++;
+        return $;
+      }
+    }
+  }
+
+  /// global::std::epsilon
+  String r6() {
+    if ('' case var $) {
+      return $;
+    }
+  }
+
+  /// global::std::start
+  int? r7() {
+    if (this.pos case var $ when this.pos <= 0) {
+      return $;
+    }
+  }
+
+  /// global::std::end
+  int? r8() {
+    if (this.pos case var $ when this.pos >= this.buffer.length) {
+      return $;
+    }
+  }
+
+  /// global::std::digit
+  String? r9() {
+    if (matchPattern(_regexp.$1) case var $?) {
+      return $;
+    }
+  }
+
+  /// global::std::alpha
+  String? r10() {
+    if (matchPattern(_regexp.$2) case var $?) {
+      return $;
+    }
+  }
+
+  /// global::std::alpha::lower
+  String? r11() {
+    if (matchPattern(_regexp.$3) case var $?) {
+      return $;
+    }
+  }
+
+  /// global::std::alpha::upper
+  String? r12() {
+    if (matchPattern(_regexp.$4) case var $?) {
+      return $;
+    }
+  }
+
+  static final _regexp = (
+    RegExp("\\d"),
+    RegExp("[a-zA-Z]"),
+    RegExp("[a-z]"),
+    RegExp("[A-Z]"),
+  );
 }
