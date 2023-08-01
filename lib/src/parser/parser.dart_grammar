@@ -104,7 +104,7 @@ Node acted =
 ///   By default, a sequence parser returns a [Record] of the results of the parsers.
 Node sequence =
   /// By specifying which item to keep, the specific item can be returned.
-  | body:_.labeled+ `@` :number () {
+  | body:_.labeled+ (`@` | `=>`) :number () {
       if (body.length == 1) {
         return body.single;
       } else {
@@ -195,25 +195,31 @@ Node specialSymbol =
   | regexEscape::space     { SimpleRegExpEscapeNode.whitespace }
   ;
 
-String rawCode = code:(!"{" !"}" . @2 | "{" :rawCode "}" @1 {"{${$}}"})* { code.join() };
+String rawCode = code:(!"{" !"}" . @2 | "{" :rawCode "}" @1 {"{" + $ + "}"})* { code.join() };
 
 @fragment literal {
   regexp =
-    | "/" ((\\ . @1 { r"\" + $ } | !"/" . @1)+ { $.join() } ) "/" @1
-    | r'r"{3}((?:(?:\\.)|(?!"{3}).)*)"{3}' { $.substring(4, $.length - 3) }
-    | r"r'{3}((?:(?:\\.)|(?!'{3}).)*)'{3}" { $.substring(4, $.length - 3) }
-    | r'r"((?:(?:\\.)|[^"])*)"'            { $.substring(2, $.length - 1) }
-    | r"r'((?:(?:\\.)|[^'])*)'"            { $.substring(2, $.length - 1) };
+    | "/" ((\\ . @1 { r"\" + $ } | !"/" . @1)+ { $.join() } ) "/" @1;
 
-  string =
-    | '"""' ((\\ . @1 | !'"""' . @1)* { $.join() }) '"""' @1
-    | "'''" ((\\ . @1 | !"'''" . @1)* { $.join() }) "'''" @1
-    | '"'   ((\\ . @1 | !'"'   . @1)* { $.join() }) '"'   @1
-    | "'"   ((\\ . @1 | !"'"   . @1)* { $.join() }) "'"   @1;
+  string = _ string::main _ @1;
+  string {
+    main =
+      /// Raw string literals
+      | "r" '"""' body:(!'"""' . @1)* '"""' { body.join() }
+      | "r" "'''" body:(!"'''" . @1)* "'''" { body.join() }
+      | "r" '"'   body:(!'"'   . @1)* '"'   { body.join() }
+      | "r" "'"   body:(!"'"   . @1)* "'"   { body.join() }
+      /// Escaped string literals
+      | '"""' body:(\\ . @1 | !'"""' . @1)* '"""' { body.join() }
+      | "'''" body:(\\ . @1 | !"'''" . @1)* "'''" { body.join() }
+      | '"'   body:(\\ . @1 | !'"'   . @1)* '"'   { body.join() }
+      | "'"   body:(\\ . @1 | !"'"   . @1)* "'"   { body.join() }
+      ;
+  }
 
   range = range::main;
   range {
-    main = `]` :elements `[` { RangeNode(elements) };
+    main = `[` :elements `]` { RangeNode(elements) };
     elements = _.element+ { $.toSet() };
     element =
       | l:any "-" r:any { (l.codeUnitAt(0), r.codeUnitAt(0)) }
@@ -320,9 +326,10 @@ type {
   }
 
   /// Literal tokens
-  `..`  = _ 2"." _ @1;
-  `::`  = _ 2":" _ @1;
-  `%%`  = _ 2"%" _ @1;
+  `..`  = _ ".." _ @1;
+  `::`  = _ "::" _ @1;
+  `%%`  = _ "%%" _ @1;
+  `=>`  = _ "=>" _ @1;
 
   `@`   = _ "@"  _ @1;
   `<`   = _ "<"  _ @1;
@@ -350,5 +357,5 @@ type {
   DOLLAR  = _ "$"  _ @1;
 
   /// Layout parser allows comments (like this) and space between parsers.
-  _  = (\s | r"\/{2}.*(?:(?:\r?\n)|(?:$))")* { "" };
+  _  = (\s | /\/{2}.*(?:(?:\r?\n)|(?:$))/)* { "" };
 }
