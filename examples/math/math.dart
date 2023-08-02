@@ -314,49 +314,49 @@ final class MathParser extends _PegParser<num> {
     }
   };
 
-  /// `fragment10`
+  /// `fragmenta`
   late final fa = () {
     if (matchPattern(_regexp.$1) case var $?) {
       return "";
     }
   };
 
-  /// `fragment11`
+  /// `fragmentb`
   late final fb = () {
     if (matchPattern(_regexp.$1) case var $?) {
       return "";
     }
   };
 
-  /// `fragment12`
+  /// `fragmentc`
   late final fc = () {
     if (matchPattern(_regexp.$1) case var $?) {
       return "";
     }
   };
 
-  /// `fragment13`
+  /// `fragmentd`
   late final fd = () {
     if (matchPattern(_regexp.$1) case var $?) {
       return "";
     }
   };
 
-  /// `fragment14`
+  /// `fragmente`
   late final fe = () {
     if (matchPattern(_regexp.$1) case var $?) {
       return "";
     }
   };
 
-  /// `fragment15`
+  /// `fragmentf`
   late final ff = () {
     if (matchPattern(_regexp.$1) case var $?) {
       return "";
     }
   };
 
-  /// `fragment16`
+  /// `fragmentg`
   late final fg = () {
     if (matchPattern(_regexp.$1) case var $?) {
       return "";

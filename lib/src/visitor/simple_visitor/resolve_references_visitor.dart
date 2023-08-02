@@ -113,10 +113,9 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
         name,
       ].join("::");
       switch (potentialName) {
-        case String name when inline.containsKey(name):
-          return inline[name]!.$2;
         case String name when rules.containsKey(name):
           return ReferenceNode(name);
+        case String name when inline.containsKey(name):
         case String name when fragments.containsKey(name):
           return FragmentNode(name);
       }

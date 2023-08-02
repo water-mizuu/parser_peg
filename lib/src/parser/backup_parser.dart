@@ -1659,7 +1659,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment10`
+  /// `fragmenta`
   late final f2a = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$10) case var $0?) {
@@ -1694,7 +1694,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment11`
+  /// `fragmentb`
   late final f2b = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$10) case var $0?) {
@@ -1729,7 +1729,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment12`
+  /// `fragmentc`
   late final f2c = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$34) case var $0?) {
@@ -1759,7 +1759,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment13`
+  /// `fragmentd`
   late final f2d = () {
     if (this.pos case var mark) {
       if (this.apply(this.rr) case var $?) {
@@ -1776,7 +1776,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment14`
+  /// `fragmente`
   late final f2e = () {
     if (this.f1h() case var $0?) {
       if (this.fe() case var $1?) {
@@ -1787,7 +1787,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment15`
+  /// `fragmentf`
   late final f2f = () {
     if (this.f1h() case var $0?) {
       if (this.fe() case var $1?) {
@@ -1798,7 +1798,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment16`
+  /// `fragmentg`
   late final f2g = () {
     if (this.f1r() case var $0?) {
       if (this.f1h() case var $1?) {
@@ -1811,7 +1811,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment17`
+  /// `fragmenth`
   late final f2h = () {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$1) case var $1?) {
@@ -1820,7 +1820,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment18`
+  /// `fragmenti`
   late final f2i = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$10) case var $0?) {
@@ -1848,7 +1848,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment19`
+  /// `fragmentj`
   late final f2j = () {
     if (this.f2i() case var _0?) {
       if ([_0] case (var $ && var _loop2)) {
@@ -1867,7 +1867,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment20`
+  /// `fragmentk`
   late final f2k = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$3) case (var $0 && null)) {
@@ -1882,7 +1882,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment21`
+  /// `fragmentl`
   late final f2l = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$5) case (var $0 && null)) {
@@ -1897,7 +1897,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment22`
+  /// `fragmentm`
   late final f2m = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$6) case (var $0 && null)) {
@@ -1912,7 +1912,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment23`
+  /// `fragmentn`
   late final f2n = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$7) case (var $0 && null)) {
@@ -1927,7 +1927,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment24`
+  /// `fragmento`
   late final f2o = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$10) case var $0?) {
@@ -1953,7 +1953,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment25`
+  /// `fragmentp`
   late final f2p = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$10) case var $0?) {
@@ -1979,7 +1979,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment26`
+  /// `fragmentq`
   late final f2q = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$10) case var $0?) {
@@ -2005,7 +2005,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment27`
+  /// `fragmentr`
   late final f2r = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$10) case var $0?) {
@@ -2031,7 +2031,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment28`
+  /// `fragments`
   late final f2s = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$15) case (var $0 && null)) {
@@ -2046,7 +2046,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment29`
+  /// `fragmentt`
   late final f2t = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$15) case (var $0 && null)) {
@@ -2061,7 +2061,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment30`
+  /// `fragmentu`
   late final f2u = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$10) case var $1?) {
@@ -2072,7 +2072,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment31`
+  /// `fragmentv`
   late final f2v = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$9) case var $1?) {
@@ -2083,7 +2083,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment32`
+  /// `fragmentw`
   late final f2w = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$11) case var $1?) {
@@ -2094,7 +2094,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment33`
+  /// `fragmentx`
   late final f2x = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$12) case var $1?) {
@@ -2105,7 +2105,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment34`
+  /// `fragmenty`
   late final f2y = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$51) case var $1?) {
@@ -2116,7 +2116,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment35`
+  /// `fragmentz`
   late final f2z = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$52) case var $1?) {
@@ -2127,7 +2127,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment36`
+  /// `fragment10`
   late final f30 = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$53) case var $1?) {
@@ -2138,7 +2138,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment37`
+  /// `fragment11`
   late final f31 = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$54) case var $1?) {
@@ -2149,7 +2149,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment38`
+  /// `fragment12`
   late final f32 = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$55) case var $1?) {
@@ -2160,7 +2160,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment39`
+  /// `fragment13`
   late final f33 = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$56) case var $1?) {
@@ -2171,7 +2171,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment40`
+  /// `fragment14`
   late final f34 = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$57) case var $1?) {
@@ -2182,7 +2182,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment41`
+  /// `fragment15`
   late final f35 = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$58) case var $1?) {
@@ -2193,7 +2193,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment42`
+  /// `fragment16`
   late final f36 = () {
     if (this.matchPattern(_string.$10) case var $0?) {
       if (this.matchPattern(_string.$47) case var $1?) {
@@ -3600,71 +3600,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::std::any`
-  String? ru() {
-    if (pos < buffer.length) {
-      if (buffer[pos] case var $) {
-        pos++;
-        return $;
-      }
-    }
-  }
-
-  /// `global::std::epsilon`
-  String rv() {
-    if ('' case var $) {
-      return $;
-    }
-  }
-
-  /// `global::std::start`
-  int? rw() {
-    if (this.pos case var $ when this.pos <= 0) {
-      return $;
-    }
-  }
-
-  /// `global::std::end`
-  int? rx() {
-    if (this.pos case var $ when this.pos >= this.buffer.length) {
-      return $;
-    }
-  }
-
-  /// `global::std::digit`
-  String? ry() {
-    if (matchPattern(_regexp.$1) case var $?) {
-      return $;
-    }
-  }
-
-  /// `global::std::alpha`
-  String? rz() {
-    if (matchPattern(_regexp.$3) case var $?) {
-      return $;
-    }
-  }
-
-  /// `global::std::alpha::lower`
-  String? r10() {
-    if (matchPattern(_regexp.$4) case var $?) {
-      return $;
-    }
-  }
-
-  /// `global::std::alpha::upper`
-  String? r11() {
-    if (matchPattern(_regexp.$5) case var $?) {
-      return $;
-    }
-  }
-
   static final _regexp = (
     RegExp("\\d"),
     RegExp("(?:(?:\\s)|(?:\\/{2}.*(?:(?:\\r?\\n)|(?:\$))))*"),
-    RegExp("[a-zA-Z]"),
-    RegExp("[a-z]"),
-    RegExp("[A-Z]"),
   );
   static const _string = (
     "::",

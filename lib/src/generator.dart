@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_expression_function_bodies, noop_primitive_operations
+// ignore_for_file: prefer_expression_function_bodies, noop_primitive_operations, always_specify_types
 
 import "dart:collection";
 import "dart:convert";
@@ -8,6 +8,7 @@ import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
 import "package:parser_peg/src/visitor/compiler_visitor/compiler_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/can_inline_visitor.dart";
+import "package:parser_peg/src/visitor/simple_visitor/inline_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/rename_visitors.dart";
 import "package:parser_peg/src/visitor/simple_visitor/resolve_references_visitor.dart";
 import "package:parser_peg/src/visitor/simplifier_visitor/simplify_visitor.dart";
@@ -58,24 +59,123 @@ const List<String> ignores = <String>[
 final class ParserGenerator {
   ParserGenerator.fromParsed({required List<Statement> statements, required this.preamble}) {
     /// We add all the special nodes :)
-    // predefined.forEach(statements.add);
+    predefined.forEach(statements.add);
 
     /// We add ALL the rules in advance.
     ///   Why? Because we need ALL the rules to be able to resolve references.
     for (Statement statement in statements) {
-      addResolvedRules(statement, <String>["global"], null);
+      Queue<(Statement, List<String>, Tag?)> stack = Queue<(Statement, List<String>, Tag?)>()
+        ..add((statement, <String>["global"], null));
+
+      while (stack.isNotEmpty) {
+        var (Statement statement, List<String> prefix, Tag? tag) = stack.removeLast();
+
+        switch (statement) {
+          case DeclarationStatement(:String? type, :String name, :Node node, tag: Tag? declarationTag):
+            String resolvedName = <String>[...prefix, name].join("::");
+            switch (declarationTag ?? tag) {
+              case Tag.inline:
+                inline[resolvedName] = (type, node);
+              case Tag.fragment:
+                fragments[resolvedName] = (type, node);
+              case null:
+              case Tag.rule:
+                rules[resolvedName] = (type, node);
+            }
+          case NamespaceStatement(
+              :String name,
+              :List<Statement> children,
+              tag: Tag? declaredTag,
+            ):
+            for (Statement sub in children) {
+              stack.addLast((sub, <String>[...prefix, name], declaredTag ?? tag));
+            }
+          case NamespaceStatement(
+              name: null,
+              :List<Statement> children,
+              tag: Tag? declaredTag,
+            ):
+            for (Statement sub in children) {
+              stack.addLast((sub, prefix, declaredTag ?? tag));
+            }
+        }
+      }
     }
 
     /// Resolve the references from inside namespaces.
     for (Statement statement in statements) {
-      processStatement(statement, <String>["global"], null);
+      Queue<(Statement, List<String>, Tag?)> stack = Queue<(Statement, List<String>, Tag?)>()
+        ..addLast((statement, <String>["global"], null));
+
+      while (stack.isNotEmpty) {
+        var (Statement statement, List<String> prefixes, Tag? tag) = stack.removeLast();
+
+        switch (statement) {
+          case DeclarationStatement(:String? type, :String name, :Node node, tag: Tag? declarationTag):
+            ResolveReferencesVisitor visitor = ResolveReferencesVisitor(prefixes, rules, fragments, inline);
+            String resolvedName = <String>[...prefixes, name].join("::");
+            Node resolvedNode = node.acceptSimpleVisitor(visitor);
+
+            switch (declarationTag ?? tag) {
+              case Tag.inline:
+                inline[resolvedName] = (type, resolvedNode);
+              case Tag.fragment:
+                fragments[resolvedName] = (type, resolvedNode);
+              // Default tag is rule.
+              case null:
+              case Tag.rule:
+                rules[resolvedName] = (type, resolvedNode);
+            }
+          case NamespaceStatement(:String name, :List<Statement> children, tag: Tag? declaredTag):
+            for (Statement sub in children) {
+              stack.addLast((sub, <String>[...prefixes, name], declaredTag ?? tag));
+            }
+          case NamespaceStatement(name: null, :List<Statement> children, tag: Tag? declaredTag):
+            for (Statement sub in children) {
+              stack.addLast((sub, prefixes, declaredTag ?? tag));
+            }
+        }
+      }
+    }
+
+    /// We determine the inline-declared rules that can *actually* be inlined.
+    ///   We shouldn't throw an error, because it may just be that a rule is
+    ///   declared as inline, but it is not actually inline-able, like in a namespace.
+    if (CanInlineVisitor(rules, fragments, inline) case CanInlineVisitor visitor) {
+      for (var (String name, (String? type, Node node)) in inline.pairs.toList()) {
+        if (!node.acceptSimpleVisitor(visitor)) {
+          stdout.writeln("Cannot inline '$name', promoting to fragment.");
+          inline.remove(name);
+          fragments[name] = (type, node);
+        } else {
+          stdout.writeln("Can inline '$name'.");
+        }
+      }
+    }
+
+    /// We inline the rules that can be inlined.
+    if (InlineVisitor(inline) case InlineVisitor visitor) {
+      bool runLoop = false;
+
+      do {
+        runLoop = false;
+        for (var (String name, (String? type, Node node)) in rules.pairs.toList()) {
+          var (bool hasChanged, Node resolvedNode) = node.acceptSimpleVisitor(visitor);
+          runLoop |= hasChanged;
+
+          rules[name] = (type, resolvedNode);
+        }
+        for (var (String name, (String? type, Node node)) in fragments.pairs.toList()) {
+          var (bool hasChanged, Node resolvedNode) = node.acceptSimpleVisitor(visitor);
+          runLoop |= hasChanged;
+
+          fragments[name] = (type, resolvedNode);
+        }
+      } while (runLoop);
     }
 
     /// We simplify the rules to prepare for codegen.
     if (SimplifyVisitor() case SimplifyVisitor visitor) {
-      for (var (String name, (String? type, Node node)) in inline.pairs) {
-        inline[name] = (type, node.acceptSimplifierVisitor(visitor, 0));
-      }
       for (var (String name, (String? type, Node node)) in rules.pairs) {
         rules[name] = (type, node.acceptSimplifierVisitor(visitor, 0));
       }
@@ -88,7 +188,6 @@ final class ParserGenerator {
     }
 
     /// We rename the rules and fragments.
-
     redirectId = 0;
     for (var (String name, (String? type, Node node)) in rules.pairs.toList()) {
       String simplifiedName = "r${(redirectId++).toRadixString(36)}";
@@ -107,21 +206,9 @@ final class ParserGenerator {
       redirects[name] = simplifiedName;
       reverseRedirects[simplifiedName] = name;
     }
-    redirectId = 0;
-    for (var (String name, (String? type, Node node)) in inline.pairs.toList()) {
-      String simplifiedName = "i${(redirectId++).toRadixString(36)}";
-
-      inline.remove(name);
-      inline[simplifiedName] = (type, node);
-      redirects[name] = simplifiedName;
-      reverseRedirects[simplifiedName] = name;
-    }
 
     /// We rename the references.
     if (RenameDeclarationVisitor(redirects) case RenameDeclarationVisitor visitor) {
-      for (var (String name, (String? type, Node node)) in inline.pairs) {
-        inline[name] = (type, node.acceptSimpleVisitor(visitor));
-      }
       for (var (String name, (String? type, Node node)) in rules.pairs) {
         rules[name] = (type, node.acceptSimpleVisitor(visitor));
       }
@@ -139,6 +226,7 @@ final class ParserGenerator {
         const DeclarationStatement.predefined("epsilon", EpsilonNode()),
         const DeclarationStatement.predefined("start", StartOfInputNode(), type: "int"),
         const DeclarationStatement.predefined("end", EndOfInputNode(), type: "int"),
+        DeclarationStatement.predefined("whitespace", RegExpNode(RegExp(r"\s"))),
         DeclarationStatement.predefined("digit", RegExpNode(RegExp(r"\d"))),
         DeclarationStatement.predefined("alpha", RegExpNode(RegExp("[a-zA-Z]"))),
         NamespaceStatement(
@@ -150,72 +238,9 @@ final class ParserGenerator {
           tag: null,
         ),
       ],
-      tag: Tag.rule,
+      tag: Tag.inline,
     ),
   ];
-
-  /// Adds the rules from [Statement]s to the [rules] and [fragments] maps.
-  void addResolvedRules(Statement statement, List<String> prefix, Tag? tag) {
-    switch (statement) {
-      case DeclarationStatement(:String? type, :String name, :Node node, tag: Tag? declarationTag):
-        String resolvedName = <String>[...prefix, name].join("::");
-        switch (declarationTag ?? tag) {
-          case Tag.inline when node.canBeInlined:
-            inline[resolvedName] = (type, node);
-          case Tag.inline:
-          case Tag.fragment:
-            fragments[resolvedName] = (type, node);
-          case null:
-          case Tag.rule:
-            rules[resolvedName] = (type, node);
-        }
-      case NamespaceStatement(
-          :String name,
-          :List<Statement> children,
-          tag: Tag? declaredTag,
-        ):
-        for (Statement sub in children) {
-          addResolvedRules(sub, <String>[...prefix, name], declaredTag ?? tag);
-        }
-      case NamespaceStatement(
-          name: null,
-          :List<Statement> children,
-          tag: Tag? declaredTag,
-        ):
-        for (Statement sub in children) {
-          addResolvedRules(sub, prefix, declaredTag ?? tag);
-        }
-    }
-  }
-
-  void processStatement(Statement statement, List<String> prefixes, Tag? tag) {
-    switch (statement) {
-      case DeclarationStatement(:String? type, :String name, :Node node, tag: Tag? declarationTag):
-        ResolveReferencesVisitor visitor = ResolveReferencesVisitor(prefixes, rules, fragments, inline);
-        String resolvedName = <String>[...prefixes, name].join("::");
-        Node resolvedNode = node.acceptSimpleVisitor(visitor);
-
-        switch (declarationTag ?? tag) {
-          case Tag.inline when node.canBeInlined:
-            inline[resolvedName] = (type, resolvedNode);
-          case Tag.inline:
-          case Tag.fragment:
-            fragments[resolvedName] = (type, resolvedNode);
-          // Default tag is rule.
-          case null:
-          case Tag.rule:
-            rules[resolvedName] = (type, resolvedNode);
-        }
-      case NamespaceStatement(:String name, :List<Statement> children, tag: Tag? declaredTag):
-        for (Statement sub in children) {
-          processStatement(sub, <String>[...prefixes, name], declaredTag ?? tag);
-        }
-      case NamespaceStatement(name: null, :List<Statement> children, tag: Tag? declaredTag):
-        for (Statement sub in children) {
-          processStatement(sub, prefixes, declaredTag ?? tag);
-        }
-    }
-  }
 
   int redirectId = 0;
   final Map<String, String> redirects = <String, String>{};
@@ -229,7 +254,6 @@ final class ParserGenerator {
   String compile(String parserName, {String? start, String? type}) {
     String parserTypeString = type ?? rules.values.firstOrNull?.$1 ?? fragments.values.firstOrNull?.$1 ?? "Object";
     String parserStartRule = start ?? fixName(rules.keys.firstOrNull ?? fragments.keys.first);
-    CompilerVisitor compilerVisitor = CompilerVisitor(isNullable: isNullable, fixName: fixName);
     StringBuffer fullBuffer = StringBuffer();
 
     fullBuffer.writeln("// ignore_for_file: ${ignores.join(", ")}");
@@ -254,117 +278,118 @@ final class ParserGenerator {
     fullBuffer.writeln("  get start => $parserStartRule;");
     fullBuffer.writeln();
 
-    for (var (String rawName, (String? type, Node node)) in fragments.pairs) {
-      compilerVisitor.ruleId = 0;
+    if (CompilerVisitor(isNullable: isNullable, fixName: fixName) case CompilerVisitor compilerVisitor) {
+      for (var (String rawName, (String? type, Node node)) in fragments.pairs) {
+        compilerVisitor.ruleId = 0;
 
-      StringBuffer inner = StringBuffer();
-      String displayName = reverseRedirects[rawName]!;
-      String fragmentName = fixName(rawName);
-      String body = node
-          .acceptCompilerVisitor(
-            compilerVisitor,
-            isNullAllowed: isNullable(node, displayName),
-            withNames: null,
-            inner: null,
-            reported: true,
-            declarationName: displayName,
-          )
-          .indent();
+        StringBuffer inner = StringBuffer();
+        String displayName = reverseRedirects[rawName]!;
+        String fragmentName = fixName(rawName);
+        String body = node
+            .acceptCompilerVisitor(
+              compilerVisitor,
+              isNullAllowed: isNullable(node, displayName),
+              withNames: null,
+              inner: null,
+              reported: true,
+              declarationName: displayName,
+            )
+            .indent();
 
-      inner.writeln();
-      inner.writeln("/// `$displayName`");
-      if (type == null) {
-        inner.writeln("late final $fragmentName = () {");
-        inner.writeln(body);
-        inner.writeln("};");
-      } else {
-        inner.writeln("$type${isNullable(node, fragmentName) ? "" : "?"} $fragmentName() {");
-        inner.writeln(body);
-        inner.writeln("}");
-      }
-
-      fullBuffer.writeln(inner.toString().indent());
-    }
-
-    for (var (String rawName, (String? type, Node node)) in rules.pairs) {
-      compilerVisitor.ruleId = 0;
-
-      StringBuffer inner = StringBuffer();
-      String displayName = reverseRedirects[rawName]!;
-      String ruleName = fixName(rawName);
-      String body = node
-          .acceptCompilerVisitor(
-            compilerVisitor,
-            isNullAllowed: isNullable(node, ruleName),
-            withNames: null,
-            inner: null,
-            reported: true,
-            declarationName: displayName,
-          )
-          .indent();
-
-      inner.writeln();
-      inner.writeln("/// `$displayName`");
-      if (type == null) {
-        inner.writeln("late final $ruleName = () {");
-        inner.writeln(body);
-        inner.writeln("};");
-      } else {
-        inner.writeln("$type${isNullable(node, ruleName) ? "" : "?"} $ruleName() {");
-        inner.writeln(body);
-        inner.writeln("}");
-      }
-
-      fullBuffer.writeln(inner.toString().indent());
-    }
-
-    fullBuffer.writeln();
-
-    if (compilerVisitor.regexps.isNotEmpty) {
-      fullBuffer.writeln("static final _regexp = (".indent());
-      for (String regExp in compilerVisitor.regexps) {
-        fullBuffer.writeln("RegExp(${encode(regExp)}),".indent(2));
-      }
-      fullBuffer.writeln(");".indent());
-    }
-
-    if (compilerVisitor.tries.isNotEmpty) {
-      fullBuffer.writeln("static final _trie = (".indent());
-      for (List<String> options in compilerVisitor.tries) {
-        fullBuffer.writeln("Trie.from(${encode(options)}),".indent(2));
-      }
-      fullBuffer.writeln(");".indent());
-    }
-
-    if (compilerVisitor.strings.isNotEmpty) {
-      fullBuffer.writeln("static const _string = (".indent());
-      for (String string in compilerVisitor.strings) {
-        fullBuffer.writeln("${encode(string)},".indent(2));
-      }
-      fullBuffer.writeln(");".indent());
-    }
-
-    if (compilerVisitor.ranges.isNotEmpty) {
-      fullBuffer.writeln("static const _range = (".indent());
-      for (Set<(int, int)> ranges in compilerVisitor.ranges) {
-        fullBuffer.write("    ");
-        fullBuffer.write("{");
-        for (var (int i, (int low, int high)) in ranges.indexed) {
-          fullBuffer.write("($low, $high)");
-
-          if (i < ranges.length - 1) {
-            fullBuffer.write(", ");
-          }
+        inner.writeln();
+        inner.writeln("/// `$displayName`");
+        if (type == null) {
+          inner.writeln("late final $fragmentName = () {");
+          inner.writeln(body);
+          inner.writeln("};");
+        } else {
+          inner.writeln("$type${isNullable(node, fragmentName) ? "" : "?"} $fragmentName() {");
+          inner.writeln(body);
+          inner.writeln("}");
         }
-        fullBuffer.writeln("},");
+
+        fullBuffer.writeln(inner.toString().indent());
       }
-      fullBuffer.writeln(");".indent());
-    }
 
-    fullBuffer.writeln("}");
+      for (var (String rawName, (String? type, Node node)) in rules.pairs) {
+        compilerVisitor.ruleId = 0;
 
-    if (compilerVisitor.tries.isNotEmpty) {
-      fullBuffer.writeln(trieCode);
+        StringBuffer inner = StringBuffer();
+        String displayName = reverseRedirects[rawName]!;
+        String ruleName = fixName(rawName);
+        String body = node
+            .acceptCompilerVisitor(
+              compilerVisitor,
+              isNullAllowed: isNullable(node, ruleName),
+              withNames: null,
+              inner: null,
+              reported: true,
+              declarationName: displayName,
+            )
+            .indent();
+
+        inner.writeln();
+        inner.writeln("/// `$displayName`");
+        if (type == null) {
+          inner.writeln("late final $ruleName = () {");
+          inner.writeln(body);
+          inner.writeln("};");
+        } else {
+          inner.writeln("$type${isNullable(node, ruleName) ? "" : "?"} $ruleName() {");
+          inner.writeln(body);
+          inner.writeln("}");
+        }
+
+        fullBuffer.writeln(inner.toString().indent());
+      }
+
+      fullBuffer.writeln();
+
+      if (compilerVisitor.regexps.isNotEmpty) {
+        fullBuffer.writeln("static final _regexp = (".indent());
+        for (String regExp in compilerVisitor.regexps) {
+          fullBuffer.writeln("RegExp(${encode(regExp)}),".indent(2));
+        }
+        fullBuffer.writeln(");".indent());
+      }
+
+      if (compilerVisitor.tries.isNotEmpty) {
+        fullBuffer.writeln("static final _trie = (".indent());
+        for (List<String> options in compilerVisitor.tries) {
+          fullBuffer.writeln("Trie.from(${encode(options)}),".indent(2));
+        }
+        fullBuffer.writeln(");".indent());
+      }
+
+      if (compilerVisitor.strings.isNotEmpty) {
+        fullBuffer.writeln("static const _string = (".indent());
+        for (String string in compilerVisitor.strings) {
+          fullBuffer.writeln("${encode(string)},".indent(2));
+        }
+        fullBuffer.writeln(");".indent());
+      }
+
+      if (compilerVisitor.ranges.isNotEmpty) {
+        fullBuffer.writeln("static const _range = (".indent());
+        for (Set<(int, int)> ranges in compilerVisitor.ranges) {
+          fullBuffer.write("    { ");
+          for (var (int i, (int low, int high)) in ranges.indexed) {
+            fullBuffer.write("($low, $high)");
+
+            if (i < ranges.length - 1) {
+              fullBuffer.write(", ");
+            }
+          }
+          fullBuffer.writeln(" },");
+        }
+        fullBuffer.writeln(");".indent());
+      }
+
+      fullBuffer.writeln("}");
+
+      if (compilerVisitor.tries.isNotEmpty) {
+        fullBuffer.writeln(trieCode);
+      }
     }
 
     return fullBuffer.toString();
@@ -417,8 +442,12 @@ final class ParserGenerator {
       NotPredicateNode() => isNullable(node.child, ruleName),
       OptionalNode() => isNullable(node.child, ruleName),
       ReferenceNode() => isNullable(rules[node.ruleName]?.$2 ?? notFound(node.ruleName, Tag.rule, ruleName), ruleName),
-      FragmentNode() =>
-        isNullable(fragments[node.fragmentName]?.$2 ?? notFound(node.fragmentName, Tag.fragment, ruleName), ruleName),
+      FragmentNode() => isNullable(
+          fragments[node.fragmentName]?.$2 ??
+              inline[node.fragmentName]?.$2 ??
+              notFound(node.fragmentName, Tag.fragment, ruleName),
+          ruleName,
+        ),
       NamedNode() => isNullable(node.child, ruleName),
       ActionNode() => isNullable(node.child, ruleName),
       InlineActionNode() => isNullable(node.child, ruleName),

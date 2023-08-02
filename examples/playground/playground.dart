@@ -235,130 +235,51 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class PlaygroundParser extends _PegParser<String> {
+final class PlaygroundParser extends _PegParser<Object> {
   PlaygroundParser();
 
   @override
-  get start => f0;
+  get start => r0;
 
 
-  /// `global::namespacedRaw`
-  String? f0() {
+  /// `global::S`
+  Object? f0() {
     if (this.pos case var mark) {
-      if (this.f2() case var _0) {
-        if ([if (_0 case var _0?) _0] case (var $0 && var _loop2)) {
-          if (_loop2.isNotEmpty) {
-            for (;;) {
-              if (this.pos case var mark) {
-                if (this.f2() case var _0?) {
-                  _loop2.add(_0);
-                  continue;
-                }
-                this.pos = mark;
-                break;
+      if (this.f0() case var $0?) {
+        if (matchPattern(_regexp.$1) case var $1?) {
+          if (pos < buffer.length) {
+            if (buffer[pos] case var $2) {
+              pos++;
+              if (matchPattern(_regexp.$1) case var $3?) {
+                return $1;
               }
             }
-          } else {
-            this.pos = mark;
           }
-          if (this.f4() case var $1?) {
-            if (($0, $1) case var $) {
-              return $0.isEmpty ? $1 :"${$0.join("::")}::${$1}";
-            }
-          }
+        }
+      }
+      this.pos = mark;
+      if (pos < buffer.length) {
+        if (buffer[pos] case var $) {
+          pos++;
+          return $;
         }
       }
     }
   }
 
-  /// `fragment0`
-  late final f1 = () {
-    if (matchPattern(_regexp.$2) case var $0?) {
-      if (this.pos case var mark) {
-        if (matchPattern(_regexp.$1) case var _0) {
-          if ([if (_0 case var _0?) _0] case (var $1 && var _loop2)) {
-            if (_loop2.isNotEmpty) {
-              for (;;) {
-                if (this.pos case var mark) {
-                  if (matchPattern(_regexp.$1) case var _0?) {
-                    _loop2.add(_0);
-                    continue;
-                  }
-                  this.pos = mark;
-                  break;
-                }
-              }
-            } else {
-              this.pos = mark;
-            }
-            return ($0, $1);
-          }
-        }
+  /// `global::main`
+  Object? r0() {
+    if (this.matchPattern(_string.$1) case var $0?) {
+      if (this.f0() case var $1?) {
+        return ($0, $1);
       }
     }
-  };
-
-  /// `fragment1`
-  late final f2 = () {
-    if (this.f1() case var $0?) {
-      if (this.matchPattern(_string.$1) case var $1?) {
-        return $0;
-      }
-    }
-  };
-
-  /// `fragment2`
-  late final f3 = () {
-    if (this.pos case var mark) {
-      if (this.matchPattern(_string.$2) case (var $0 && null)) {
-        this.pos = mark;
-        if (pos < buffer.length) {
-          if (buffer[pos] case var $1) {
-            pos++;
-            return $1;
-          }
-        }
-      }
-    }
-  };
-
-  /// `fragment3`
-  late final f4 = () {
-    if (this.matchPattern(_string.$2) case var $0?) {
-      if (this.pos case var mark) {
-        if (this.f3() case var _0) {
-          if ([if (_0 case var _0?) _0] case (var $1 && var inner && var _loop2)) {
-            if (_loop2.isNotEmpty) {
-              for (;;) {
-                if (this.pos case var mark) {
-                  if (this.f3() case var _0?) {
-                    _loop2.add(_0);
-                    continue;
-                  }
-                  this.pos = mark;
-                  break;
-                }
-              }
-            } else {
-              this.pos = mark;
-            }
-            if (this.matchPattern(_string.$2) case var $2?) {
-              if (($0, $1, $2) case var $) {
-                return inner.join();
-              }
-            }
-          }
-        }
-      }
-    }
-  };
+  }
 
   static final _regexp = (
-    RegExp("[a-zA-Z\\d_\$]"),
-    RegExp("[a-zA-Z_\$]"),
+    RegExp("\\s"),
   );
   static const _string = (
-    "::",
-    "`",
+    "Hi",
   );
 }

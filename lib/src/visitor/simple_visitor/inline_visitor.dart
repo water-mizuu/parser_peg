@@ -39,34 +39,29 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
   @override
   (bool, Node) visitSequenceNode(SequenceNode node) {
     bool hasChanged = false;
+    List<Node> children = <Node>[];
+    for (Node sub in node.children) {
+      var (bool changed, Node node) = sub.acceptSimpleVisitor(this);
+      hasChanged |= changed;
 
-    return (
-      hasChanged,
-      SequenceNode(
-        <Node>[
-          for (Node sub in node.children)
-            if (sub.acceptSimpleVisitor(this) case (bool changed, Node node)) //
-              (hasChanged |= changed, node).$2,
-        ],
-        choose: node.choose,
-      )
-    );
+      children.add(node);
+    }
+
+    return (hasChanged, SequenceNode(children, choose: node.choose));
   }
 
   @override
   (bool, Node) visitChoiceNode(ChoiceNode node) {
     bool hasChanged = false;
+    List<Node> children = <Node>[];
+    for (Node sub in node.children) {
+      var (bool changed, Node node) = sub.acceptSimpleVisitor(this);
+      hasChanged |= changed;
 
-    return (
-      hasChanged,
-      ChoiceNode(
-        <Node>[
-          for (Node sub in node.children)
-            if (sub.acceptSimpleVisitor(this) case (bool changed, Node node)) //
-              (hasChanged |= changed, node).$2,
-        ],
-      )
-    );
+      children.add(node);
+    }
+
+    return (hasChanged, ChoiceNode(children));
   }
 
   @override

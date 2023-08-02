@@ -1,130 +1,188 @@
+// ignore_for_file: always_put_control_body_on_new_line
+
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
 class CanInlineVisitor implements SimpleNodeVisitor<bool> {
-  const CanInlineVisitor();
+  CanInlineVisitor(this.rules, this.fragments, this.inline);
+
+  final Expando<bool> _cache = Expando<bool>();
+  final Map<String, (String?, Node)> rules;
+  final Map<String, (String?, Node)> fragments;
+  final Map<String, (String?, Node)> inline;
 
   @override
   bool visitEpsilonNode(EpsilonNode node) {
-    return true;
+    if (_cache[node] case bool b) return b;
+
+    return _cache[node] = true;
   }
 
   @override
   bool visitTriePatternNode(TriePatternNode node) {
-    return true;
+    if (_cache[node] case bool b) return b;
+
+    return _cache[node] = true;
   }
 
   @override
   bool visitStringLiteralNode(StringLiteralNode node) {
-    return true;
+    if (_cache[node] case bool b) return b;
+
+    return _cache[node] = true;
   }
 
   @override
   bool visitRangeNode(RangeNode node) {
-    return true;
+    if (_cache[node] case bool b) return b;
+
+    return _cache[node] = true;
   }
 
   @override
   bool visitRegExpNode(RegExpNode node) {
-    return true;
+    if (_cache[node] case bool b) return b;
+
+    return _cache[node] = true;
   }
 
   @override
   bool visitRegExpEscapeNode(RegExpEscapeNode node) {
-    return true;
+    if (_cache[node] case bool b) return b;
+
+    return _cache[node] = true;
   }
 
   @override
   bool visitSequenceNode(SequenceNode node) {
-    return node.children.every((Node child) => child.acceptSimpleVisitor(this));
+    if (_cache[node] case bool b) return b;
+
+    return _cache[node] = node.children.every((Node child) => child.acceptSimpleVisitor(this));
   }
 
   @override
   bool visitChoiceNode(ChoiceNode node) {
-    return node.children.every((Node child) => child.acceptSimpleVisitor(this));
+    if (_cache[node] case bool b) return b;
+
+    return _cache[node] = node.children.every((Node child) => child.acceptSimpleVisitor(this));
   }
 
   @override
   bool visitCountedNode(CountedNode node) {
-    return node.child.acceptSimpleVisitor(this);
+    if (_cache[node] case bool b) return b;
+
+    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
   }
 
   @override
   bool visitPlusSeparatedNode(PlusSeparatedNode node) {
-    return node.child.acceptSimpleVisitor(this);
+    if (_cache[node] case bool b) return b;
+
+    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
   }
 
   @override
   bool visitStarSeparatedNode(StarSeparatedNode node) {
-    return node.child.acceptSimpleVisitor(this);
+    if (_cache[node] case bool b) return b;
+
+    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
   }
 
   @override
   bool visitPlusNode(PlusNode node) {
-    return node.child.acceptSimpleVisitor(this);
+    if (_cache[node] case bool b) return b;
+
+    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
   }
 
   @override
   bool visitStarNode(StarNode node) {
-    return node.child.acceptSimpleVisitor(this);
+    if (_cache[node] case bool b) return b;
+
+    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
   }
 
   @override
   bool visitAndPredicateNode(AndPredicateNode node) {
-    return node.child.acceptSimpleVisitor(this);
+    if (_cache[node] case bool b) return b;
+
+    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
   }
 
   @override
   bool visitNotPredicateNode(NotPredicateNode node) {
-    return node.child.acceptSimpleVisitor(this);
+    if (_cache[node] case bool b) return b;
+
+    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
   }
 
   @override
   bool visitOptionalNode(OptionalNode node) {
-    return node.child.acceptSimpleVisitor(this);
+    if (_cache[node] case bool b) return b;
+
+    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
   }
 
   @override
   bool visitReferenceNode(ReferenceNode node) {
-    return false;
+    if (_cache[node] case bool b) return b;
+
+    _cache[node] = false;
+    _cache[node] = rules[node.ruleName]!.$2.acceptSimpleVisitor(this);
+
+    return _cache[node]!;
   }
 
   @override
   bool visitFragmentNode(FragmentNode node) {
-    return false;
+    if (_cache[node] case bool b) return b;
+
+    _cache[node] = false;
+    _cache[node] = fragments[node.fragmentName]?.$2.acceptSimpleVisitor(this) ??
+        inline[node.fragmentName]?.$2.acceptSimpleVisitor(this);
+
+    return _cache[node]!;
   }
 
   @override
   bool visitNamedNode(NamedNode node) {
-    return node.child.acceptSimpleVisitor(this);
+    if (_cache[node] case bool b) return b;
+
+    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
   }
 
   @override
   bool visitActionNode(ActionNode node) {
-    return true;
+    if (_cache[node] case bool b) return b;
+
+    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
   }
 
   @override
   bool visitInlineActionNode(InlineActionNode node) {
-    return true;
+    if (_cache[node] case bool b) return b;
+
+    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
   }
 
   @override
   bool visitStartOfInputNode(StartOfInputNode node) {
-    return true;
+    if (_cache[node] case bool b) return b;
+
+    return _cache[node] = true;
   }
 
   @override
   bool visitEndOfInputNode(EndOfInputNode node) {
-    return true;
+    if (_cache[node] case bool b) return b;
+
+    return _cache[node] = true;
   }
 
   @override
   bool visitAnyCharacterNode(AnyCharacterNode node) {
-    return true;
-  }
-}
+    if (_cache[node] case bool b) return b;
 
-extension CanInlineExtension on Node {
-  bool get canBeInlined => acceptSimpleVisitor(const CanInlineVisitor());
+    return _cache[node] = true;
+  }
 }
