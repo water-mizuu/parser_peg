@@ -725,26 +725,40 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required String? inner,
     required bool reported,
   }) {
-    StringBuffer buffer = StringBuffer();
-    buffer.writeln("if (this.pos case var from) {");
-    buffer.writeln(
-      node.child
-          .acceptCompilerVisitor(
-            this,
-            withNames: (withNames ??= <String>{})..add(r"$"),
-            inner: (StringBuffer()
-                  ..writeln("if (this.pos case var to) {")
-                  ..writeln(node.action.indent())
-                  ..writeln("}"))
-                .toString(),
-            isNullAllowed: isNullable(node.child),
-            reported: reported,
-          )
-          .indent(),
-    );
-    buffer.writeln("}");
+    if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
+      (withNames ??= <String>{}).add(r"$");
+    }
 
-    return buffer.toString();
+    if (node.areIndicesProvided) {
+      StringBuffer buffer = StringBuffer();
+      buffer.writeln("if (this.pos case var from) {");
+      buffer.writeln(
+        node.child
+            .acceptCompilerVisitor(
+              this,
+              withNames: withNames,
+              inner: (StringBuffer()
+                    ..writeln("if (this.pos case var to) {")
+                    ..writeln(node.action.indent())
+                    ..writeln("}"))
+                  .toString(),
+              isNullAllowed: isNullable(node.child),
+              reported: reported,
+            )
+            .indent(),
+      );
+      buffer.writeln("}");
+
+      return buffer.toString();
+    } else {
+      return node.child.acceptCompilerVisitor(
+        this,
+        withNames: withNames,
+        inner: node.action,
+        isNullAllowed: isNullable(node.child),
+        reported: reported,
+      );
+    }
   }
 
   @override
@@ -755,26 +769,39 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required String? inner,
     required bool reported,
   }) {
-    StringBuffer buffer = StringBuffer();
-    buffer.writeln("if (this.pos case var from) {");
-    buffer.writeln(
-      node.child
-          .acceptCompilerVisitor(
-            this,
-            withNames: (withNames ??= <String>{})..add(r"$"),
-            inner: (StringBuffer()
-                  ..writeln("if (this.pos case var to) {")
-                  ..writeln("  return ${node.action};")
-                  ..writeln("}"))
-                .toString(),
-            isNullAllowed: isNullable(node.child),
-            reported: reported,
-          )
-          .indent(),
-    );
-    buffer.writeln("}");
+    if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
+      (withNames ??= <String>{}).add(r"$");
+    }
+    if (node.areIndicesProvided) {
+      StringBuffer buffer = StringBuffer();
+      buffer.writeln("if (this.pos case var from) {");
+      buffer.writeln(
+        node.child
+            .acceptCompilerVisitor(
+              this,
+              withNames: withNames,
+              inner: (StringBuffer()
+                    ..writeln("if (this.pos case var to) {")
+                    ..writeln("  return ${node.action};")
+                    ..writeln("}"))
+                  .toString(),
+              isNullAllowed: isNullable(node.child),
+              reported: reported,
+            )
+            .indent(),
+      );
+      buffer.writeln("}");
 
-    return buffer.toString();
+      return buffer.toString();
+    } else {
+      return node.child.acceptCompilerVisitor(
+        this,
+        withNames: withNames,
+        inner: "return ${node.action};",
+        isNullAllowed: isNullable(node.child),
+        reported: reported,
+      );
+    }
   }
 
   @override
