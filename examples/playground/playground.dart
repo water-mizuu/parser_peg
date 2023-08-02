@@ -242,10 +242,17 @@ final class PlaygroundParser extends _PegParser<Object> {
   get start => r0;
 
 
-  /// `global::S`
+  /// `ROOT`
   Object? f0() {
+    if (this.apply(this.r0) case var $?) {
+      return $;
+    }
+  }
+
+  /// `global::S`
+  Object? f1() {
     if (this.pos case var mark) {
-      if (this.f0() case var $0?) {
+      if (this.f1() case var $0?) {
         if (matchPattern(_regexp.$1) case var $1?) {
           if (pos < buffer.length) {
             if (buffer[pos] case var $2) {
@@ -270,7 +277,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// `global::main`
   Object? r0() {
     if (this.matchPattern(_string.$1) case var $0?) {
-      if (this.f0() case var $1?) {
+      if (this.f1() case var $1?) {
         return ($0, $1);
       }
     }

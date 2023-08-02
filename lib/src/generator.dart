@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_expression_function_bodies, noop_primitive_operations, always_specify_types
-
 import "dart:collection";
 import "dart:convert";
 import "dart:io";
@@ -9,6 +7,7 @@ import "package:parser_peg/src/statement.dart";
 import "package:parser_peg/src/visitor/compiler_visitor/compiler_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/can_inline_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/inline_visitor.dart";
+import "package:parser_peg/src/visitor/simple_visitor/referenced_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/rename_visitors.dart";
 import "package:parser_peg/src/visitor/simple_visitor/resolve_references_visitor.dart";
 import "package:parser_peg/src/visitor/simplifier_visitor/simplify_visitor.dart";
@@ -71,9 +70,9 @@ final class ParserGenerator {
         var (Statement statement, List<String> prefix, Tag? tag) = stack.removeLast();
 
         switch (statement) {
-          case DeclarationStatement(:String? type, :String name, :Node node, tag: Tag? declarationTag):
+          case DeclarationStatement(:String? type, :String name, :Node node, tag: Tag? declaredTag):
             String resolvedName = <String>[...prefix, name].join("::");
-            switch (declarationTag ?? tag) {
+            switch (declaredTag ?? tag) {
               case Tag.inline:
                 inline[resolvedName] = (type, node);
               case Tag.fragment:
@@ -82,19 +81,11 @@ final class ParserGenerator {
               case Tag.rule:
                 rules[resolvedName] = (type, node);
             }
-          case NamespaceStatement(
-              :String name,
-              :List<Statement> children,
-              tag: Tag? declaredTag,
-            ):
+          case NamespaceStatement(:String name, :List<Statement> children, tag: Tag? declaredTag):
             for (Statement sub in children) {
               stack.addLast((sub, <String>[...prefix, name], declaredTag ?? tag));
             }
-          case NamespaceStatement(
-              name: null,
-              :List<Statement> children,
-              tag: Tag? declaredTag,
-            ):
+          case NamespaceStatement(name: null, :List<Statement> children, tag: Tag? declaredTag):
             for (Statement sub in children) {
               stack.addLast((sub, prefix, declaredTag ?? tag));
             }
@@ -111,12 +102,12 @@ final class ParserGenerator {
         var (Statement statement, List<String> prefixes, Tag? tag) = stack.removeLast();
 
         switch (statement) {
-          case DeclarationStatement(:String? type, :String name, :Node node, tag: Tag? declarationTag):
+          case DeclarationStatement(:String? type, :String name, :Node node, tag: Tag? declaredTag):
             ResolveReferencesVisitor visitor = ResolveReferencesVisitor(prefixes, rules, fragments, inline);
             String resolvedName = <String>[...prefixes, name].join("::");
             Node resolvedNode = node.acceptSimpleVisitor(visitor);
 
-            switch (declarationTag ?? tag) {
+            switch (declaredTag ?? tag) {
               case Tag.inline:
                 inline[resolvedName] = (type, resolvedNode);
               case Tag.fragment:
@@ -147,7 +138,15 @@ final class ParserGenerator {
       /// Since there is no rule / fragment, we can add a fake rule.
       var (String key, (String? type, Node _)) = inline.pairs.first;
 
-      fragments["_"] = (type, FragmentNode(key));
+      fragments["ROOT"] = (type, FragmentNode(key));
+    } else if (rules.isNotEmpty) {
+      var (String key, (String? type, Node _)) = rules.pairs.first;
+
+      fragments["ROOT"] = (type, ReferenceNode(key));
+    } else if (fragments.isNotEmpty) {
+      var (String key, (String? type, Node _)) = fragments.pairs.first;
+
+      fragments["ROOT"] = (type, FragmentNode(key));
     }
 
     /// We determine the inline-declared rules that can *actually* be inlined.
@@ -181,6 +180,33 @@ final class ParserGenerator {
           fragments[name] = (type, resolvedNode);
         }
       } while (runLoop);
+    }
+
+    /// We determine the rules we can optimize out.
+    if (const ReferencedVisitor() case ReferencedVisitor visitor) {
+      Set<String> referencedFragments = <String>{"ROOT"};
+      Set<String> referencedRules = <String>{};
+
+      for (var (String _, (String? _, Node node)) in rules.pairs.followedBy(fragments.pairs)) {
+        Iterable<(Tag, String)> res = visitor.referencedDeclarations(node);
+
+        for (var (Tag tag, String name) in res) {
+          switch (tag) {
+            case Tag.rule:
+              referencedRules.add(name);
+            case Tag.fragment:
+              referencedFragments.add(name);
+            case Tag.inline:
+              throw UnsupportedError("Found a non-inlined inline node.");
+          }
+        }
+      }
+
+      Set<String> unreferencedRules = rules.keys.toSet().difference(referencedRules);
+      Set<String> unreferencedFragments = fragments.keys.toSet().difference(referencedFragments);
+
+      unreferencedRules.forEach(rules.remove);
+      unreferencedFragments.forEach(fragments.remove);
     }
 
     /// We simplify the rules to prepare for codegen.

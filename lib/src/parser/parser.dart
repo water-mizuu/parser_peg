@@ -254,12 +254,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::namespacedRaw`
   String? f0() {
     if (this.pos case var mark) {
-      if (this.f2h() case var _0) {
+      if (this.f23() case var _0) {
         if ([if (_0 case var _0?) _0] case (var $0 && var _loop2)) {
           if (_loop2.isNotEmpty) {
             for (;;) {
               if (this.pos case var mark) {
-                if (this.f2h() case var _0?) {
+                if (this.f23() case var _0?) {
                   _loop2.add(_0);
                   continue;
                 }
@@ -282,12 +282,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
 
   /// `global::namespacedIdentifier`
   String? f1() {
-    if (this.f1z() case var _0?) {
+    if (this.f1k() case var _0?) {
       if ([_0] case (var $ && var _loop2)) {
         for (;;) {
           if (this.pos case var mark) {
             if (this.matchPattern(_string.$1) case var _?) {
-              if (this.f1z() case var _0?) {
+              if (this.f1k() case var _0?) {
                 _loop2.add(_0);
                 continue;
               }
@@ -316,9 +316,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
 
   /// `global::body`
   Node? f3() {
-    if (this.fv() case var $0?) {
+    if (this.fu() case var $0?) {
       if (this.apply(this.r7) case (var $1 && var choice)?) {
-        if (this.fw() case var $2?) {
+        if (this.fv() case var $2?) {
           if (($0, $1, $2) case var $) {
             return choice;
           }
@@ -331,12 +331,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
   String? f4() {
     if (this.matchPattern(_string.$2) case var $0?) {
       if (this.pos case var mark) {
-        if (this.f2i() case var _0) {
+        if (this.f24() case var _0) {
           if ([if (_0 case var _0?) _0] case (var $1 && var inner && var _loop2)) {
             if (_loop2.isNotEmpty) {
               for (;;) {
                 if (this.pos case var mark) {
-                  if (this.f2i() case var _0?) {
+                  if (this.f24() case var _0?) {
                     _loop2.add(_0);
                     continue;
                   }
@@ -446,7 +446,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
 
   /// `global::literal::range::main`
   Node? f8() {
-    if (this.f11() case var $0?) {
+    if (this.f10() case var $0?) {
       if (this.f7() case var _0?) {
         if ([_0] case (var $1 && var elements && var _loop2)) {
           for (;;) {
@@ -461,7 +461,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
               break;
             }
           }
-          if (this.f12() case var $2?) {
+          if (this.f11() case var $2?) {
             if (($0, $1, $2) case var $) {
               return RangeNode(elements.reduce((a, b) => a.union(b)));
             }
@@ -488,12 +488,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$11) case var $0?) {
         if (this.matchPattern(_string.$10) case var $1?) {
           if (this.pos case var mark) {
-            if (this.f2j() case var _0) {
+            if (this.f25() case var _0) {
               if ([if (_0 case var _0?) _0] case (var $2 && var body && var _loop2)) {
                 if (_loop2.isNotEmpty) {
                   for (;;) {
                     if (this.pos case var mark) {
-                      if (this.f2j() case var _0?) {
+                      if (this.f25() case var _0?) {
                         _loop2.add(_0);
                         continue;
                       }
@@ -518,12 +518,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$11) case var $0?) {
         if (this.matchPattern(_string.$12) case var $1?) {
           if (this.pos case var mark) {
-            if (this.f2k() case var _2) {
+            if (this.f26() case var _2) {
               if ([if (_2 case var _2?) _2] case (var $2 && var body && var _loop4)) {
                 if (_loop4.isNotEmpty) {
                   for (;;) {
                     if (this.pos case var mark) {
-                      if (this.f2k() case var _2?) {
+                      if (this.f26() case var _2?) {
                         _loop4.add(_2);
                         continue;
                       }
@@ -548,12 +548,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$11) case var $0?) {
         if (this.matchPattern(_string.$13) case var $1?) {
           if (this.pos case var mark) {
-            if (this.f2l() case var _4) {
+            if (this.f27() case var _4) {
               if ([if (_4 case var _4?) _4] case (var $2 && var body && var _loop6)) {
                 if (_loop6.isNotEmpty) {
                   for (;;) {
                     if (this.pos case var mark) {
-                      if (this.f2l() case var _4?) {
+                      if (this.f27() case var _4?) {
                         _loop6.add(_4);
                         continue;
                       }
@@ -578,12 +578,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$11) case var $0?) {
         if (this.matchPattern(_string.$14) case var $1?) {
           if (this.pos case var mark) {
-            if (this.f2m() case var _6) {
+            if (this.f28() case var _6) {
               if ([if (_6 case var _6?) _6] case (var $2 && var body && var _loop8)) {
                 if (_loop8.isNotEmpty) {
                   for (;;) {
                     if (this.pos case var mark) {
-                      if (this.f2m() case var _6?) {
+                      if (this.f28() case var _6?) {
                         _loop8.add(_6);
                         continue;
                       }
@@ -607,12 +607,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.matchPattern(_string.$10) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f2n() case var _8) {
+          if (this.f29() case var _8) {
             if ([if (_8 case var _8?) _8] case (var $1 && var body && var _loop10)) {
               if (_loop10.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f2n() case var _8?) {
+                    if (this.f29() case var _8?) {
                       _loop10.add(_8);
                       continue;
                     }
@@ -635,12 +635,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.matchPattern(_string.$12) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f2o() case var _10) {
+          if (this.f2a() case var _10) {
             if ([if (_10 case var _10?) _10] case (var $1 && var body && var _loop12)) {
               if (_loop12.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f2o() case var _10?) {
+                    if (this.f2a() case var _10?) {
                       _loop12.add(_10);
                       continue;
                     }
@@ -663,12 +663,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.matchPattern(_string.$13) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f2p() case var _12) {
+          if (this.f2b() case var _12) {
             if ([if (_12 case var _12?) _12] case (var $1 && var body && var _loop14)) {
               if (_loop14.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f2p() case var _12?) {
+                    if (this.f2b() case var _12?) {
                       _loop14.add(_12);
                       continue;
                     }
@@ -691,12 +691,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.matchPattern(_string.$14) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f2q() case var _14) {
+          if (this.f2c() case var _14) {
             if ([if (_14 case var _14?) _14] case (var $1 && var body && var _loop16)) {
               if (_loop16.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f2q() case var _14?) {
+                    if (this.f2c() case var _14?) {
                       _loop16.add(_14);
                       continue;
                     }
@@ -733,7 +733,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::literal::regexp`
   String? fc() {
     if (this.matchPattern(_string.$15) case var $0?) {
-      if (this.f2s() case var $1?) {
+      if (this.f2e() case var $1?) {
         if (this.matchPattern(_string.$15) case var $2?) {
           return $1;
         }
@@ -745,7 +745,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   String? fd() {
     if (this.apply(this.rs) case var $0?) {
       if (this.fh() case var $1?) {
-        if (this.f1z() case var $2?) {
+        if (this.f1k() case var $2?) {
           if (($0, $1, $2) case var $) {
             return "${$0} ${$2}";
           }
@@ -758,7 +758,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   String? fe() {
     if (this.apply(this.rs) case var $0?) {
       if (this.fh() case var $1?) {
-        if (this.f1z() case var $2) {
+        if (this.f1k() case var $2) {
           if (($0, $1, $2) case var $) {
             return "${$0} ${$2 ?? ""}".trimRight();
           }
@@ -773,7 +773,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if ([_0] case (var $ && var _loop2)) {
         for (;;) {
           if (this.pos case var mark) {
-            if (this.fp() case var _?) {
+            if (this.fo() case var _?) {
               if (this.fd() case var _0?) {
                 _loop2.add(_0);
                 continue;
@@ -794,7 +794,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if ([_0] case (var $ && var _loop2)) {
         for (;;) {
           if (this.pos case var mark) {
-            if (this.fp() case var _?) {
+            if (this.fo() case var _?) {
               if (this.fe() case var _0?) {
                 _loop2.add(_0);
                 continue;
@@ -860,19 +860,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::/`
-  String? fm() {
-    if (this.fh() case var $0?) {
-      if (this.matchPattern(_string.$15) case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
   /// `global::|`
-  String? fn() {
+  String? fm() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$20) case var $1?) {
         if (this.fh() case var $2?) {
@@ -883,7 +872,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global:::`
-  String? fo() {
+  String? fn() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$21) case var $1?) {
         if (this.fh() case var $2?) {
@@ -894,7 +883,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::,`
-  String? fp() {
+  String? fo() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$22) case var $1?) {
         if (this.fh() case var $2?) {
@@ -905,7 +894,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::+`
-  String? fq() {
+  String? fp() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$23) case var $1?) {
         if (this.fh() case var $2?) {
@@ -916,7 +905,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::*`
-  String? fr() {
+  String? fq() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$24) case var $1?) {
         if (this.fh() case var $2?) {
@@ -927,7 +916,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::&`
-  String? fs() {
+  String? fr() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$25) case var $1?) {
         if (this.fh() case var $2?) {
@@ -938,7 +927,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::!`
-  String? ft() {
+  String? fs() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$26) case var $1?) {
         if (this.fh() case var $2?) {
@@ -949,7 +938,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::?`
-  String? fu() {
+  String? ft() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$27) case var $1?) {
         if (this.fh() case var $2?) {
@@ -960,7 +949,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::=`
-  String? fv() {
+  String? fu() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$28) case var $1?) {
         if (this.fh() case var $2?) {
@@ -971,7 +960,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::;`
-  String? fw() {
+  String? fv() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$29) case var $1?) {
         if (this.fh() case var $2?) {
@@ -982,7 +971,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::(`
-  String? fx() {
+  String? fw() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$30) case var $1?) {
         if (this.fh() case var $2?) {
@@ -993,7 +982,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::)`
-  String? fy() {
+  String? fx() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$31) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1004,7 +993,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::{`
-  String? fz() {
+  String? fy() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$32) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1015,7 +1004,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::}`
-  String? f10() {
+  String? fz() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$33) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1026,7 +1015,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::[`
-  String? f11() {
+  String? f10() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$34) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1037,7 +1026,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::]`
-  String? f12() {
+  String? f11() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$4) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1048,7 +1037,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::>`
-  String? f13() {
+  String? f12() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$35) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1059,7 +1048,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::<`
-  String? f14() {
+  String? f13() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$36) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1070,7 +1059,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::@`
-  String? f15() {
+  String? f14() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$37) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1080,8 +1069,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::=>`
-  String? f16() {
+  /// `global::..`
+  String? f15() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$38) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1091,8 +1080,41 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::%%`
+  /// `global::regexEscape::space`
+  String? f16() {
+    if (this.fh() case var $0?) {
+      if (this.f2f() case var $1?) {
+        if (this.fh() case var $2?) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::regexEscape::digit`
   String? f17() {
+    if (this.fh() case var $0?) {
+      if (this.f2g() case var $1?) {
+        if (this.fh() case var $2?) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::regexEscape::backslash`
+  String? f18() {
+    if (this.fh() case var $0?) {
+      if (this.f2h() case var $1?) {
+        if (this.fh() case var $2?) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::mac::sep`
+  String? f19() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$39) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1102,19 +1124,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::::`
-  String? f18() {
-    if (this.fh() case var $0?) {
-      if (this.matchPattern(_string.$1) case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::..`
-  String? f19() {
+  /// `global::kw::var`
+  String? f1a() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$40) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1124,151 +1135,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::regexEscape::literal`
-  String? f1a() {
-    if (this.fh() case var $0?) {
-      if (this.f2t() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::regexEscape::unicodeExtended`
+  /// `global::kw::any`
   String? f1b() {
-    if (this.fh() case var $0?) {
-      if (this.f2u() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::regexEscape::unicode`
-  String? f1c() {
-    if (this.fh() case var $0?) {
-      if (this.f2v() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::regexEscape::hex`
-  String? f1d() {
-    if (this.fh() case var $0?) {
-      if (this.f2w() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::regexEscape::control`
-  String? f1e() {
-    if (this.fh() case var $0?) {
-      if (this.f2x() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::regexEscape::null`
-  String? f1f() {
-    if (this.fh() case var $0?) {
-      if (this.f2y() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::regexEscape::verticalTab`
-  String? f1g() {
-    if (this.fh() case var $0?) {
-      if (this.f2z() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::regexEscape::formFeed`
-  String? f1h() {
-    if (this.fh() case var $0?) {
-      if (this.f30() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::regexEscape::tab`
-  String? f1i() {
-    if (this.fh() case var $0?) {
-      if (this.f31() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::regexEscape::space`
-  String? f1j() {
-    if (this.fh() case var $0?) {
-      if (this.f32() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::regexEscape::word`
-  String? f1k() {
-    if (this.fh() case var $0?) {
-      if (this.f33() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::regexEscape::digit`
-  String? f1l() {
-    if (this.fh() case var $0?) {
-      if (this.f34() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::regexEscape::backslash`
-  String? f1m() {
-    if (this.fh() case var $0?) {
-      if (this.f35() case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::mac::sep`
-  String? f1n() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$41) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1278,8 +1146,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::kw::var`
-  String? f1o() {
+  /// `global::kw::epsilon`
+  String? f1c() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$42) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1289,8 +1157,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::kw::any`
-  String? f1p() {
+  /// `global::kw::end`
+  String? f1d() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$43) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1300,8 +1168,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::kw::epsilon`
-  String? f1q() {
+  /// `global::kw::start`
+  String? f1e() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$44) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1311,8 +1179,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::kw::backslash`
-  String? f1r() {
+  /// `global::kw::decorator::inline`
+  String? f1f() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$45) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1322,8 +1190,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::kw::end`
-  String? f1s() {
+  /// `global::kw::decorator::fragment`
+  String? f1g() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$46) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1333,8 +1201,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::kw::start`
-  String? f1t() {
+  /// `global::kw::decorator::rule`
+  String? f1h() {
     if (this.fh() case var $0?) {
       if (this.matchPattern(_string.$47) case var $1?) {
         if (this.fh() case var $2?) {
@@ -1344,41 +1212,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::kw::decorator::inline`
-  String? f1u() {
-    if (this.fh() case var $0?) {
-      if (this.matchPattern(_string.$48) case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::kw::decorator::fragment`
-  String? f1v() {
-    if (this.fh() case var $0?) {
-      if (this.matchPattern(_string.$49) case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::kw::decorator::rule`
-  String? f1w() {
-    if (this.fh() case var $0?) {
-      if (this.matchPattern(_string.$50) case var $1?) {
-        if (this.fh() case var $2?) {
-          return $1;
-        }
-      }
-    }
-  }
-
   /// `global::number`
-  int? f1x() {
+  int? f1i() {
     if (matchPattern(_regexp.$2) case var _0?) {
       if ([_0] case (var $ && var _loop2)) {
         for (;;) {
@@ -1397,15 +1232,15 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::raw`
-  String? f1y() {
+  String? f1j() {
     if (this.matchPattern(_string.$2) case var $0?) {
       if (this.pos case var mark) {
-        if (this.f36() case var _0) {
+        if (this.f2i() case var _0) {
           if ([if (_0 case var _0?) _0] case (var $1 && var inner && var _loop2)) {
             if (_loop2.isNotEmpty) {
               for (;;) {
                 if (this.pos case var mark) {
-                  if (this.f36() case var _0?) {
+                  if (this.f2i() case var _0?) {
                     _loop2.add(_0);
                     continue;
                   }
@@ -1428,7 +1263,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   }
 
   /// `global::identifier`
-  String? f1z() {
+  String? f1k() {
     if (this.matchRange(_range.$2) case var $0?) {
       if (this.pos case var mark) {
         if (this.matchRange(_range.$1) case var _0) {
@@ -1456,8 +1291,15 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
+  /// `ROOT`
+  ParserGenerator? f1l() {
+    if (this.apply(this.r0) case var $?) {
+      return $;
+    }
+  }
+
   /// `fragment0`
-  late final f20 = () {
+  late final f1m = () {
     if (this.pos case var mark) {
       if (this.apply(this.rm) case var $?) {
         return $;
@@ -1493,7 +1335,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment1`
-  late final f21 = () {
+  late final f1n = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$2) case (var $0 && null)) {
         this.pos = mark;
@@ -1508,7 +1350,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment2`
-  late final f22 = () {
+  late final f1o = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$32) case var $0?) {
         if (this.apply(this.ri)! case var $1) {
@@ -1538,7 +1380,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment3`
-  late final f23 = () {
+  late final f1p = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$10) case (var $0 && null)) {
         this.pos = mark;
@@ -1553,7 +1395,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment4`
-  late final f24 = () {
+  late final f1q = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$12) case (var $0 && null)) {
         this.pos = mark;
@@ -1568,7 +1410,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment5`
-  late final f25 = () {
+  late final f1r = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$13) case (var $0 && null)) {
         this.pos = mark;
@@ -1583,7 +1425,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment6`
-  late final f26 = () {
+  late final f1s = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$14) case (var $0 && null)) {
         this.pos = mark;
@@ -1598,7 +1440,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment7`
-  late final f27 = () {
+  late final f1t = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$3) case var $0?) {
         if (pos < buffer.length) {
@@ -1633,7 +1475,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment8`
-  late final f28 = () {
+  late final f1u = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$3) case var $0?) {
         if (pos < buffer.length) {
@@ -1668,7 +1510,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment9`
-  late final f29 = () {
+  late final f1v = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$3) case var $0?) {
         if (pos < buffer.length) {
@@ -1703,7 +1545,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment10`
-  late final f2a = () {
+  late final f1w = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$3) case var $0?) {
         if (pos < buffer.length) {
@@ -1738,9 +1580,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment11`
-  late final f2b = () {
+  late final f1x = () {
     if (this.pos case var from) {
-      if (this.f1z() case var $?) {
+      if (this.f1k() case var $?) {
         if (this.pos case var to) {
           return this.buffer.substring(from, to);
         }
@@ -1749,7 +1591,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment12`
-  late final f2c = () {
+  late final f1y = () {
     if (this.pos case var from) {
       if (this.apply(this.rk) case var $?) {
         if (this.pos case var to) {
@@ -1760,10 +1602,10 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment13`
-  late final f2d = () {
-    if (this.fz() case var $0?) {
+  late final f1z = () {
+    if (this.fy() case var $0?) {
       if (this.ff() case var $1?) {
-        if (this.f10() case var $2?) {
+        if (this.fz() case var $2?) {
           return $1;
         }
       }
@@ -1771,10 +1613,10 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment14`
-  late final f2e = () {
-    if (this.fz() case var $0?) {
+  late final f20 = () {
+    if (this.fy() case var $0?) {
       if (this.ff() case var $1?) {
-        if (this.f10() case var $2?) {
+        if (this.fz() case var $2?) {
           return $1;
         }
       }
@@ -1782,11 +1624,11 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment15`
-  late final f2f = () {
-    if (this.fp() case var $0?) {
-      if (this.fz() case var $1?) {
+  late final f21 = () {
+    if (this.fo() case var $0?) {
+      if (this.fy() case var $1?) {
         if (this.ff() case var $2?) {
-          if (this.f10() case var $3?) {
+          if (this.fz() case var $3?) {
             return $2;
           }
         }
@@ -1795,7 +1637,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment16`
-  late final f2g = () {
+  late final f22 = () {
     if (this.pos case var mark) {
       if (this.apply(this.rp) case var $?) {
         return $;
@@ -1812,8 +1654,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment17`
-  late final f2h = () {
-    if (this.f1z() case var $0?) {
+  late final f23 = () {
+    if (this.f1k() case var $0?) {
       if (this.matchPattern(_string.$1) case var $1?) {
         return $0;
       }
@@ -1821,7 +1663,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment18`
-  late final f2i = () {
+  late final f24 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$2) case (var $0 && null)) {
         this.pos = mark;
@@ -1836,7 +1678,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment19`
-  late final f2j = () {
+  late final f25 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$10) case (var $0 && null)) {
         this.pos = mark;
@@ -1851,7 +1693,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment20`
-  late final f2k = () {
+  late final f26 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$12) case (var $0 && null)) {
         this.pos = mark;
@@ -1866,7 +1708,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment21`
-  late final f2l = () {
+  late final f27 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$13) case (var $0 && null)) {
         this.pos = mark;
@@ -1881,7 +1723,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment22`
-  late final f2m = () {
+  late final f28 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$14) case (var $0 && null)) {
         this.pos = mark;
@@ -1896,7 +1738,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment23`
-  late final f2n = () {
+  late final f29 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$3) case var $0?) {
         if (pos < buffer.length) {
@@ -1922,7 +1764,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment24`
-  late final f2o = () {
+  late final f2a = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$3) case var $0?) {
         if (pos < buffer.length) {
@@ -1948,7 +1790,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment25`
-  late final f2p = () {
+  late final f2b = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$3) case var $0?) {
         if (pos < buffer.length) {
@@ -1974,7 +1816,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment26`
-  late final f2q = () {
+  late final f2c = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$3) case var $0?) {
         if (pos < buffer.length) {
@@ -2000,7 +1842,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment27`
-  late final f2r = () {
+  late final f2d = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$3) case var $0?) {
         if (pos < buffer.length) {
@@ -2028,12 +1870,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment28`
-  late final f2s = () {
-    if (this.f2r() case var _0?) {
+  late final f2e = () {
+    if (this.f2d() case var _0?) {
       if ([_0] case (var $ && var _loop2)) {
         for (;;) {
           if (this.pos case var mark) {
-            if (this.f2r() case var _0?) {
+            if (this.f2d() case var _0?) {
               _loop2.add(_0);
               continue;
             }
@@ -2047,106 +1889,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   };
 
   /// `fragment29`
-  late final f2t = () {
-    if (this.matchPattern(_string.$3) case var $0?) {
-      if (this.matchPattern(_string.$19) case var $1?) {
-        if ($1 case var $) {
-          return r"\"+ $;
-        }
-      }
-    }
-  };
-
-  /// `fragment30`
-  late final f2u = () {
-    if (this.matchPattern(_string.$3) case var $0?) {
-      if (this.matchPattern(_string.$51) case var $1?) {
-        if ($1 case var $) {
-          return r"\"+ $;
-        }
-      }
-    }
-  };
-
-  /// `fragment31`
-  late final f2v = () {
-    if (this.matchPattern(_string.$3) case var $0?) {
-      if (this.matchPattern(_string.$52) case var $1?) {
-        if ($1 case var $) {
-          return r"\"+ $;
-        }
-      }
-    }
-  };
-
-  /// `fragment32`
-  late final f2w = () {
-    if (this.matchPattern(_string.$3) case var $0?) {
-      if (this.matchPattern(_string.$53) case var $1?) {
-        if ($1 case var $) {
-          return r"\"+ $;
-        }
-      }
-    }
-  };
-
-  /// `fragment33`
-  late final f2x = () {
-    if (this.matchPattern(_string.$3) case var $0?) {
-      if (this.matchPattern(_string.$54) case var $1?) {
-        if ($1 case var $) {
-          return r"\"+ $;
-        }
-      }
-    }
-  };
-
-  /// `fragment34`
-  late final f2y = () {
-    if (this.matchPattern(_string.$3) case var $0?) {
-      if (this.matchPattern(_string.$55) case var $1?) {
-        if ($1 case var $) {
-          return r"\"+ $;
-        }
-      }
-    }
-  };
-
-  /// `fragment35`
-  late final f2z = () {
-    if (this.matchPattern(_string.$3) case var $0?) {
-      if (this.matchPattern(_string.$56) case var $1?) {
-        if ($1 case var $) {
-          return r"\"+ $;
-        }
-      }
-    }
-  };
-
-  /// `fragment36`
-  late final f30 = () {
-    if (this.matchPattern(_string.$3) case var $0?) {
-      if (this.matchPattern(_string.$57) case var $1?) {
-        if ($1 case var $) {
-          return r"\"+ $;
-        }
-      }
-    }
-  };
-
-  /// `fragment37`
-  late final f31 = () {
-    if (this.matchPattern(_string.$3) case var $0?) {
-      if (this.matchPattern(_string.$58) case var $1?) {
-        if ($1 case var $) {
-          return r"\"+ $;
-        }
-      }
-    }
-  };
-
-  /// `fragment38`
-  late final f32 = () {
+  late final f2f = () {
     if (this.matchPattern(_string.$3) case var $0?) {
       if (this.matchPattern(_string.$7) case var $1?) {
         if ($1 case var $) {
@@ -2156,19 +1899,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment39`
-  late final f33 = () {
-    if (this.matchPattern(_string.$3) case var $0?) {
-      if (this.matchPattern(_string.$6) case var $1?) {
-        if ($1 case var $) {
-          return r"\"+ $;
-        }
-      }
-    }
-  };
-
-  /// `fragment40`
-  late final f34 = () {
+  /// `fragment30`
+  late final f2g = () {
     if (this.matchPattern(_string.$3) case var $0?) {
       if (this.matchPattern(_string.$5) case var $1?) {
         if ($1 case var $) {
@@ -2178,8 +1910,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment41`
-  late final f35 = () {
+  /// `fragment31`
+  late final f2h = () {
     if (this.matchPattern(_string.$3) case var $0?) {
       if (this.matchPattern(_string.$3) case var $1?) {
         if ($1 case var $) {
@@ -2189,8 +1921,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   };
 
-  /// `fragment42`
-  late final f36 = () {
+  /// `fragment32`
+  late final f2i = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$2) case (var $0 && null)) {
         this.pos = mark;
@@ -2240,11 +1972,11 @@ final class PegParser extends _PegParser<ParserGenerator> {
 
   /// `global::preamble`
   String? r1() {
-    if (this.fz() case var $0?) {
+    if (this.fy() case var $0?) {
       if (this.fh() case var $1?) {
         if (this.apply(this.rh)! case (var $2 && var code)) {
           if (this.fh() case var $3?) {
-            if (this.f10() case var $4?) {
+            if (this.fz() case var $4?) {
               if (($0, $1, $2, $3, $4) case var $) {
                 return code;
               }
@@ -2279,9 +2011,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::namespace`
   Statement? r3() {
     if (this.pos case var mark) {
-      if (this.f1v() case var $0?) {
-        if (this.f1z() case (var $1 && var name)) {
-          if (this.fz() case var $2?) {
+      if (this.f1g() case var $0?) {
+        if (this.f1k() case (var $1 && var name)) {
+          if (this.fy() case var $2?) {
             if (this.apply(this.r2) case var _0?) {
               if ([_0] case (var $3 && var statements && var _loop2)) {
                 for (;;) {
@@ -2296,7 +2028,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
                     break;
                   }
                 }
-                if (this.f10() case var $4?) {
+                if (this.fz() case var $4?) {
                   if (($0, $1, $2, $3, $4) case var $) {
                     return NamespaceStatement(name, statements, tag: Tag.fragment);
                   }
@@ -2307,9 +2039,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1w() case var $0?) {
-        if (this.f1z() case (var $1 && var name)) {
-          if (this.fz() case var $2?) {
+      if (this.f1h() case var $0?) {
+        if (this.f1k() case (var $1 && var name)) {
+          if (this.fy() case var $2?) {
             if (this.apply(this.r2) case var _2?) {
               if ([_2] case (var $3 && var statements && var _loop4)) {
                 for (;;) {
@@ -2324,7 +2056,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
                     break;
                   }
                 }
-                if (this.f10() case var $4?) {
+                if (this.fz() case var $4?) {
                   if (($0, $1, $2, $3, $4) case var $) {
                     return NamespaceStatement(name, statements, tag: Tag.rule);
                   }
@@ -2335,9 +2067,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1u() case var $0?) {
-        if (this.f1z() case (var $1 && var name)) {
-          if (this.fz() case var $2?) {
+      if (this.f1f() case var $0?) {
+        if (this.f1k() case (var $1 && var name)) {
+          if (this.fy() case var $2?) {
             if (this.apply(this.r2) case var _4?) {
               if ([_4] case (var $3 && var statements && var _loop6)) {
                 for (;;) {
@@ -2352,7 +2084,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
                     break;
                   }
                 }
-                if (this.f10() case var $4?) {
+                if (this.fz() case var $4?) {
                   if (($0, $1, $2, $3, $4) case var $) {
                     return NamespaceStatement(name, statements, tag: Tag.inline);
                   }
@@ -2363,8 +2095,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1z() case (var $0 && var name)) {
-        if (this.fz() case var $1?) {
+      if (this.f1k() case (var $0 && var name)) {
+        if (this.fy() case var $1?) {
           if (this.apply(this.r2) case var _6?) {
             if ([_6] case (var $2 && var statements && var _loop8)) {
               for (;;) {
@@ -2379,7 +2111,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
                   break;
                 }
               }
-              if (this.f10() case var $3?) {
+              if (this.fz() case var $3?) {
                 if (($0, $1, $2, $3) case var $) {
                   return NamespaceStatement(name, statements, tag: null);
                 }
@@ -2394,8 +2126,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::rule`
   Statement? r4() {
     if (this.pos case var mark) {
-      if (this.f1w() case var $0) {
-        if (this.f1o() case var $1?) {
+      if (this.f1h() case var $0) {
+        if (this.f1a() case var $1?) {
           if (this.f2() case (var $2 && var name)?) {
             if (this.f3() case (var $3 && var body)?) {
               if (($0, $1, $2, $3) case var $) {
@@ -2406,7 +2138,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1w() case var $0) {
+      if (this.f1h() case var $0) {
         if (this.f2() case (var $1 && var name)?) {
           if (this.f3() case (var $2 && var body)?) {
             if (($0, $1, $2) case var $) {
@@ -2416,7 +2148,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1w() case var $0) {
+      if (this.f1h() case var $0) {
         if (this.apply(this.rt) case (var $1 && var type)?) {
           if (this.f2() case (var $2 && var name)?) {
             if (this.f3() case (var $3 && var body)?) {
@@ -2428,9 +2160,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1w() case var $0) {
+      if (this.f1h() case var $0) {
         if (this.f2() case (var $1 && var name)?) {
-          if (this.fo() case var $2?) {
+          if (this.fn() case var $2?) {
             if (this.apply(this.rt) case (var $3 && var type)?) {
               if (this.f3() case (var $4 && var body)?) {
                 if (($0, $1, $2, $3, $4) case var $) {
@@ -2447,8 +2179,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::fragment`
   Statement? r5() {
     if (this.pos case var mark) {
-      if (this.f1v() case var $0?) {
-        if (this.f1o() case var $1?) {
+      if (this.f1g() case var $0?) {
+        if (this.f1a() case var $1?) {
           if (this.f2() case (var $2 && var name)?) {
             if (this.f3() case (var $3 && var body)?) {
               if (($0, $1, $2, $3) case var $) {
@@ -2459,7 +2191,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1v() case var $0?) {
+      if (this.f1g() case var $0?) {
         if (this.f2() case (var $1 && var name)?) {
           if (this.f3() case (var $2 && var body)?) {
             if (($0, $1, $2) case var $) {
@@ -2469,7 +2201,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1v() case var $0?) {
+      if (this.f1g() case var $0?) {
         if (this.apply(this.rt) case (var $1 && var type)?) {
           if (this.f2() case (var $2 && var name)?) {
             if (this.f3() case (var $3 && var body)?) {
@@ -2481,9 +2213,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1v() case var $0?) {
+      if (this.f1g() case var $0?) {
         if (this.f2() case (var $1 && var name)?) {
-          if (this.fo() case var $2?) {
+          if (this.fn() case var $2?) {
             if (this.apply(this.rt) case (var $3 && var type)?) {
               if (this.f3() case (var $4 && var body)?) {
                 if (($0, $1, $2, $3, $4) case var $) {
@@ -2500,8 +2232,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::inline`
   Statement? r6() {
     if (this.pos case var mark) {
-      if (this.f1u() case var $0?) {
-        if (this.f1o() case var $1?) {
+      if (this.f1f() case var $0?) {
+        if (this.f1a() case var $1?) {
           if (this.f2() case (var $2 && var name)?) {
             if (this.f3() case (var $3 && var body)?) {
               if (($0, $1, $2, $3) case var $) {
@@ -2512,7 +2244,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1u() case var $0?) {
+      if (this.f1f() case var $0?) {
         if (this.f2() case (var $1 && var name)?) {
           if (this.f3() case (var $2 && var body)?) {
             if (($0, $1, $2) case var $) {
@@ -2522,7 +2254,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1u() case var $0?) {
+      if (this.f1f() case var $0?) {
         if (this.apply(this.rt) case (var $1 && var type)?) {
           if (this.f2() case (var $2 && var name)?) {
             if (this.f3() case (var $3 && var body)?) {
@@ -2534,9 +2266,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1u() case var $0?) {
+      if (this.f1f() case var $0?) {
         if (this.f2() case (var $1 && var name)?) {
-          if (this.fo() case var $2?) {
+          if (this.fn() case var $2?) {
             if (this.apply(this.rt) case (var $3 && var type)?) {
               if (this.f3() case (var $4 && var body)?) {
                 if (($0, $1, $2, $3, $4) case var $) {
@@ -2552,12 +2284,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
 
   /// `global::choice`
   Node? r7() {
-    if (this.fn() case var $0) {
+    if (this.fm() case var $0) {
       if (this.apply(this.r8) case var _0?) {
         if ([_0] case (var $1 && var options && var _loop2)) {
           for (;;) {
             if (this.pos case var mark) {
-              if (this.fn() case var _?) {
+              if (this.fm() case var _?) {
                 if (this.apply(this.r8) case var _0?) {
                   _loop2.add(_0);
                   continue;
@@ -2580,8 +2312,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     if (this.pos case var mark) {
       if (this.pos case var from) {
         if (this.apply(this.r9) case (var $0 && var sequence)?) {
-          if (this.fz() case var $1?) {
-            if (this.f10() case var $2?) {
+          if (this.fy() case var $1?) {
+            if (this.fz() case var $2?) {
               if (($0, $1, $2) case var $) {
                 if (this.pos case var to) {
                   return InlineActionNode(
@@ -2598,11 +2330,11 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.pos case var from) {
         if (this.apply(this.r9) case (var $0 && var sequence)?) {
-          if (this.fz() case var $1?) {
+          if (this.fy() case var $1?) {
             if (this.fh() case var $2?) {
               if (this.apply(this.rh)! case (var $3 && var code)) {
                 if (this.fh() case var $4?) {
-                  if (this.f10() case var $5?) {
+                  if (this.fz() case var $5?) {
                     if (($0, $1, $2, $3, $4, $5) case var $) {
                       if (this.pos case var to) {
                         return InlineActionNode(
@@ -2623,13 +2355,13 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.pos case var from) {
         if (this.apply(this.r9) case (var $0 && var sequence)?) {
-          if (this.fx() case var $1?) {
-            if (this.fy() case var $2?) {
-              if (this.fz() case var $3?) {
+          if (this.fw() case var $1?) {
+            if (this.fx() case var $2?) {
+              if (this.fy() case var $3?) {
                 if (this.fh() case var $4?) {
                   if (this.apply(this.rh)! case (var $5 && var code)) {
                     if (this.fh() case var $6?) {
-                      if (this.f10() case var $7?) {
+                      if (this.fz() case var $7?) {
                         if (($0, $1, $2, $3, $4, $5, $6, $7) case var $) {
                           if (this.pos case var to) {
                             return ActionNode(
@@ -2673,8 +2405,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
               break;
             }
           }
-          if (this.f15() case var $1?) {
-            if (this.f1x() case (var $2 && var number)?) {
+          if (this.f14() case var $1?) {
+            if (this.f1i() case (var $2 && var number)?) {
               if (($0, $1, $2) case var $) {
                 return body.length == 1 ? body.single : SequenceNode(body, choose: number);
               }
@@ -2706,7 +2438,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::labeled`
   Node? ra() {
     if (this.pos case var mark) {
-      if (this.f1z() case (var $0 && var identifier)?) {
+      if (this.f1k() case (var $0 && var identifier)?) {
         if (this.matchPattern(_string.$21) case var $1?) {
           if (this.fh() case var $2?) {
             if (this.apply(this.rb) case (var $3 && var separated)?) {
@@ -2720,7 +2452,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.matchPattern(_string.$21) case var $0?) {
         if (this.f1() case (var $1 && var id)?) {
-          if (this.fu() case var $2?) {
+          if (this.ft() case var $2?) {
             if (($0, $1, $2) case var $) {
               return switch ((id, id.split("::"))) {
                     (var ref, [..., var name]) => NamedNode(name, OptionalNode(ReferenceNode(ref))),
@@ -2733,7 +2465,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.matchPattern(_string.$21) case var $0?) {
         if (this.f1() case (var $1 && var id)?) {
-          if (this.fr() case var $2?) {
+          if (this.fq() case var $2?) {
             if (($0, $1, $2) case var $) {
               return switch ((id, id.split("::"))) {
                     (var ref, [..., var name]) => NamedNode(name, StarNode(ReferenceNode(ref))),
@@ -2746,7 +2478,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.matchPattern(_string.$21) case var $0?) {
         if (this.f1() case (var $1 && var id)?) {
-          if (this.fq() case var $2?) {
+          if (this.fp() case var $2?) {
             if (($0, $1, $2) case var $) {
               return switch ((id, id.split("::"))) {
                     (var ref, [..., var name]) => NamedNode(name, PlusNode(ReferenceNode(ref))),
@@ -2777,9 +2509,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::separated`
   Node? rb() {
     if (this.pos case var mark) {
-      if (this.f1x() case (var $0 && var min)?) {
-        if (this.f19() case var $1?) {
-          if (this.f1x() case (var $2 && var max)) {
+      if (this.f1i() case (var $0 && var min)?) {
+        if (this.f15() case var $1?) {
+          if (this.f1i() case (var $2 && var max)) {
             if (this.apply(this.re) case (var $3 && var atom)?) {
               if (($0, $1, $2, $3) case var $) {
                 return CountedNode(min, max, atom);
@@ -2789,7 +2521,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1x() case (var $0 && var number)?) {
+      if (this.f1i() case (var $0 && var number)?) {
         if (this.apply(this.re) case (var $1 && var atom)?) {
           if (($0, $1) case var $) {
             return CountedNode(number, number, atom);
@@ -2800,8 +2532,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.apply(this.re) case (var $0 && var sep)?) {
         if (this.fl() case var $1?) {
           if (this.apply(this.re) case (var $2 && var expr)?) {
-            if (this.fq() case var $3?) {
-              if (this.fu() case (var $4 && var trailing)) {
+            if (this.fp() case var $3?) {
+              if (this.ft() case (var $4 && var trailing)) {
                 if (($0, $1, $2, $3, $4) case var $) {
                   return PlusSeparatedNode(sep, expr, isTrailingAllowed: trailing != null);
                 }
@@ -2814,8 +2546,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.apply(this.re) case (var $0 && var sep)?) {
         if (this.fl() case var $1?) {
           if (this.apply(this.re) case (var $2 && var expr)?) {
-            if (this.fr() case var $3?) {
-              if (this.fu() case (var $4 && var trailing)) {
+            if (this.fq() case var $3?) {
+              if (this.ft() case (var $4 && var trailing)) {
                 if (($0, $1, $2, $3, $4) case var $) {
                   return StarSeparatedNode(sep, expr, isTrailingAllowed: trailing != null);
                 }
@@ -2835,7 +2567,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   Node? rc() {
     if (this.pos case var mark) {
       if (this.apply(this.rc) case var $0?) {
-        if (this.fu() case var $1?) {
+        if (this.ft() case var $1?) {
           if ($0 case var $) {
             return OptionalNode($);
           }
@@ -2843,7 +2575,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       }
       this.pos = mark;
       if (this.apply(this.rc) case var $0?) {
-        if (this.fr() case var $1?) {
+        if (this.fq() case var $1?) {
           if ($0 case var $) {
             return StarNode($);
           }
@@ -2851,7 +2583,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       }
       this.pos = mark;
       if (this.apply(this.rc) case var $0?) {
-        if (this.fq() case var $1?) {
+        if (this.fp() case var $1?) {
           if ($0 case var $) {
             return PlusNode($);
           }
@@ -2867,7 +2599,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::prefix`
   Node? rd() {
     if (this.pos case var mark) {
-      if (this.fs() case var $0?) {
+      if (this.fr() case var $0?) {
         if (this.apply(this.rd) case var $1?) {
           if ($1 case var $) {
             return AndPredicateNode($);
@@ -2875,7 +2607,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.ft() case var $0?) {
+      if (this.fs() case var $0?) {
         if (this.apply(this.rd) case var $1?) {
           if ($1 case var $) {
             return NotPredicateNode($);
@@ -2892,16 +2624,16 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::atom`
   Node? re() {
     if (this.pos case var mark) {
-      if (this.f1n() case var $0?) {
-        if (this.fx() case var $1?) {
-          if (this.fq() case var $2?) {
-            if (this.fu() case var $3?) {
-              if (this.fy() case var $4?) {
-                if (this.fz() case var $5?) {
+      if (this.f19() case var $0?) {
+        if (this.fw() case var $1?) {
+          if (this.fp() case var $2?) {
+            if (this.ft() case var $3?) {
+              if (this.fx() case var $4?) {
+                if (this.fy() case var $5?) {
                   if (this.apply(this.re) case (var $6 && var sep)?) {
                     if (this.fh() case var $7?) {
                       if (this.apply(this.re) case (var $8 && var body)?) {
-                        if (this.f10() case var $9?) {
+                        if (this.fz() case var $9?) {
                           if (($0, $1, $2, $3, $4, $5, $6, $7, $8, $9) case var $) {
                             return PlusSeparatedNode(sep, body, isTrailingAllowed: true);
                           }
@@ -2916,16 +2648,16 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1n() case var $0?) {
-        if (this.fx() case var $1?) {
-          if (this.fr() case var $2?) {
-            if (this.fu() case var $3?) {
-              if (this.fy() case var $4?) {
-                if (this.fz() case var $5?) {
+      if (this.f19() case var $0?) {
+        if (this.fw() case var $1?) {
+          if (this.fq() case var $2?) {
+            if (this.ft() case var $3?) {
+              if (this.fx() case var $4?) {
+                if (this.fy() case var $5?) {
                   if (this.apply(this.re) case (var $6 && var sep)?) {
                     if (this.fh() case var $7?) {
                       if (this.apply(this.re) case (var $8 && var body)?) {
-                        if (this.f10() case var $9?) {
+                        if (this.fz() case var $9?) {
                           if (($0, $1, $2, $3, $4, $5, $6, $7, $8, $9) case var $) {
                             return StarSeparatedNode(sep, body, isTrailingAllowed: true);
                           }
@@ -2940,15 +2672,15 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1n() case var $0?) {
-        if (this.fx() case var $1?) {
-          if (this.fq() case var $2?) {
-            if (this.fy() case var $3?) {
-              if (this.fz() case var $4?) {
+      if (this.f19() case var $0?) {
+        if (this.fw() case var $1?) {
+          if (this.fp() case var $2?) {
+            if (this.fx() case var $3?) {
+              if (this.fy() case var $4?) {
                 if (this.apply(this.re) case (var $5 && var sep)?) {
                   if (this.fh() case var $6?) {
                     if (this.apply(this.re) case (var $7 && var body)?) {
-                      if (this.f10() case var $8?) {
+                      if (this.fz() case var $8?) {
                         if (($0, $1, $2, $3, $4, $5, $6, $7, $8) case var $) {
                           return PlusSeparatedNode(sep, body, isTrailingAllowed: false);
                         }
@@ -2962,15 +2694,15 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1n() case var $0?) {
-        if (this.fx() case var $1?) {
-          if (this.fr() case var $2?) {
-            if (this.fy() case var $3?) {
-              if (this.fz() case var $4?) {
+      if (this.f19() case var $0?) {
+        if (this.fw() case var $1?) {
+          if (this.fq() case var $2?) {
+            if (this.fx() case var $3?) {
+              if (this.fy() case var $4?) {
                 if (this.apply(this.re) case (var $5 && var sep)?) {
                   if (this.fh() case var $6?) {
                     if (this.apply(this.re) case (var $7 && var body)?) {
-                      if (this.f10() case var $8?) {
+                      if (this.fz() case var $8?) {
                         if (($0, $1, $2, $3, $4, $5, $6, $7, $8) case var $) {
                           return StarSeparatedNode(sep, body, isTrailingAllowed: false);
                         }
@@ -2984,12 +2716,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f1n() case var $0?) {
-        if (this.fz() case var $1?) {
+      if (this.f19() case var $0?) {
+        if (this.fy() case var $1?) {
           if (this.apply(this.re) case (var $2 && var sep)?) {
             if (this.fh() case var $3?) {
               if (this.apply(this.re) case (var $4 && var body)?) {
-                if (this.f10() case var $5?) {
+                if (this.fz() case var $5?) {
                   if (($0, $1, $2, $3, $4, $5) case var $) {
                     return PlusSeparatedNode(sep, body, isTrailingAllowed: false);
                   }
@@ -3000,9 +2732,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.fx() case var $0?) {
+      if (this.fw() case var $0?) {
         if (this.apply(this.r7) case var $1?) {
-          if (this.fy() case var $2?) {
+          if (this.fx() case var $2?) {
             return $1;
           }
         }
@@ -3038,7 +2770,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
           return const StartOfInputNode();
         }
         this.pos = mark;
-        if (this.f1t() case var $?) {
+        if (this.f1e() case var $?) {
           return const StartOfInputNode();
         }
       }
@@ -3049,7 +2781,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
           return const EndOfInputNode();
         }
         this.pos = mark;
-        if (this.f1s() case var $?) {
+        if (this.f1d() case var $?) {
           return const EndOfInputNode();
         }
       }
@@ -3060,7 +2792,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
           return const AnyCharacterNode();
         }
         this.pos = mark;
-        if (this.f1p() case var $?) {
+        if (this.f1b() case var $?) {
           return const AnyCharacterNode();
         }
       }
@@ -3071,21 +2803,21 @@ final class PegParser extends _PegParser<ParserGenerator> {
           return const EpsilonNode();
         }
         this.pos = mark;
-        if (this.f1q() case var $?) {
+        if (this.f1c() case var $?) {
           return const EpsilonNode();
         }
       }
 
       this.pos = mark;
-      if (this.f1m() case var $?) {
+      if (this.f18() case var $?) {
         return const StringLiteralNode(r"\");
       }
       this.pos = mark;
-      if (this.f1l() case var $?) {
+      if (this.f17() case var $?) {
         return SimpleRegExpEscapeNode.digit;
       }
       this.pos = mark;
-      if (this.f1j() case var $?) {
+      if (this.f16() case var $?) {
         return SimpleRegExpEscapeNode.whitespace;
       }
     }
@@ -3094,12 +2826,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::code::balanced`
   String rg() {
     if (this.pos case var mark) {
-      if (this.f20() case var _0) {
+      if (this.f1m() case var _0) {
         if ([if (_0 case var _0?) _0] case (var $ && var code && var _loop2)) {
           if (_loop2.isNotEmpty) {
             for (;;) {
               if (this.pos case var mark) {
-                if (this.f20() case var _0?) {
+                if (this.f1m() case var _0?) {
                   _loop2.add(_0);
                   continue;
                 }
@@ -3121,12 +2853,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$2) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f21() case var _0) {
+          if (this.f1n() case var _0) {
             if ([if (_0 case var _0?) _0] case (var $1 && var inner && var _loop2)) {
               if (_loop2.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f21() case var _0?) {
+                    if (this.f1n() case var _0?) {
                       _loop2.add(_0);
                       continue;
                     }
@@ -3156,12 +2888,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::dart::literal::string::balanced`
   Object ri() {
     if (this.pos case var mark) {
-      if (this.f22() case var _0) {
+      if (this.f1o() case var _0) {
         if ([if (_0 case var _0?) _0] case (var code && var _loop2)) {
           if (_loop2.isNotEmpty) {
             for (;;) {
               if (this.pos case var mark) {
-                if (this.f22() case var _0?) {
+                if (this.f1o() case var _0?) {
                   _loop2.add(_0);
                   continue;
                 }
@@ -3205,12 +2937,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$11) case var $0?) {
         if (this.matchPattern(_string.$10) case var $1?) {
           if (this.pos case var mark) {
-            if (this.f23() case var _0) {
+            if (this.f1p() case var _0) {
               if ([if (_0 case var _0?) _0] case (var $2 && var body && var _loop2)) {
                 if (_loop2.isNotEmpty) {
                   for (;;) {
                     if (this.pos case var mark) {
-                      if (this.f23() case var _0?) {
+                      if (this.f1p() case var _0?) {
                         _loop2.add(_0);
                         continue;
                       }
@@ -3233,12 +2965,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$11) case var $0?) {
         if (this.matchPattern(_string.$12) case var $1?) {
           if (this.pos case var mark) {
-            if (this.f24() case var _2) {
+            if (this.f1q() case var _2) {
               if ([if (_2 case var _2?) _2] case (var $2 && var body && var _loop4)) {
                 if (_loop4.isNotEmpty) {
                   for (;;) {
                     if (this.pos case var mark) {
-                      if (this.f24() case var _2?) {
+                      if (this.f1q() case var _2?) {
                         _loop4.add(_2);
                         continue;
                       }
@@ -3261,12 +2993,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$11) case var $0?) {
         if (this.matchPattern(_string.$13) case var $1?) {
           if (this.pos case var mark) {
-            if (this.f25() case var _4) {
+            if (this.f1r() case var _4) {
               if ([if (_4 case var _4?) _4] case (var $2 && var body && var _loop6)) {
                 if (_loop6.isNotEmpty) {
                   for (;;) {
                     if (this.pos case var mark) {
-                      if (this.f25() case var _4?) {
+                      if (this.f1r() case var _4?) {
                         _loop6.add(_4);
                         continue;
                       }
@@ -3289,12 +3021,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$11) case var $0?) {
         if (this.matchPattern(_string.$14) case var $1?) {
           if (this.pos case var mark) {
-            if (this.f26() case var _6) {
+            if (this.f1s() case var _6) {
               if ([if (_6 case var _6?) _6] case (var $2 && var body && var _loop8)) {
                 if (_loop8.isNotEmpty) {
                   for (;;) {
                     if (this.pos case var mark) {
-                      if (this.f26() case var _6?) {
+                      if (this.f1s() case var _6?) {
                         _loop8.add(_6);
                         continue;
                       }
@@ -3316,12 +3048,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.matchPattern(_string.$10) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f27() case var _8) {
+          if (this.f1t() case var _8) {
             if ([if (_8 case var _8?) _8] case (var $1 && var body && var _loop10)) {
               if (_loop10.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f27() case var _8?) {
+                    if (this.f1t() case var _8?) {
                       _loop10.add(_8);
                       continue;
                     }
@@ -3342,12 +3074,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.matchPattern(_string.$12) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f28() case var _10) {
+          if (this.f1u() case var _10) {
             if ([if (_10 case var _10?) _10] case (var $1 && var body && var _loop12)) {
               if (_loop12.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f28() case var _10?) {
+                    if (this.f1u() case var _10?) {
                       _loop12.add(_10);
                       continue;
                     }
@@ -3368,12 +3100,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.matchPattern(_string.$13) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f29() case var _12) {
+          if (this.f1v() case var _12) {
             if ([if (_12 case var _12?) _12] case (var $1 && var body && var _loop14)) {
               if (_loop14.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f29() case var _12?) {
+                    if (this.f1v() case var _12?) {
                       _loop14.add(_12);
                       continue;
                     }
@@ -3394,12 +3126,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.matchPattern(_string.$14) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f2a() case var _14) {
+          if (this.f1w() case var _14) {
             if ([if (_14 case var _14?) _14] case (var $1 && var body && var _loop16)) {
               if (_loop16.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f2a() case var _14?) {
+                    if (this.f1w() case var _14?) {
                       _loop16.add(_14);
                       continue;
                     }
@@ -3423,7 +3155,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::dart::literal::identifier`
   String? rl() {
     if (this.fh() case var $0?) {
-      if (this.f2b() case var $1?) {
+      if (this.f1x() case var $1?) {
         if (this.fh() case var $2?) {
           return $1;
         }
@@ -3434,12 +3166,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::dart::literal::string`
   String? rm() {
     if (this.fh() case var $0?) {
-      if (this.f2c() case var _0?) {
+      if (this.f1y() case var _0?) {
         if ([_0] case (var $1 && var _loop2)) {
           for (;;) {
             if (this.pos case var mark) {
               if (this.fh() case var _?) {
-                if (this.f2c() case var _0?) {
+                if (this.f1y() case var _0?) {
                   _loop2.add(_0);
                   continue;
                 }
@@ -3460,12 +3192,12 @@ final class PegParser extends _PegParser<ParserGenerator> {
 
   /// `global::type::base`
   String? rn() {
-    if (this.f1z() case var _0?) {
+    if (this.f1k() case var _0?) {
       if ([_0] case (var $ && var _loop2)) {
         for (;;) {
           if (this.pos case var mark) {
             if (this.fl() case var _?) {
-              if (this.f1z() case var _0?) {
+              if (this.f1k() case var _0?) {
                 _loop2.add(_0);
                 continue;
               }
@@ -3485,7 +3217,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if ([_0] case (var $ && var _loop2)) {
         for (;;) {
           if (this.pos case var mark) {
-            if (this.fp() case var _?) {
+            if (this.fo() case var _?) {
               if (this.apply(this.rs) case var _0?) {
                 _loop2.add(_0);
                 continue;
@@ -3503,9 +3235,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::type::generic`
   String? rp() {
     if (this.apply(this.rn) case (var $0 && var base)?) {
-      if (this.f14() case var $1?) {
+      if (this.f13() case var $1?) {
         if (this.apply(this.ro) case (var $2 && var arguments)?) {
-          if (this.f13() case var $3?) {
+          if (this.f12() case var $3?) {
             if (($0, $1, $2, $3) case var $) {
               return "$base<$arguments>";
             }
@@ -3518,9 +3250,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::type::record`
   String? rq() {
     if (this.pos case var mark) {
-      if (this.fx() case var $0?) {
-        if (this.f2d() case var $1) {
-          if (this.fy() case var $2?) {
+      if (this.fw() case var $0?) {
+        if (this.f1z() case var $1) {
+          if (this.fx() case var $2?) {
             if (($0, $1, $2) case var $) {
               return "("+ ($1 == null ?"":"{"+ $1 +"}") +")";
             }
@@ -3528,11 +3260,11 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.fx() case var $0?) {
+      if (this.fw() case var $0?) {
         if (this.fe() case var $1?) {
-          if (this.fp() case var $2?) {
-            if (this.f2e() case var $3) {
-              if (this.fy() case var $4?) {
+          if (this.fo() case var $2?) {
+            if (this.f20() case var $3) {
+              if (this.fx() case var $4?) {
                 if (($0, $1, $2, $3, $4) case var $) {
                   return "("+ $1 +", "+ ($3 == null ?"":"{"+ $3 +"}") +")";
                 }
@@ -3542,10 +3274,10 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.fx() case var $0?) {
+      if (this.fw() case var $0?) {
         if (this.fg() case var $1?) {
-          if (this.f2f() case var $2) {
-            if (this.fy() case var $3?) {
+          if (this.f21() case var $2) {
+            if (this.fx() case var $3?) {
               if (($0, $1, $2, $3) case var $) {
                 return "("+ $1 + ($2 == null ?"":", {"+ $2 +"}") +")";
               }
@@ -3559,7 +3291,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::type::nonNullable`
   String? rr() {
     if (this.fh() case var $0?) {
-      if (this.f2g() case var $1?) {
+      if (this.f22() case var $1?) {
         if (this.fh() case var $2?) {
           return $1;
         }
@@ -3572,7 +3304,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     if (this.fh() case var $0?) {
       if (this.apply(this.rr) case (var $1 && var nonNullable)?) {
         if (this.fh() case var $2?) {
-          if (this.fu() case var $3) {
+          if (this.ft() case var $3) {
             if (($0, $1, $2, $3) case var $) {
               return $3 == null ?"$nonNullable":"$nonNullable?";
             }
@@ -3586,7 +3318,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   String? rt() {
     if (this.pos case var mark) {
       if (this.fh() case var $0?) {
-        if (this.f1y() case var $1?) {
+        if (this.f1j() case var $1?) {
           if (this.fh() case var $2?) {
             return $1;
           }
@@ -3641,27 +3373,16 @@ final class PegParser extends _PegParser<ParserGenerator> {
     ">",
     "<",
     "@",
-    "=>",
-    "%%",
     "..",
     "sep!",
     "var",
     "any",
     "epsilon",
-    "backslash",
     "endOfInput",
     "startOfInput",
     "@inline",
     "@fragment",
     "@rule",
-    "U",
-    "u",
-    "x",
-    "c",
-    "0",
-    "v",
-    "f",
-    "t",
   );
   static const _range = (
     { (97, 122), (65, 90), (48, 57), (95, 95), (36, 36) },
