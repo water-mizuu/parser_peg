@@ -799,9 +799,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required bool reported,
     required String declarationName,
   }) {
-    // if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
-    (withNames ??= <String>{}).add(r"$");
-    // }
+    if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
+      (withNames ??= <String>{}).add(r"$");
+    }
 
     if (node.areIndicesProvided) {
       StringBuffer buffer = StringBuffer();
@@ -846,9 +846,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required bool reported,
     required String declarationName,
   }) {
-    // if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
-    (withNames ??= <String>{}).add(r"$");
-    // }
+    if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
+      (withNames ??= <String>{}).add(r"$");
+    }
     if (node.areIndicesProvided) {
       StringBuffer buffer = StringBuffer();
       buffer.writeln("if (this.pos case var from) {");

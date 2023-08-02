@@ -293,10 +293,8 @@ final class MathParser extends _PegParser<num> {
                         break;
                       }
                     }
-                    if (($0, $1, $2) case var $) {
-                      if (this.pos case var to) {
-                        return double.parse(buffer.substring(from, to));
-                      }
+                    if (this.pos case var to) {
+                      return double.parse(buffer.substring(from, to));
                     }
                   }
                 }
@@ -308,7 +306,7 @@ final class MathParser extends _PegParser<num> {
         this.pos = mark;
         if (this.pos case var from) {
           if (matchPattern(_regexp.$1) case var _4?) {
-            if ([_4] case (var $ && var _loop6)) {
+            if ([_4] case var _loop6) {
               for (;;) {
                 if (this.pos case var mark) {
                   if (matchPattern(_regexp.$1) case var _4?) {
@@ -467,9 +465,7 @@ final class MathParser extends _PegParser<num> {
           if (this.matchPattern(_string.$4) case var $2?) {
             if (this.f3() case var $3?) {
               if (this.apply(this.r2) case (var $4 && var term)?) {
-                if (($0, $1, $2, $3, $4) case var $) {
-                  return expr + term;
-                }
+                return expr + term;
               }
             }
           }
@@ -481,9 +477,7 @@ final class MathParser extends _PegParser<num> {
           if (this.matchPattern(_string.$5) case var $2?) {
             if (this.f5() case var $3?) {
               if (this.apply(this.r2) case (var $4 && var term)?) {
-                if (($0, $1, $2, $3, $4) case var $) {
-                  return expr - term;
-                }
+                return expr - term;
               }
             }
           }
@@ -504,9 +498,7 @@ final class MathParser extends _PegParser<num> {
           if (this.matchPattern(_string.$6) case var $2?) {
             if (this.f7() case var $3?) {
               if (this.apply(this.r3) case (var $4 && var negative)?) {
-                if (($0, $1, $2, $3, $4) case var $) {
-                  return term * negative;
-                }
+                return term * negative;
               }
             }
           }
@@ -518,9 +510,7 @@ final class MathParser extends _PegParser<num> {
           if (this.matchPattern(_string.$7) case var $2?) {
             if (this.f9() case var $3?) {
               if (this.apply(this.r3) case (var $4 && var negative)?) {
-                if (($0, $1, $2, $3, $4) case var $) {
-                  return term / negative;
-                }
+                return term / negative;
               }
             }
           }
@@ -532,9 +522,7 @@ final class MathParser extends _PegParser<num> {
           if (this.matchPattern(_string.$8) case var $2?) {
             if (this.fb() case var $3?) {
               if (this.apply(this.r3) case (var $4 && var negative)?) {
-                if (($0, $1, $2, $3, $4) case var $) {
-                  return term % negative;
-                }
+                return term % negative;
               }
             }
           }
@@ -546,9 +534,7 @@ final class MathParser extends _PegParser<num> {
           if (this.matchPattern(_string.$9) case var $2?) {
             if (this.fd() case var $3?) {
               if (this.apply(this.r3) case (var $4 && var negative)?) {
-                if (($0, $1, $2, $3, $4) case var $) {
-                  return term ~/ negative;
-                }
+                return term ~/ negative;
               }
             }
           }
@@ -567,9 +553,7 @@ final class MathParser extends _PegParser<num> {
       if (this.matchPattern(_string.$5) case var $0?) {
         if (this.fe() case var $1?) {
           if (this.apply(this.r3) case (var $2 && var negative)?) {
-            if (($0, $1, $2) case var $) {
-              return -negative;
-            }
+            return -negative;
           }
         }
       }
@@ -588,9 +572,7 @@ final class MathParser extends _PegParser<num> {
           if (this.matchPattern(_string.$10) case var $2?) {
             if (this.fg() case var $3?) {
               if (this.apply(this.r4) case (var $4 && var factor)?) {
-                if (($0, $1, $2, $3, $4) case var $) {
-                  return math.pow(primary, factor);
-                }
+                return math.pow(primary, factor);
               }
             }
           }

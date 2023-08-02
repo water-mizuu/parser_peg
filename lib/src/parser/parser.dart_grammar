@@ -28,11 +28,11 @@ Statement statement =
   | rule
   ;
 
-@fragment
+@inline
 String namespacedRaw = (identifier "::" @0)* literal::raw { $0.isEmpty ? $1 : "${$0.join("::")}::${$1}" };
 
-@fragment
-String namespacedIdentifier = "::".identifier+ { $.join("::") };
+@inline
+String namespacedIdentifier = (identifier "::" @0)* identifier { $0.isEmpty ? $1 : "${$0.join("::")}::${$1}" };
 
 @fragment
 String name = namespacedRaw | namespacedIdentifier;
@@ -112,7 +112,7 @@ Statement inline =
 
 /// A choice parser is a parser that tries to match one of the options.
 /// Despite the syntax, the parser is ordered choice.
-Node choice = `|`? options:`|`.acted+ { options.length == 1 ? options.single : ChoiceNode(options) };
+Node choice = `|`? options:`|`.sep!{acted} { options.length == 1 ? options.single : ChoiceNode(options) };
 
 /// A parser with a bound action.
 Node acted =
@@ -145,8 +145,12 @@ Node acted =
 ///   By default, a sequence parser returns a [Record] of the results of the parsers.
 Node sequence =
   /// By specifying which item to keep, the specific item can be returned.
-  | body:_.labeled+ `@` :number { body.length == 1 ? body.single : SequenceNode(body, choose: number) }
-  | _.labeled+ { $.length == 1 ? $.single : SequenceNode($, choose: null) }
+  | body:_.dropped+ `@` :number { body.length == 1 ? body.single : SequenceNode(body, choose: number) }
+  | _.dropped+ { $.length == 1 ? $.single : SequenceNode($, choose: null) }
+  ;
+
+Node dropped =
+  | labeled
   ;
 
 /// A parser that adds the label to the declaration of the value.
@@ -208,19 +212,17 @@ Node prefix =
 /// A parser that can be qualified as a group.
 ///   These are usually parsers that are delimited.
 Node atom =
+  /// Method like "a".sep()
+  | sep:atom DOT mac::sep `{` body:choice `}` `+` `?` { PlusSeparatedNode(sep, body, isTrailingAllowed: true)  }
+  | sep:atom DOT mac::sep `{` body:choice `}` `+`     { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:atom DOT mac::sep `{` body:choice `}` `*` `?` { StarSeparatedNode(sep, body, isTrailingAllowed: true)  }
+  | sep:atom DOT mac::sep `{` body:choice `}` `*`     { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:atom DOT mac::sep `{` body:choice `}`         { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
   /// "Macro" style separators.
-  | mac::sep `(` `+` `?` `)` `{` sep:atom _ body:atom `}` {
-      PlusSeparatedNode(sep, body, isTrailingAllowed: true)
-    }
-  | mac::sep `(` `*` `?` `)` `{` sep:atom _ body:atom `}` {
-      StarSeparatedNode(sep, body, isTrailingAllowed: true)
-    }
-  | mac::sep `(` `+` `)` `{` sep:atom _ body:atom `}` {
-      PlusSeparatedNode(sep, body, isTrailingAllowed: false)
-    }
-  | mac::sep `(` `*` `)` `{` sep:atom _ body:atom `}` {
-      StarSeparatedNode(sep, body, isTrailingAllowed: false)
-    }
+  | mac::sep `(` `+` `?` `)` `{` sep:atom _ body:atom `}` { PlusSeparatedNode(sep, body, isTrailingAllowed: true) }
+  | mac::sep `(` `*` `?` `)` `{` sep:atom _ body:atom `}` { StarSeparatedNode(sep, body, isTrailingAllowed: true) }
+  | mac::sep `(` `+` `)` `{` sep:atom _ body:atom `}` { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | mac::sep `(` `*` `)` `{` sep:atom _ body:atom `}` { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
   | mac::sep `{` sep:atom _ body:atom `}` { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
   /// Basic atomic parsers.
   | `(` choice `)` @1
@@ -247,6 +249,7 @@ code {
   String curly =
     | "`" inner:(!"`" . @1)* "`" { inner.join() }
     | balanced;
+
   String balanced = code:(
       | dart::literal::string
       | "{" balanced "}" @1 {"{" + $ + "}"}
@@ -258,12 +261,12 @@ code {
   String regexp = "/" ((\\ . @1 { r"\" + $ } | !"/" . @1)+ { $.join() } ) "/" @1;
   String string = _ string::main _ @1;
   string {
-    String main =
+    @inline String main =
       /// Raw string literals
-      | "r" '"""' body:(!'"""' . @1)* '"""' { body.join() }
-      | "r" "'''" body:(!"'''" . @1)* "'''" { body.join() }
-      | "r" '"'   body:(!'"'   . @1)* '"'   { body.join() }
-      | "r" "'"   body:(!"'"   . @1)* "'"   { body.join() }
+      | 'r"""' body:(!'"""' . @1)* '"""' { body.join() }
+      | "r'''" body:(!"'''" . @1)* "'''" { body.join() }
+      | 'r"'   body:(!'"'   . @1)* '"'   { body.join() }
+      | "r'"   body:(!"'"   . @1)* "'"   { body.join() }
       /// Escaped string literals
       | '"""' body:(\\ . @1 | !'"""' . @1)* '"""' { body.join() }
       | "'''" body:(\\ . @1 | !"'''" . @1)* "'''" { body.join() }
@@ -319,17 +322,14 @@ dart {
         | r"$" "{" balanced "}"
         | r"$" identifier
         ;
-      Object balanced = code:(
-        | "{" balanced "}" @1
-        | !"{" !"}" . @2
-      )*;
+      Object balanced = code:("{" balanced "}" @1 | !"{" !"}" std::any @2)*;
     }
   }
 }
 
 /// Rules related to types declarations.
 type {
-  String main = _ raw _ @1 | nonNullable;
+  String main        = _ raw _ @1 | nonNullable;
   String nullable    = _ :nonNullable _ `?`? { $3 == null ? "$nonNullable" : "$nonNullable?" };
   String nonNullable = _ (generic | record | base) _ @1;
 
