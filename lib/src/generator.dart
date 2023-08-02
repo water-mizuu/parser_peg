@@ -288,7 +288,7 @@ final class ParserGenerator {
           .indent();
 
       inner.writeln();
-      inner.writeln("/// ${reverseRedirects[rawName]}");
+      inner.writeln("/// `${reverseRedirects[rawName]}`");
       if (type == null) {
         inner.writeln("late final $fragmentName = () {");
         inner.writeln(body);
@@ -318,7 +318,7 @@ final class ParserGenerator {
           .indent();
 
       inner.writeln();
-      inner.writeln("/// ${reverseRedirects[rawName]}");
+      inner.writeln("/// `${reverseRedirects[rawName]}`");
       if (type == null) {
         inner.writeln("late final $ruleName = () {");
         inner.writeln(body);

@@ -1,4 +1,4 @@
-// ignore_for_file: always_declare_return_types, always_put_control_body_on_new_line, always_specify_types, avoid_escaping_inner_quotes, avoid_redundant_argument_values, annotate_overrides, body_might_complete_normally_nullable, constant_pattern_never_matches_value_type, curly_braces_in_flow_control_structures, dead_code, directives_ordering, duplicate_ignore, inference_failure_on_function_return_type, constant_identifier_names, prefer_function_declarations_over_variables, prefer_interpolation_to_compose_strings, no_leading_underscores_for_local_identifiers, non_constant_identifier_names, unnecessary_null_check_pattern, unnecessary_brace_in_string_interps, unnecessary_string_interpolations, unnecessary_this, unused_element, unused_import, prefer_double_quotes, unused_local_variable, unreachable_from_main, use_raw_strings, type_annotate_public_apis
+// ignore_for_file: always_declare_return_types, always_put_control_body_on_new_line, always_specify_types, avoid_escaping_inner_quotes, avoid_redundant_argument_values, annotate_overrides, body_might_complete_normally_nullable, constant_pattern_never_matches_value_type, curly_braces_in_flow_control_structures, dead_code, directives_ordering, duplicate_ignore, inference_failure_on_function_return_type, constant_identifier_names, prefer_function_declarations_over_variables, prefer_interpolation_to_compose_strings, prefer_is_empty, no_leading_underscores_for_local_identifiers, non_constant_identifier_names, unnecessary_null_check_pattern, unnecessary_brace_in_string_interps, unnecessary_string_interpolations, unnecessary_this, unused_element, unused_import, prefer_double_quotes, unused_local_variable, unreachable_from_main, use_raw_strings, type_annotate_public_apis
 
 // imports
 // ignore_for_file: collection_methods_unrelated_type
@@ -6,7 +6,7 @@
 import "dart:collection";
 import "dart:math" as math;
 // PREAMBLE
-import "dart:math" as math show pow;
+import"dart:math"as math show pow;
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -15,19 +15,15 @@ abstract base class _PegParser<R extends Object> {
     _Memo? m = _memo[(r, p)];
     _Head<void>? h = _heads[p];
 
-    // If the head is not being grown, return the memoized result.
     if (h == null) {
       return m;
     }
 
-    // If the current rule is not a part of the head and is not evaluated yet,
-    // Add a failure to it.
     if (m == null && h.rule != r && !h.involvedSet.contains(r)) {
       return _Memo(null, p);
     }
 
     if (m != null && h.evalSet.contains(r)) {
-      // Remove the current rule from the head's evaluation set.
       h.evalSet.remove(r);
 
       T? ans = r.call();
@@ -76,9 +72,6 @@ abstract base class _PegParser<R extends Object> {
       }
     }
   }
-
-  @pragma("vm:prefer-inline")
-  T applyNonNull<T extends Object>(_NonNullableRule<T> r, [int? p]) => apply<T>(r, p)!;
 
   T? apply<T extends Object>(_Rule<T> r, [int? p]) {
     p ??= this.pos;
@@ -137,7 +130,7 @@ abstract base class _PegParser<R extends Object> {
   }
 
   // ignore: body_might_complete_normally_nullable
-  String? matchRange(Set<(int, int)> ranges) {
+  String? matchRange(Set<(int, int)> ranges, {bool isReported = true}) {
     if (pos < buffer.length) {
       int c = buffer.codeUnitAt(pos);
       for (var (int start, int end) in ranges) {
@@ -146,19 +139,27 @@ abstract base class _PegParser<R extends Object> {
         }
       }
     }
+
+    if (isReported) {
+      (failures[pos] ??= <String>{}).addAll(<String>[
+        for (var (int start, int end) in ranges) "${String.fromCharCode(start)}-${String.fromCharCode(end)}",
+      ]);
+    }
   }
 
   // ignore: body_might_complete_normally_nullable
-  String? matchPattern(Pattern pattern) {
+  String? matchPattern(Pattern pattern, {bool isReported = true}) {
     if (pattern.matchAsPrefix(buffer, pos) case Match(:int start, :int end)) {
       this.pos = end;
       return buffer.substring(start, end);
-    } else {
+    }
+
+    if (isReported) {
       switch (pattern) {
         case RegExp(:String pattern):
-          (errors[pos] ??= <String>[]).add(pattern);
+          (failures[pos] ??= <String>{}).add(pattern);
         case String pattern:
-          (errors[pos] ??= <String>[]).add(pattern);
+          (failures[pos] ??= <String>{}).add(pattern);
       }
     }
   }
@@ -169,9 +170,24 @@ abstract base class _PegParser<R extends Object> {
     this._lrStack.clear();
   }
 
+  static (int column, int row) _columnRow(String buffer, int pos) {
+    List<String> linesToIndex = "$buffer ".substring(0, pos + 1).split("\n");
+    return (linesToIndex.length, linesToIndex.last.length);
+  }
+
+  String reportFailures() {
+    var MapEntry<int, Set<String>>(
+      key: int pos,
+      value: Set<String> messages,
+    ) = failures.entries.last;
+    var (int column, int row) = _columnRow(buffer, pos);
+
+    return "($column:$row): Expected the following: $messages";
+  }
+
   static final (RegExp, RegExp) whitespaceRegExp = (RegExp(r"\s"), RegExp(r"(?!\n)\s"));
 
-  final Map<int, List<String>> errors = <int, List<String>>{};
+  final Map<int, Set<String>> failures = <int, Set<String>>{};
   final Map<int, _Head<void>> _heads = <int, _Head<void>>{};
   final Queue<_Lr<void>> _lrStack = DoubleLinkedQueue<_Lr<void>>();
   final Map<(_Rule<void>, int), _Memo> _memo = <(_Rule<void>, int), _Memo>{};
@@ -189,7 +205,6 @@ abstract base class _PegParser<R extends Object> {
 }
 
 typedef _Rule<T extends Object> = T? Function();
-typedef _NonNullableRule<T extends Object> = T Function();
 
 class _Head<T extends Object> {
   const _Head({
@@ -222,16 +237,17 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class MathGrammar extends _PegParser<num> {
-  MathGrammar();
+final class MathParser extends _PegParser<num> {
+  MathParser();
 
   @override
-  get start => rule;
+  get start => r0;
 
 
-  num? rule() {
+  /// `global::rule`
+  num? r0() {
     if (this.pos case var $0 when this.pos <= 0) {
-      if (this.apply(this.expr) case var $1?) {
+      if (this.apply(this.r1) case var $1?) {
         if (this.pos case var $2 when this.pos >= this.buffer.length) {
           return $1;
         }
@@ -239,193 +255,142 @@ final class MathGrammar extends _PegParser<num> {
     }
   }
 
-  num? expr() {
+  /// `global::expr`
+  num? r1() {
     if (this.pos case var mark) {
-      if (this.pos case var from) {
-        if (this.apply(this.expr) case (var $0 && var expr)?) {
-          if (this.applyNonNull(this._) case var $1) {
-            if (matchPattern("+") case var $2?) {
-              if (this.applyNonNull(this._) case var $3) {
-                if (this.apply(this.term) case (var $4 && var term)?) {
-                  if (($0, $1, $2, $3, $4) case var $) {
-                    if (this.pos case var to) {
-                      return expr + term;
-                    }
-                  }
-                }
+      if (this.apply(this.r1) case (var $0 && var expr)?) {
+        if (this.apply(this.r7)! case var $1) {
+          if (this.matchPattern(_string.$1) case var $2?) {
+            if (this.apply(this.r7)! case var $3) {
+              if (this.apply(this.r2) case (var $4 && var term)?) {
+                return expr + term;
               }
             }
           }
         }
       }
-
       this.pos = mark;
-      if (this.pos case var from) {
-        if (this.apply(this.expr) case (var $0 && var expr)?) {
-          if (this.applyNonNull(this._) case var $1) {
-            if (matchPattern("-") case var $2?) {
-              if (this.applyNonNull(this._) case var $3) {
-                if (this.apply(this.term) case (var $4 && var term)?) {
-                  if (($0, $1, $2, $3, $4) case var $) {
-                    if (this.pos case var to) {
-                      return expr - term;
-                    }
-                  }
-                }
+      if (this.apply(this.r1) case (var $0 && var expr)?) {
+        if (this.apply(this.r7)! case var $1) {
+          if (this.matchPattern(_string.$2) case var $2?) {
+            if (this.apply(this.r7)! case var $3) {
+              if (this.apply(this.r2) case (var $4 && var term)?) {
+                return expr - term;
               }
             }
           }
         }
       }
-
       this.pos = mark;
-      if (this.apply(this.term) case var $?) {
+      if (this.apply(this.r2) case var $?) {
         return $;
       }
     }
   }
 
-  num? term() {
+  /// `global::term`
+  num? r2() {
     if (this.pos case var mark) {
-      if (this.pos case var from) {
-        if (this.apply(this.term) case (var $0 && var term)?) {
-          if (this.applyNonNull(this._) case var $1) {
-            if (matchPattern("*") case var $2?) {
-              if (this.applyNonNull(this._) case var $3) {
-                if (this.apply(this.negative) case (var $4 && var negative)?) {
-                  if (($0, $1, $2, $3, $4) case var $) {
-                    if (this.pos case var to) {
-                      return term * negative;
-                    }
-                  }
-                }
+      if (this.apply(this.r2) case (var $0 && var term)?) {
+        if (this.apply(this.r7)! case var $1) {
+          if (this.matchPattern(_string.$3) case var $2?) {
+            if (this.apply(this.r7)! case var $3) {
+              if (this.apply(this.r3) case (var $4 && var negative)?) {
+                return term * negative;
               }
             }
           }
         }
       }
-
       this.pos = mark;
-      if (this.pos case var from) {
-        if (this.apply(this.term) case (var $0 && var term)?) {
-          if (this.applyNonNull(this._) case var $1) {
-            if (matchPattern("/") case var $2?) {
-              if (this.applyNonNull(this._) case var $3) {
-                if (this.apply(this.negative) case (var $4 && var negative)?) {
-                  if (($0, $1, $2, $3, $4) case var $) {
-                    if (this.pos case var to) {
-                      return term / negative;
-                    }
-                  }
-                }
+      if (this.apply(this.r2) case (var $0 && var term)?) {
+        if (this.apply(this.r7)! case var $1) {
+          if (this.matchPattern(_string.$4) case var $2?) {
+            if (this.apply(this.r7)! case var $3) {
+              if (this.apply(this.r3) case (var $4 && var negative)?) {
+                return term / negative;
               }
             }
           }
         }
       }
-
       this.pos = mark;
-      if (this.pos case var from) {
-        if (this.apply(this.term) case (var $0 && var term)?) {
-          if (this.applyNonNull(this._) case var $1) {
-            if (matchPattern("%") case var $2?) {
-              if (this.applyNonNull(this._) case var $3) {
-                if (this.apply(this.negative) case (var $4 && var negative)?) {
-                  if (($0, $1, $2, $3, $4) case var $) {
-                    if (this.pos case var to) {
-                      return term % negative;
-                    }
-                  }
-                }
+      if (this.apply(this.r2) case (var $0 && var term)?) {
+        if (this.apply(this.r7)! case var $1) {
+          if (this.matchPattern(_string.$5) case var $2?) {
+            if (this.apply(this.r7)! case var $3) {
+              if (this.apply(this.r3) case (var $4 && var negative)?) {
+                return term % negative;
               }
             }
           }
         }
       }
-
       this.pos = mark;
-      if (this.pos case var from) {
-        if (this.apply(this.term) case (var $0 && var term)?) {
-          if (this.applyNonNull(this._) case var $1) {
-            if (matchPattern("~/") case var $2?) {
-              if (this.applyNonNull(this._) case var $3) {
-                if (this.apply(this.negative) case (var $4 && var negative)?) {
-                  if (($0, $1, $2, $3, $4) case var $) {
-                    if (this.pos case var to) {
-                      return term ~/ negative;
-                    }
-                  }
-                }
+      if (this.apply(this.r2) case (var $0 && var term)?) {
+        if (this.apply(this.r7)! case var $1) {
+          if (this.matchPattern(_string.$6) case var $2?) {
+            if (this.apply(this.r7)! case var $3) {
+              if (this.apply(this.r3) case (var $4 && var negative)?) {
+                return term ~/ negative;
               }
             }
           }
         }
       }
-
       this.pos = mark;
-      if (this.apply(this.negative) case var $?) {
+      if (this.apply(this.r3) case var $?) {
         return $;
       }
     }
   }
 
-  num? negative() {
+  /// `global::negative`
+  num? r3() {
     if (this.pos case var mark) {
-      if (this.pos case var from) {
-        if (matchPattern("-") case var $0?) {
-          if (this.applyNonNull(this._) case var $1) {
-            if (this.apply(this.negative) case (var $2 && var negative)?) {
-              if (($0, $1, $2) case var $) {
-                if (this.pos case var to) {
-                  return -negative;
-                }
-              }
-            }
+      if (this.matchPattern(_string.$2) case var $0?) {
+        if (this.apply(this.r7)! case var $1) {
+          if (this.apply(this.r3) case (var $2 && var negative)?) {
+            return -negative;
           }
         }
       }
-
       this.pos = mark;
-      if (this.apply(this.factor) case var $?) {
+      if (this.apply(this.r4) case var $?) {
         return $;
       }
     }
   }
 
-  num? factor() {
+  /// `global::factor`
+  num? r4() {
     if (this.pos case var mark) {
-      if (this.pos case var from) {
-        if (this.apply(this.primary) case (var $0 && var primary)?) {
-          if (this.applyNonNull(this._) case var $1) {
-            if (matchPattern("^") case var $2?) {
-              if (this.applyNonNull(this._) case var $3) {
-                if (this.apply(this.factor) case (var $4 && var factor)?) {
-                  if (($0, $1, $2, $3, $4) case var $) {
-                    if (this.pos case var to) {
-                      return math.pow(primary, factor);
-                    }
-                  }
-                }
+      if (this.apply(this.r5) case (var $0 && var primary)?) {
+        if (this.apply(this.r7)! case var $1) {
+          if (this.matchPattern(_string.$7) case var $2?) {
+            if (this.apply(this.r7)! case var $3) {
+              if (this.apply(this.r4) case (var $4 && var factor)?) {
+                return math.pow(primary, factor);
               }
             }
           }
         }
       }
-
       this.pos = mark;
-      if (this.apply(this.primary) case var $?) {
+      if (this.apply(this.r5) case var $?) {
         return $;
       }
     }
   }
 
-  num? primary() {
+  /// `global::primary`
+  num? r5() {
     if (this.pos case var mark) {
-      if (matchPattern("(") case var $0?) {
-        if (this.applyNonNull(this._) case var $1) {
-          if (this.apply(this.expr) case var $2?) {
-            if (this.applyNonNull(this._) case var $3) {
-              if (matchPattern(")") case var $4?) {
+      if (this.matchPattern(_string.$9) case var $0?) {
+        if (this.apply(this.r7)! case var $1) {
+          if (this.apply(this.r1) case var $2?) {
+            if (this.apply(this.r7)! case var $3) {
+              if (this.matchPattern(_string.$8) case var $4?) {
                 return $2;
               }
             }
@@ -433,13 +398,14 @@ final class MathGrammar extends _PegParser<num> {
         }
       }
       this.pos = mark;
-      if (this.apply(this.number) case var $?) {
+      if (this.apply(this.r6) case var $?) {
         return $;
       }
     }
   }
 
-  num? number() {
+  /// `global::number`
+  num? r6() {
     if (this.pos case var mark) {
       if (this.pos case var from) {
         if (matchPattern(_regexp.$1) case var _2?) {
@@ -454,7 +420,7 @@ final class MathGrammar extends _PegParser<num> {
                 break;
               }
             }
-            if (matchPattern(".") case var $1?) {
+            if (this.matchPattern(_string.$10) case var $1?) {
               if (matchPattern(_regexp.$1) case var _0?) {
                 if ([_0] case (var $2 && var _loop2)) {
                   for (;;) {
@@ -467,10 +433,8 @@ final class MathGrammar extends _PegParser<num> {
                       break;
                     }
                   }
-                  if (($0, $1, $2) case var $) {
-                    if (this.pos case var to) {
-                      return double.parse(buffer.substring(from, to));
-                    }
+                  if (this.pos case var to) {
+                    return double.parse(buffer.substring(from, to));
                   }
                 }
               }
@@ -482,7 +446,7 @@ final class MathGrammar extends _PegParser<num> {
       this.pos = mark;
       if (this.pos case var from) {
         if (matchPattern(_regexp.$1) case var _4?) {
-          if ([_4] case (var $ && var _loop6)) {
+          if ([_4] case var _loop6) {
             for (;;) {
               if (this.pos case var mark) {
                 if (matchPattern(_regexp.$1) case var _4?) {
@@ -502,36 +466,107 @@ final class MathGrammar extends _PegParser<num> {
     }
   }
 
-  late final _ = () {
-    if (this.pos case var from) {
-      if (matchPattern(_regexp.$2) case var _6) {
-        if (this.pos case var mark) {
-          if ([if (_6 case var _6?) _6] case (var $ && var _loop8)) {
-            if (_loop8.isNotEmpty) {
-              for (;;) {
-                if (this.pos case var mark) {
-                  if (matchPattern(_regexp.$2) case var _6?) {
-                    _loop8.add(_6);
-                    continue;
-                  }
-                  this.pos = mark;
-                  break;
+  /// `global::_`
+  late final r7 = () {
+    if (this.pos case var mark) {
+      if (this.matchPattern(_string.$11) case var _0) {
+        if ([if (_0 case var _0?) _0] case var _loop2) {
+          if (_loop2.isNotEmpty) {
+            for (;;) {
+              if (this.pos case var mark) {
+                if (this.matchPattern(_string.$11) case var _0?) {
+                  _loop2.add(_0);
+                  continue;
                 }
+                this.pos = mark;
+                break;
               }
-            } else {
-              this.pos = mark;
             }
-            if (this.pos case var to) {
-              return "";
-            }
+          } else {
+            this.pos = mark;
           }
+          return "";
         }
       }
     }
   };
 
+  /// `global::std::any`
+  String? r8() {
+    if (pos < buffer.length) {
+      if (buffer[pos] case var $) {
+        pos++;
+        return $;
+      }
+    }
+  }
+
+  /// `global::std::epsilon`
+  String r9() {
+    if ('' case var $) {
+      return $;
+    }
+  }
+
+  /// `global::std::start`
+  int? ra() {
+    if (this.pos case var $ when this.pos <= 0) {
+      return $;
+    }
+  }
+
+  /// `global::std::end`
+  int? rb() {
+    if (this.pos case var $ when this.pos >= this.buffer.length) {
+      return $;
+    }
+  }
+
+  /// `global::std::digit`
+  String? rc() {
+    if (matchPattern(_regexp.$1) case var $?) {
+      return $;
+    }
+  }
+
+  /// `global::std::alpha`
+  String? rd() {
+    if (matchPattern(_regexp.$2) case var $?) {
+      return $;
+    }
+  }
+
+  /// `global::std::alpha::lower`
+  String? re() {
+    if (matchPattern(_regexp.$3) case var $?) {
+      return $;
+    }
+  }
+
+  /// `global::std::alpha::upper`
+  String? rf() {
+    if (matchPattern(_regexp.$4) case var $?) {
+      return $;
+    }
+  }
+
   static final _regexp = (
     RegExp("\\d"),
-    RegExp("\\s+"),
+    RegExp("[a-zA-Z]"),
+    RegExp("[a-z]"),
+    RegExp("[A-Z]"),
+  );
+  static const _string = (
+    "+",
+    "-",
+    "*",
+    "/",
+    "%",
+    "~/",
+    "^",
+    ")",
+    "(",
+    ".",
+    "\\s",
   );
 }

@@ -242,7 +242,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   get start => r0;
 
 
-  /// fragment0
+  /// `fragment0`
   late final f0 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$1) case (var $0 && null)) {
@@ -257,7 +257,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// fragment1
+  /// `fragment1`
   late final f1 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$2) case (var $0 && null)) {
@@ -272,7 +272,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// fragment2
+  /// `fragment2`
   late final f2 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$3) case (var $0 && null)) {
@@ -287,7 +287,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// fragment3
+  /// `fragment3`
   late final f3 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$4) case (var $0 && null)) {
@@ -302,7 +302,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// fragment4
+  /// `fragment4`
   late final f4 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$5) case var $0?) {
@@ -337,7 +337,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// fragment5
+  /// `fragment5`
   late final f5 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$5) case var $0?) {
@@ -372,7 +372,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// fragment6
+  /// `fragment6`
   late final f6 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$5) case var $0?) {
@@ -407,7 +407,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// fragment7
+  /// `fragment7`
   late final f7 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$5) case var $0?) {
@@ -442,7 +442,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// fragment8
+  /// `fragment8`
   late final f8 = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$8) case var $0?) {
@@ -472,21 +472,21 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   };
 
-  /// global::root
+  /// `global::root`
   late final r0 = () {
     if (this.apply(this.r1) case var string?) {
       return [string, string];
     }
   };
 
-  /// global::dart::literal::string
+  /// `global::dart::literal::string`
   Object? r1() {
     if (this.apply(this.r2) case var $?) {
       return $;
     }
   }
 
-  /// global::dart::literal::string::main
+  /// `global::dart::literal::string::main`
   Object? r2() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$9) case var $0?) {
@@ -707,7 +707,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   }
 
-  /// global::dart::literal::string::interpolation
+  /// `global::dart::literal::string::interpolation`
   Object? r3() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$6) case var $0?) {
@@ -728,7 +728,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   }
 
-  /// global::dart::literal::string::balanced
+  /// `global::dart::literal::string::balanced`
   Object r4() {
     if (this.pos case var mark) {
       if (this.f8() case var _0) {
@@ -753,7 +753,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   }
 
-  /// global::dart::literal::identifier
+  /// `global::dart::literal::identifier`
   String? r5() {
     if (this.matchRange(_range.$2) case var $0?) {
       if (this.pos case var mark) {
@@ -780,7 +780,7 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   }
 
-  /// global::std::any
+  /// `global::std::any`
   String? r6() {
     if (pos < buffer.length) {
       if (buffer[pos] case var $) {
@@ -790,49 +790,49 @@ final class PlaygroundParser extends _PegParser<Object> {
     }
   }
 
-  /// global::std::epsilon
+  /// `global::std::epsilon`
   String r7() {
     if ('' case var $) {
       return $;
     }
   }
 
-  /// global::std::start
+  /// `global::std::start`
   int? r8() {
     if (this.pos case var $ when this.pos <= 0) {
       return $;
     }
   }
 
-  /// global::std::end
+  /// `global::std::end`
   int? r9() {
     if (this.pos case var $ when this.pos >= this.buffer.length) {
       return $;
     }
   }
 
-  /// global::std::digit
+  /// `global::std::digit`
   String? ra() {
     if (matchPattern(_regexp.$1) case var $?) {
       return $;
     }
   }
 
-  /// global::std::alpha
+  /// `global::std::alpha`
   String? rb() {
     if (matchPattern(_regexp.$2) case var $?) {
       return $;
     }
   }
 
-  /// global::std::alpha::lower
+  /// `global::std::alpha::lower`
   String? rc() {
     if (matchPattern(_regexp.$3) case var $?) {
       return $;
     }
   }
 
-  /// global::std::alpha::upper
+  /// `global::std::alpha::upper`
   String? rd() {
     if (matchPattern(_regexp.$4) case var $?) {
       return $;

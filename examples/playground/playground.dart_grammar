@@ -4,18 +4,17 @@ dart {
   literal {
     Object string = string::main;
     string {
-      Object main = (
-          /// Raw string literals
-          | "r" '"""' body:(!'"""' . @1)* '"""'
-          | "r" "'''" body:(!"'''" . @1)* "'''"
-          | "r" '"'   body:(!'"'   . @1)* '"'
-          | "r" "'"   body:(!"'"   . @1)* "'"
-          /// Escaped string literals
-          | '"""' body:(\\ . @1 | &"$" interpolation | !'"""' . @1)* '"""'
-          | "'''" body:(\\ . @1 | &"$" interpolation | !"'''" . @1)* "'''"
-          | '"'   body:(\\ . @1 | &"$" interpolation | !'"'   . @1)* '"'
-          | "'"   body:(\\ . @1 | &"$" interpolation | !"'"   . @1)* "'"
-        )
+      Object main =
+        /// Raw string literals
+        | "r" '"""' body:(!'"""' . @1)* '"""'
+        | "r" "'''" body:(!"'''" . @1)* "'''"
+        | "r" '"'   body:(!'"'   . @1)* '"'
+        | "r" "'"   body:(!"'"   . @1)* "'"
+        /// Escaped string literals
+        | '"""' body:(\\ . @1 | &"$" interpolation | !'"""' . @1)* '"""'
+        | "'''" body:(\\ . @1 | &"$" interpolation | !"'''" . @1)* "'''"
+        | '"'   body:(\\ . @1 | &"$" interpolation | !'"'   . @1)* '"'
+        | "'"   body:(\\ . @1 | &"$" interpolation | !"'"   . @1)* "'"
         ;
 
       Object interpolation =
