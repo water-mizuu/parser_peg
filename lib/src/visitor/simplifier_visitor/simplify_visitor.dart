@@ -69,8 +69,8 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
 
   @override
   Node visitChoiceNode(ChoiceNode node, int depth) {
-    List<StringLiteralNode> strings = node.children.whereType<StringLiteralNode>().toList();
-    if (strings.length < 2) {
+    List<StringLiteralNode> stringNodes = node.children.whereType<StringLiteralNode>().toList();
+    if (stringNodes.length < 2) {
       if (depth > 0) {
         Node generated = createFragment(
           ChoiceNode(<Node>[for (Node child in node.children) child.acceptSimplifierVisitor(this, 0)]),
@@ -85,15 +85,12 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
         return generated;
       }
     } else {
-      List<String> strings = <String>[];
-      List<Node> notStrings = <Node>[];
-      for (Node child in node.children) {
-        if (child case StringLiteralNode(:String value)) {
-          strings.add(value);
-        } else {
-          notStrings.add(child);
-        }
-      }
+      List<String> strings = stringNodes //
+          .map((StringLiteralNode node) => node.literal)
+          .toList();
+      List<Node> notStrings = node.children //
+          .where((Node node) => node is! StringLiteralNode)
+          .toList();
 
       if (notStrings.isEmpty) {
         return TriePatternNode(strings).acceptSimplifierVisitor(this, depth);

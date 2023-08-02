@@ -79,8 +79,8 @@ class TriePatternNode implements AtomicNode {
 }
 
 class StringLiteralNode implements AtomicNode {
-  const StringLiteralNode(this.value);
-  final String value;
+  const StringLiteralNode(this.literal);
+  final String literal;
 
   @override
   Iterable<Node> get children => <Node>[];

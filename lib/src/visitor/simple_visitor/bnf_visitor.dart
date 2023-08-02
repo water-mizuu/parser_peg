@@ -11,7 +11,7 @@ class ImperativeVisitor implements SimpleNodeVisitor<String> {
   String visitTriePatternNode(TriePatternNode node) => node.options.join(" | ");
 
   @override
-  String visitStringLiteralNode(StringLiteralNode node) => jsonEncode(node.value);
+  String visitStringLiteralNode(StringLiteralNode node) => jsonEncode(node.literal);
 
   @override
   String visitRangeNode(RangeNode node) => "[${node.ranges.map(((int, int) v) => "${v.$1}-${v.$2}").join()}}]";

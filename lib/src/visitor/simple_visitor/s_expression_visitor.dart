@@ -12,7 +12,7 @@ class SExpressionVisitor implements SimpleNodeVisitor<String> {
   String visitTriePatternNode(TriePatternNode node) => "(trie ${node.options.join(" ")})";
 
   @override
-  String visitStringLiteralNode(StringLiteralNode node) => "(string ${jsonEncode(node.value)})";
+  String visitStringLiteralNode(StringLiteralNode node) => "(string ${jsonEncode(node.literal)})";
 
   @override
   String visitRangeNode(RangeNode node) => "(range ${node.ranges.join(" ")}})";
