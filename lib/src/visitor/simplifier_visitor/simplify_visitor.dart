@@ -3,7 +3,7 @@ import "package:parser_peg/src/visitor/node_visitor.dart";
 
 class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
   Node createFragment(Node node) {
-    String name = "fragment${(fragmentId++).toRadixString(36)}";
+    String name = "fragment${fragmentId++}";
     addedFragments[name] = (null, node);
 
     return FragmentNode(name);
