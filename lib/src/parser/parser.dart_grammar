@@ -2,6 +2,11 @@
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
+
+final _regexps = (
+  from: RegExp(r"\bfrom\b"),
+  to: RegExp(r"\bto\b"),
+);
 }
 
 /// A grammar file contains an optional preamble and statements.
@@ -33,6 +38,8 @@ String name = namespacedRaw | namespacedIdentifier;
 @fragment
 Node body = `=` :choice `;` { choice };
 
+/// A namespace is a block of statements which can apply a tag and/or be encapsulated
+///   under a name.
 Statement namespace =
   | kw::fragment name:identifier? `{` statements:_.statement+ `}` {
       NamespaceStatement(name, statements, tag: Tag.fragment)
@@ -45,6 +52,10 @@ Statement namespace =
     }
   ;
 
+
+/// A rule is a declaration that supports left recursion & memoization.
+/// It can be explicitly stated with a `@rule` keyword, but it is not necessary.
+/// It can, however, be useful if it is used inside a `@fragment` tagged namespace.
 Statement rule =
   | kw::rule? kw::var :name :body {
       DeclarationStatement(null, name, body, tag: $0 == null ? null : Tag.rule)
@@ -60,6 +71,8 @@ Statement rule =
     }
   ;
 
+/// A fragment is a declaration that is faster, but doesn't support left recursion / memoization.
+/// It can be explicitly stated with a `@fragment` keyword.
 Statement fragment =
   | kw::fragment kw::var :name :body {
       DeclarationStatement(null, name, body, tag: Tag.fragment)
@@ -75,13 +88,34 @@ Statement fragment =
     }
   ;
 
+/// A choice parser is a parser that tries to match one of the options.
+/// Despite the syntax, the parser is ordered choice.
 Node choice = `|`? options:`|`.acted+ { options.length == 1 ? options.single : ChoiceNode(options) };
 
 /// A parser with a bound action.
 Node acted =
-  /// Dart code action
-  | :sequence `(` `)` `{` _ code:code::curly _ `}`  { ActionNode(sequence, code, areIndicesProvided: true) }
-  | :sequence         `{` _ code:code::curly _ `}`  { InlineActionNode(sequence, code, areIndicesProvided: true ) }
+  /// An empty inline action means that the parser will only return the recognized substring.
+  | :sequence `{` `}`  () {
+      return InlineActionNode(
+        sequence,
+        "this.buffer.substring(from, to)",
+        areIndicesProvided: true,
+      );
+    }
+  | :sequence `{` _ code:code::curly _ `}`  () {
+      return InlineActionNode(
+        sequence,
+        code.trimRight(),
+        areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
+      );
+    }
+  | :sequence `(` `)` `{` _ code:code::curly _ `}`  () {
+      return ActionNode(
+        sequence,
+        code.trimRight(),
+        areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
+      );
+    }
   | sequence
   ;
 
@@ -101,21 +135,21 @@ Node labeled =
 
   /// Special cases, where the name can be inferred from the context.
   | ":" id:namespacedIdentifier `?` { switch ((id, id.split("::"))) {
-    (var ref, [..., var name]) => NamedNode(name, OptionalNode(ReferenceNode(ref))),
-    _ => null,
-  } }
+      (var ref, [..., var name]) => NamedNode(name, OptionalNode(ReferenceNode(ref))),
+      _ => null,
+    } }
   | ":" id:namespacedIdentifier `*` { switch ((id, id.split("::"))) {
-    (var ref, [..., var name]) => NamedNode(name, StarNode(ReferenceNode(ref))),
-    _ => null,
-  } }
+      (var ref, [..., var name]) => NamedNode(name, StarNode(ReferenceNode(ref))),
+      _ => null,
+    } }
   | ":" id:namespacedIdentifier `+` { switch ((id, id.split("::"))) {
-    (var ref, [..., var name]) => NamedNode(name, PlusNode(ReferenceNode(ref))),
-    _ => null,
-  } }
+      (var ref, [..., var name]) => NamedNode(name, PlusNode(ReferenceNode(ref))),
+      _ => null,
+    } }
   | ":" id:namespacedIdentifier { switch ((id, id.split("::"))) {
-    (var ref, [..., var name]) => NamedNode(name, ReferenceNode(ref)),
-    _ => null,
-  } }
+      (var ref, [..., var name]) => NamedNode(name, ReferenceNode(ref)),
+      _ => null,
+    } }
   /// Fallback
   | separated
   ;
@@ -199,10 +233,10 @@ code {
 }
 
 @fragment literal {
-  regexp = "/" ((\\ . @1 { r"\" + $ } | !"/" . @1)+ { $.join() } ) "/" @1;
-  string = _ string::main _ @1;
+  String regexp = "/" ((\\ . @1 { r"\" + $ } | !"/" . @1)+ { $.join() } ) "/" @1;
+  String string = _ string::main _ @1;
   string {
-    main =
+    String main =
       /// Raw string literals
       | "r" '"""' body:(!'"""' . @1)* '"""' { body.join() }
       | "r" "'''" body:(!"'''" . @1)* "'''" { body.join() }
@@ -216,23 +250,24 @@ code {
       ;
   }
 
-  range =  _ range::main _ @1;
+  Node range =  _ range::main _ @1;
   range {
-    main = `[` elements:_.element+ `]` { RangeNode(elements.reduce((a, b) => a.union(b))) };
-    element =
+    Node main = `[` elements:_.element+ `]` { RangeNode(elements.reduce((a, b) => a.union(b))) };
+    Set<(int, int)> element =
       | escape
       | l:atom "-" r:atom { {(l.codeUnitAt(0), r.codeUnitAt(0))} }
       | atom              { {($.codeUnitAt(0), $.codeUnitAt(0))} }
       ;
-    escape =
+    Set<(int, int)> escape =
       | \\ r"d" { {(48, 57)} } // 0-9
-      | \\ r"w" { {(64 + 1, 64 + 26), (96 + 1, 96 + 26)} }
+      | \\ r"w" { {(64 + 1, 64 + 26), (96 + 1, 96 + 26)} } // a-z, A-Z
       | \\ r"s" { {(9, 13), (32, 32)} }
+      | \\ r"D" { {(0, 47), (58, 65535)} }
       ;
-    atom = \\ . @1 | !"]" any @1;
+    String atom = \\ . @1 | !"]" any @1;
   }
 
-  raw = "`" inner:(!"`" . @1)* "`" () {
+  String raw = "`" inner:(!"`" . @1)* "`" () {
     StringBuffer buffer = StringBuffer(r"$");
 
     for (var (int i, String character) in inner.indexed) {
@@ -256,7 +291,10 @@ code {
 /// Rules related to [Dart] expressions.
 dart {
   literal {
-    String string = _ (string::main { buffer.substring(from, to) }) _ @1;
+    /// Since string literals in [Dart] can be put adjacent, we need to parse while
+    ///   there are still string literals.
+    String string = _ _.(string::main { buffer.substring(from, to) })+ _ @1 { $.join() };
+    String identifier = _ (global::identifier {}) _ @1;
 
     string {
       Object main =
@@ -329,68 +367,69 @@ type {
   int number = std::digit+ { int.parse($.join()) };
 
   kw {
-    rule      = _ "@rule" _        @1;
-    fragment  = _ "@fragment" _    @1;
-    start     = _ "startOfInput" _ @1;
-    end       = _ "endOfInput" _   @1;
-    backslash = _ "backslash" _    @1;
-    epsilon   = _ "epsilon" _      @1;
-    any       = _ "any" _          @1;
-    var       = _ "var" _          @1;
+    String rule      = _ "@rule" _        @1;
+    String fragment  = _ "@fragment" _    @1;
+    String start     = _ "startOfInput" _ @1;
+    String end       = _ "endOfInput" _   @1;
+    String backslash = _ "backslash" _    @1;
+    String epsilon   = _ "epsilon" _      @1;
+    String any       = _ "any" _          @1;
+    String var       = _ "var" _          @1;
   }
 
   /// Tokens used in "macro-like" rules.
   mac {
-    sep = _ "sep!" _   @1;
+    String sep = _ "sep!" _   @1;
   }
 
   regexEscape {
-    backslash       = _ (\\ r"\" { buffer.substring(from, to) }) _ @1;
-    digit           = _ (\\ r"d" { buffer.substring(from, to) }) _ @1;
-    word            = _ (\\ r"w" { buffer.substring(from, to) }) _ @1;
-    space           = _ (\\ r"s" { buffer.substring(from, to) }) _ @1;
-    tab             = _ (\\ r"t" { buffer.substring(from, to) }) _ @1;
-    formFeed        = _ (\\ r"f" { buffer.substring(from, to) }) _ @1;
-    verticalTab     = _ (\\ r"v" { buffer.substring(from, to) }) _ @1;
-    null            = _ (\\ r"0" { buffer.substring(from, to) }) _ @1;
-    control         = _ (\\ r"c" { buffer.substring(from, to) }) _ @1;
-    hex             = _ (\\ r"x" { buffer.substring(from, to) }) _ @1;
-    unicode         = _ (\\ r"u" { buffer.substring(from, to) }) _ @1;
-    unicodeExtended = _ (\\ r"U" { buffer.substring(from, to) }) _ @1;
-    literal         = _ (\\ r"." { buffer.substring(from, to) }) _ @1;
+    String backslash       = _ (\\ r"\" @1 { r"\" + $ }) _ @1;
+    String digit           = _ (\\ r"d" @1 { r"\" + $ }) _ @1;
+    String word            = _ (\\ r"w" @1 { r"\" + $ }) _ @1;
+    String space           = _ (\\ r"s" @1 { r"\" + $ }) _ @1;
+    String tab             = _ (\\ r"t" @1 { r"\" + $ }) _ @1;
+    String formFeed        = _ (\\ r"f" @1 { r"\" + $ }) _ @1;
+    String verticalTab     = _ (\\ r"v" @1 { r"\" + $ }) _ @1;
+    String null            = _ (\\ r"0" @1 { r"\" + $ }) _ @1;
+    String control         = _ (\\ r"c" @1 { r"\" + $ }) _ @1;
+    String hex             = _ (\\ r"x" @1 { r"\" + $ }) _ @1;
+    String unicode         = _ (\\ r"u" @1 { r"\" + $ }) _ @1;
+    String unicodeExtended = _ (\\ r"U" @1 { r"\" + $ }) _ @1;
+    String literal         = _ (\\ r"." @1 { r"\" + $ }) _ @1;
   }
 
   /// Literal tokens
-  `..`  = _ ".." _ @1;
-  `::`  = _ "::" _ @1;
-  `%%`  = _ "%%" _ @1;
-  `=>`  = _ "=>" _ @1;
+  String `..`  = _ ".." _ @1;
+  String `::`  = _ "::" _ @1;
+  String `%%`  = _ "%%" _ @1;
+  String `=>`  = _ "=>" _ @1;
 
-  `@`   = _ "@"  _ @1;
-  `<`   = _ "<"  _ @1;
-  `>`   = _ ">"  _ @1;
-  `]`   = _ "]"  _ @1;
-  `[`   = _ "["  _ @1;
-  `}`   = _ "}"  _ @1;
-  `{`   = _ "{"  _ @1;
-  `)`   = _ ")"  _ @1;
-  `(`   = _ "("  _ @1;
-  `;`   = _ ";"  _ @1;
-  `=`   = _ "="  _ @1;
-  `?`   = _ "?"  _ @1;
-  `!`   = _ "!"  _ @1;
-  `&`   = _ "&"  _ @1;
-  `*`   = _ "*"  _ @1;
-  `+`   = _ "+"  _ @1;
-  `,`   = _ ","  _ @1;
-  `:`   = _ ":"  _ @1;
-  `|`   = _ "|"  _ @1;
+  String `@`   = _ "@"  _ @1;
+  String `<`   = _ "<"  _ @1;
+  String `>`   = _ ">"  _ @1;
+  String `]`   = _ "]"  _ @1;
+  String `[`   = _ "["  _ @1;
+  String `}`   = _ "}"  _ @1;
+  String `{`   = _ "{"  _ @1;
+  String `)`   = _ ")"  _ @1;
+  String `(`   = _ "("  _ @1;
+  String `;`   = _ ";"  _ @1;
+  String `=`   = _ "="  _ @1;
+  String `?`   = _ "?"  _ @1;
+  String `!`   = _ "!"  _ @1;
+  String `&`   = _ "&"  _ @1;
+  String `*`   = _ "*"  _ @1;
+  String `+`   = _ "+"  _ @1;
+  String `,`   = _ ","  _ @1;
+  String `:`   = _ ":"  _ @1;
+  String `|`   = _ "|"  _ @1;
+  String `/`   = _ "/"  _ @1;
 
-  DOT     = _ "."  _ @1;
-  EPSILON = _ "ε"  _ @1;
-  CARET   = _ "^"  _ @1;
-  DOLLAR  = _ "$"  _ @1;
+  String DOT     = _ "."  _ @1;
+  String EPSILON = _ "ε"  _ @1;
+  String CARET   = _ "^"  _ @1;
+  String DOLLAR  = _ "$"  _ @1;
 
   /// Layout parser allows comments (like this) and space between parsers.
-  _  = (\s | /\/{2}.*(?:(?:\r?\n)|(?:$))/)* { "" };
+  String _  = (\s | /\/{2}.*(?:(?:\r?\n)|(?:$))/)* { "" };
 }

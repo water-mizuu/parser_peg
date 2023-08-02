@@ -87,7 +87,7 @@ final class ParserGenerator {
 
     redirectId = 0;
     for (var (String name, (String? type, Node node)) in rules.pairs.toList()) {
-      String simplifiedName = "r${redirectId++}";
+      String simplifiedName = "r${(redirectId++).toRadixString(36)}";
 
       rules.remove(name);
       rules[simplifiedName] = (type, node);
@@ -96,7 +96,7 @@ final class ParserGenerator {
     }
     redirectId = 0;
     for (var (String name, (String? type, Node node)) in fragments.pairs.toList()) {
-      String simplifiedName = "f${redirectId++}";
+      String simplifiedName = "f${(redirectId++).toRadixString(36)}";
 
       fragments.remove(name);
       fragments[simplifiedName] = (type, node);
