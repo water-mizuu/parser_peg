@@ -54,4 +54,5 @@ void main(List<String> arguments) {
   if (MathParser() case MathParser parser) {
     stdout.writeln(parser.parse("1 + 2 * 3"));
   }
+
 }

@@ -525,11 +525,21 @@ extension NameShortcuts on Set<String>? {
   String get singleName => this == null ? r"$" : this!.first;
   String get varNames => switch (this) {
         null => r"var $",
+        Set<String?>(length: 1, single: "_") => "_",
         Set<String?>(length: 1, single: "null") => "null",
         Set<String?>(length: 1, single: "!null") => "!= null",
         Set<String?>(length: 1, single: String name) => "var $name",
-        Set<String?> set =>
-          "(${set.map((String? v) => v == "!null" ? "!= null" : v == "null" ? v : "var $v").join(" && ")})",
+        Set<String?> set => set
+            .where((String? v) => v != "_")
+            .map(
+              (String? v) => v == "!null"
+                  ? "!= null"
+                  : v == "null"
+                      ? v
+                      : "var $v",
+            )
+            .join(" && ")
+            .apply((String v) => "($v)"),
       };
 }
 

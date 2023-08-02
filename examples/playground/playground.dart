@@ -252,12 +252,12 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// `global::S`
   Object? f1() {
     if (this.pos case var mark) {
-      if (this.f1() case var $0?) {
+      if (this.f1() case _?) {
         if (matchPattern(_regexp.$1) case var $1?) {
           if (pos < buffer.length) {
-            if (buffer[pos] case var $2) {
+            if (buffer[pos] case _) {
               pos++;
-              if (matchPattern(_regexp.$1) case var $3?) {
+              if (matchPattern(_regexp.$1) case _?) {
                 return $1;
               }
             }

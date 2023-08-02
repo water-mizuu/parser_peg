@@ -1,3 +1,5 @@
+// ignore_for_file: always_specify_types
+
 import "dart:convert";
 
 import "package:parser_peg/src/generator.dart";
@@ -201,7 +203,26 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required bool reported,
     required String declarationName,
   }) {
-    List<String> names = <String>[for (int i = 0; i < node.children.length; ++i) "\$$i"];
+    List<String> names = <String>[
+      if (inner == null) ...[
+        if (node.choose == null)
+          for (int i = 0; i < node.children.length; ++i) "\$$i"
+        else
+          for (int i = 0; i < node.children.length; ++i)
+            if (node.choose == i) "\$$i" else "_",
+      ] else if (node.children.whereType<NamedNode>().isNotEmpty) ...[
+        for (var (int i, Node child) in node.children.indexed)
+          if (child case NamedNode(:String name))
+            name //
+          else if (node.choose != null) ...[
+            if (node.choose == i) "\$$i" else "_",
+          ] else ...[
+            if (inner.contains(RegExp(r"\$" "$i" r"\b"))) "\$$i" else "_",
+          ],
+      ] else ...[
+        for (int i = 0; i < node.children.length; ++i) "\$$i",
+      ],
+    ];
     String lowestInner = inner ?? //
         node.choose?.apply((int v) => "return \$$v;") ??
         names.join(", ").apply((String v) => "return ($v);");
@@ -221,7 +242,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
 
         return node.acceptCompilerVisitor(
           this,
-          withNames: <String>{"\$$index"},
+          withNames: <String>{names[index]},
           inner: inner,
           isNullAllowed: isNullable.call(node, declarationName),
           reported: reported,
