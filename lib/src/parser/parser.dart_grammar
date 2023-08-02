@@ -34,10 +34,9 @@ String namespacedRaw = (identifier "::" @0)* literal::raw { $0.isEmpty ? $1 : "$
 @inline
 String namespacedIdentifier = (identifier "::" @0)* identifier { $0.isEmpty ? $1 : "${$0.join("::")}::${$1}" };
 
-@fragment
 String name = namespacedRaw | namespacedIdentifier;
 
-@fragment
+@inline
 Node body = `=` :choice `;` { choice };
 
 /// A namespace is a block of statements which can apply a tag and/or be encapsulated
@@ -76,7 +75,7 @@ Statement rule =
     }
   ;
 
-/// A fragment is a declaration that is faster, but doesn't support left recursion / memoization.
+/// A fragment is a declaration that is called directly, meaning not supporting left recursion / memoization.
 /// It can be explicitly stated with a `@fragment` keyword.
 Statement fragment =
   | kw::decorator::fragment kw::var :name :body {
@@ -145,8 +144,8 @@ Node acted =
 ///   By default, a sequence parser returns a [Record] of the results of the parsers.
 Node sequence =
   /// By specifying which item to keep, the specific item can be returned.
-  | body:_.dropped+ `@` :number { body.length == 1 ? body.single : SequenceNode(body, choose: number) }
-  | _.dropped+ { $.length == 1 ? $.single : SequenceNode($, choose: null) }
+  | body:_.sep!{ dropped }+ `@` :number { body.length == 1 ? body.single : SequenceNode(body, choose: number) }
+  | _.sep!{ dropped }+ { $.length == 1 ? $.single : SequenceNode($, choose: null) }
   ;
 
 Node dropped =
@@ -221,9 +220,9 @@ Node atom =
   /// "Macro" style separators.
   | mac::sep `(` `+` `?` `)` `{` sep:atom _ body:atom `}` { PlusSeparatedNode(sep, body, isTrailingAllowed: true) }
   | mac::sep `(` `*` `?` `)` `{` sep:atom _ body:atom `}` { StarSeparatedNode(sep, body, isTrailingAllowed: true) }
-  | mac::sep `(` `+` `)` `{` sep:atom _ body:atom `}` { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | mac::sep `(` `*` `)` `{` sep:atom _ body:atom `}` { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | mac::sep `{` sep:atom _ body:atom `}` { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | mac::sep `(` `+` `)` `{` sep:atom _ body:atom `}`     { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | mac::sep `(` `*` `)` `{` sep:atom _ body:atom `}`     { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | mac::sep `{` sep:atom _ body:atom `}`                 { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
   /// Basic atomic parsers.
   | `(` choice `)` @1
   | specialSymbol
