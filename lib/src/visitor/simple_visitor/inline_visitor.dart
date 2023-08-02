@@ -6,6 +6,8 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
 
   final Map<String, (String?, Node)> inline;
 
+  (bool, Node) inlineReferences(Node root) => root.acceptSimpleVisitor(this);
+
   @override
   (bool, Node) visitEpsilonNode(EpsilonNode node) {
     return (false, node);

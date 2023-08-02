@@ -14,6 +14,8 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
   /// A unique identifier for each fragment.
   int fragmentId = 0;
 
+  Node simplify(Node node) => node.acceptSimplifierVisitor(this, 0);
+
   @override
   Node visitEpsilonNode(EpsilonNode node, int depth) {
     return node;

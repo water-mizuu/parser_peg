@@ -6,6 +6,8 @@ class RenameDeclarationVisitor implements SimpleNodeVisitor<Node> {
 
   final Map<String, String> redirects;
 
+  Node renameDeclarations(Node node) => node.acceptSimpleVisitor(this);
+
   @override
   Node visitEpsilonNode(EpsilonNode node) {
     return node;

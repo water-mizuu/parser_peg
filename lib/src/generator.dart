@@ -155,7 +155,7 @@ final class ParserGenerator {
     ///   declared as inline, but it is not actually inline-able, like in a namespace.
     if (CanInlineVisitor(rules, fragments, inline) case CanInlineVisitor visitor) {
       for (var (String name, (String? type, Node node)) in inline.pairs.toList()) {
-        if (!node.acceptSimpleVisitor(visitor)) {
+        if (!visitor.canBeInlined(node)) {
           inline.remove(name);
           fragments[name] = (type, node);
         }
@@ -169,13 +169,13 @@ final class ParserGenerator {
       do {
         runLoop = false;
         for (var (String name, (String? type, Node node)) in rules.pairs.toList()) {
-          var (bool hasChanged, Node resolvedNode) = node.acceptSimpleVisitor(visitor);
+          var (bool hasChanged, Node resolvedNode) = visitor.inlineReferences(node);
           runLoop |= hasChanged;
 
           rules[name] = (type, resolvedNode);
         }
         for (var (String name, (String? type, Node node)) in fragments.pairs.toList()) {
-          var (bool hasChanged, Node resolvedNode) = node.acceptSimpleVisitor(visitor);
+          var (bool hasChanged, Node resolvedNode) = visitor.inlineReferences(node);
           runLoop |= hasChanged;
 
           fragments[name] = (type, resolvedNode);
@@ -186,10 +186,10 @@ final class ParserGenerator {
     /// We simplify the rules to prepare for codegen.
     if (SimplifyVisitor() case SimplifyVisitor visitor) {
       for (var (String name, (String? type, Node node)) in rules.pairs) {
-        rules[name] = (type, node.acceptSimplifierVisitor(visitor, 0));
+        rules[name] = (type, visitor.simplify(node));
       }
       for (var (String name, (String? type, Node node)) in fragments.pairs) {
-        fragments[name] = (type, node.acceptSimplifierVisitor(visitor, 0));
+        fragments[name] = (type, visitor.simplify(node));
       }
 
       /// Since the simplifier visitor can add new fragments, we need to add them.
@@ -219,10 +219,10 @@ final class ParserGenerator {
     /// We rename the references.
     if (RenameDeclarationVisitor(redirects) case RenameDeclarationVisitor visitor) {
       for (var (String name, (String? type, Node node)) in rules.pairs) {
-        rules[name] = (type, node.acceptSimpleVisitor(visitor));
+        rules[name] = (type, visitor.renameDeclarations(node));
       }
       for (var (String name, (String? type, Node node)) in fragments.pairs) {
-        fragments[name] = (type, node.acceptSimpleVisitor(visitor));
+        fragments[name] = (type, visitor.renameDeclarations(node));
       }
     }
   }

@@ -6,6 +6,8 @@ import "package:parser_peg/src/visitor/node_visitor.dart";
 class CanInlineVisitor implements SimpleNodeVisitor<bool> {
   CanInlineVisitor(this.rules, this.fragments, this.inline);
 
+  bool canBeInlined(Node node) => node.acceptSimpleVisitor(this);
+
   final Expando<bool> _cache = Expando<bool>();
   final Map<String, (String?, Node)> rules;
   final Map<String, (String?, Node)> fragments;
