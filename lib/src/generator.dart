@@ -138,17 +138,26 @@ final class ParserGenerator {
       }
     }
 
+    /// Simple guard against fully inline declarations.
+    if (rules.isEmpty && fragments.isEmpty) {
+      if (inline.isEmpty) {
+        throw Exception("There are no declarations!");
+      }
+
+      /// Since there is no rule / fragment, we can add a fake rule.
+      var (String key, (String? type, Node _)) = inline.pairs.first;
+
+      fragments["_"] = (type, FragmentNode(key));
+    }
+
     /// We determine the inline-declared rules that can *actually* be inlined.
     ///   We shouldn't throw an error, because it may just be that a rule is
     ///   declared as inline, but it is not actually inline-able, like in a namespace.
     if (CanInlineVisitor(rules, fragments, inline) case CanInlineVisitor visitor) {
       for (var (String name, (String? type, Node node)) in inline.pairs.toList()) {
         if (!node.acceptSimpleVisitor(visitor)) {
-          stdout.writeln("Cannot inline '$name', promoting to fragment.");
           inline.remove(name);
           fragments[name] = (type, node);
-        } else {
-          stdout.writeln("Can inline '$name'.");
         }
       }
     }
