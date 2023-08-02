@@ -3,7 +3,7 @@ import "package:parser_peg/src/visitor/node_visitor.dart";
 
 class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
   Node createFragment(Node node) {
-    String name = "fragment${fragmentId++}";
+    String name = "fragment${(fragmentId++).toRadixString(36)}";
     addedFragments[name] = (null, node);
 
     return FragmentNode(name);
@@ -47,7 +47,7 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
   @override
   Node visitSequenceNode(SequenceNode node, int depth) {
     if (depth > 0) {
-      Node generated = createFragment(
+      return createFragment(
         SequenceNode(
           <Node>[
             for (Node child in node.children) //
@@ -56,18 +56,14 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
           choose: node.choose,
         ),
       );
-
-      return generated;
     } else {
-      Node generated = SequenceNode(
+      return SequenceNode(
         <Node>[
           for (Node child in node.children) //
             child.acceptSimplifierVisitor(this, depth + 1),
         ],
         choose: node.choose,
       );
-
-      return generated;
     }
   }
 
@@ -76,17 +72,13 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
     List<StringLiteralNode> stringNodes = node.children.whereType<StringLiteralNode>().toList();
     if (stringNodes.length < 2) {
       if (depth > 0) {
-        Node generated = createFragment(
+        return createFragment(
           ChoiceNode(<Node>[for (Node child in node.children) child.acceptSimplifierVisitor(this, 0)]),
         );
-
-        return generated;
       } else {
-        Node generated = ChoiceNode(
+        return ChoiceNode(
           <Node>[for (Node child in node.children) child.acceptSimplifierVisitor(this, depth)],
         );
-
-        return generated;
       }
     } else {
       List<String> strings = stringNodes //
@@ -106,48 +98,39 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
 
   @override
   Node visitCountedNode(CountedNode node, int depth) {
-    Node generated = CountedNode(
+    return CountedNode(
       node.min,
       node.max,
       node.child.acceptSimplifierVisitor(this, depth + 1),
     );
-    return generated;
   }
 
   @override
   Node visitPlusSeparatedNode(PlusSeparatedNode node, int depth) {
-    Node generated = PlusSeparatedNode(
+    return PlusSeparatedNode(
       node.separator.acceptSimplifierVisitor(this, depth + 1),
       node.child.acceptSimplifierVisitor(this, depth + 1),
       isTrailingAllowed: node.isTrailingAllowed,
     );
-
-    return generated;
   }
 
   @override
   Node visitStarSeparatedNode(StarSeparatedNode node, int depth) {
-    Node generated = StarSeparatedNode(
+    return StarSeparatedNode(
       node.separator.acceptSimplifierVisitor(this, depth + 1),
       node.child.acceptSimplifierVisitor(this, depth + 1),
       isTrailingAllowed: node.isTrailingAllowed,
     );
-
-    return generated;
   }
 
   @override
   Node visitPlusNode(PlusNode node, int depth) {
-    Node generated = PlusNode(node.child.acceptSimplifierVisitor(this, depth + 1));
-
-    return generated;
+    return PlusNode(node.child.acceptSimplifierVisitor(this, depth + 1));
   }
 
   @override
   Node visitStarNode(StarNode node, int depth) {
-    Node generated = StarNode(node.child.acceptSimplifierVisitor(this, depth + 1));
-
-    return generated;
+    return StarNode(node.child.acceptSimplifierVisitor(this, depth + 1));
   }
 
   @override
@@ -182,44 +165,40 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
 
   @override
   Node visitActionNode(ActionNode node, int depth) {
-    if (depth <= 0) {
+    if (depth > 0) {
+      return createFragment(
+        ActionNode(
+          node.child.acceptSimplifierVisitor(this, 0),
+          node.action,
+          areIndicesProvided: node.areIndicesProvided,
+        ),
+      );
+    } else {
       return ActionNode(
         node.child.acceptSimplifierVisitor(this, depth),
         node.action,
         areIndicesProvided: node.areIndicesProvided,
       );
     }
-
-    Node generated = createFragment(
-      ActionNode(
-        node.child.acceptSimplifierVisitor(this, 0),
-        node.action,
-        areIndicesProvided: node.areIndicesProvided,
-      ),
-    );
-
-    return generated;
   }
 
   @override
   Node visitInlineActionNode(InlineActionNode node, int depth) {
-    if (depth <= 0) {
+    if (depth > 0) {
+      return createFragment(
+        InlineActionNode(
+          node.child.acceptSimplifierVisitor(this, 0),
+          node.action,
+          areIndicesProvided: node.areIndicesProvided,
+        ),
+      );
+    } else {
       return InlineActionNode(
         node.child.acceptSimplifierVisitor(this, depth),
         node.action,
         areIndicesProvided: node.areIndicesProvided,
       );
     }
-
-    Node generated = createFragment(
-      InlineActionNode(
-        node.child.acceptSimplifierVisitor(this, 0),
-        node.action,
-        areIndicesProvided: node.areIndicesProvided,
-      ),
-    );
-
-    return generated;
   }
 
   @override
