@@ -245,7 +245,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// fragment0
   late final f0 = () {
     if (this.pos case var mark) {
-      if (this.matchPattern("\"\"\"") case (var $0 && null)) {
+      if (this.matchPattern(_string.$1) case (var $0 && null)) {
         this.pos = mark;
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
@@ -260,7 +260,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// fragment1
   late final f1 = () {
     if (this.pos case var mark) {
-      if (this.matchPattern("'''") case (var $0 && null)) {
+      if (this.matchPattern(_string.$2) case (var $0 && null)) {
         this.pos = mark;
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
@@ -275,7 +275,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// fragment2
   late final f2 = () {
     if (this.pos case var mark) {
-      if (this.matchPattern("\"") case (var $0 && null)) {
+      if (this.matchPattern(_string.$3) case (var $0 && null)) {
         this.pos = mark;
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
@@ -290,7 +290,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// fragment3
   late final f3 = () {
     if (this.pos case var mark) {
-      if (this.matchPattern("'") case (var $0 && null)) {
+      if (this.matchPattern(_string.$4) case (var $0 && null)) {
         this.pos = mark;
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
@@ -305,7 +305,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// fragment4
   late final f4 = () {
     if (this.pos case var mark) {
-      if (this.matchPattern("\\") case var $0?) {
+      if (this.matchPattern(_string.$5) case var $0?) {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
@@ -315,7 +315,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.pos case var mark) {
-        if (this.matchPattern("\$") case var $0?) {
+        if (this.matchPattern(_string.$6) case var $0?) {
           this.pos = mark;
           if (this.apply(this.r3) case var $1?) {
             return ($0, $1);
@@ -324,7 +324,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.pos case var mark) {
-        if (this.matchPattern("\"\"\"") case (var $0 && null)) {
+        if (this.matchPattern(_string.$1) case (var $0 && null)) {
           this.pos = mark;
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
@@ -340,7 +340,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// fragment5
   late final f5 = () {
     if (this.pos case var mark) {
-      if (this.matchPattern("\\") case var $0?) {
+      if (this.matchPattern(_string.$5) case var $0?) {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
@@ -350,7 +350,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.pos case var mark) {
-        if (this.matchPattern("\$") case var $0?) {
+        if (this.matchPattern(_string.$6) case var $0?) {
           this.pos = mark;
           if (this.apply(this.r3) case var $1?) {
             return ($0, $1);
@@ -359,7 +359,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.pos case var mark) {
-        if (this.matchPattern("'''") case (var $0 && null)) {
+        if (this.matchPattern(_string.$2) case (var $0 && null)) {
           this.pos = mark;
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
@@ -375,7 +375,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// fragment6
   late final f6 = () {
     if (this.pos case var mark) {
-      if (this.matchPattern("\\") case var $0?) {
+      if (this.matchPattern(_string.$5) case var $0?) {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
@@ -385,7 +385,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.pos case var mark) {
-        if (this.matchPattern("\$") case var $0?) {
+        if (this.matchPattern(_string.$6) case var $0?) {
           this.pos = mark;
           if (this.apply(this.r3) case var $1?) {
             return ($0, $1);
@@ -394,7 +394,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.pos case var mark) {
-        if (this.matchPattern("\"") case (var $0 && null)) {
+        if (this.matchPattern(_string.$3) case (var $0 && null)) {
           this.pos = mark;
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
@@ -410,7 +410,7 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// fragment7
   late final f7 = () {
     if (this.pos case var mark) {
-      if (this.matchPattern("\\") case var $0?) {
+      if (this.matchPattern(_string.$5) case var $0?) {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
@@ -420,7 +420,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.pos case var mark) {
-        if (this.matchPattern("\$") case var $0?) {
+        if (this.matchPattern(_string.$6) case var $0?) {
           this.pos = mark;
           if (this.apply(this.r3) case var $1?) {
             return ($0, $1);
@@ -429,7 +429,7 @@ final class PlaygroundParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.pos case var mark) {
-        if (this.matchPattern("'") case (var $0 && null)) {
+        if (this.matchPattern(_string.$4) case (var $0 && null)) {
           this.pos = mark;
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
@@ -445,19 +445,19 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// fragment8
   late final f8 = () {
     if (this.pos case var mark) {
-      if (this.matchPattern("{") case var $0?) {
+      if (this.matchPattern(_string.$8) case var $0?) {
         if (this.apply(this.r4)! case var $1) {
-          if (this.matchPattern("}") case var $2?) {
+          if (this.matchPattern(_string.$7) case var $2?) {
             return $1;
           }
         }
       }
       this.pos = mark;
       if (this.pos case var mark) {
-        if (this.matchPattern("{") case (var $0 && null)) {
+        if (this.matchPattern(_string.$8) case (var $0 && null)) {
           this.pos = mark;
           if (this.pos case var mark) {
-            if (this.matchPattern("}") case (var $1 && null)) {
+            if (this.matchPattern(_string.$7) case (var $1 && null)) {
               this.pos = mark;
               if (pos < buffer.length) {
                 if (buffer[pos] case var $2) {
@@ -489,8 +489,8 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// global::dart::literal::string::main
   Object? r2() {
     if (this.pos case var mark) {
-      if (this.matchPattern("r") case var $0?) {
-        if (this.matchPattern("\"\"\"") case var $1?) {
+      if (this.matchPattern(_string.$9) case var $0?) {
+        if (this.matchPattern(_string.$1) case var $1?) {
           if (this.pos case var mark) {
             if (this.f0() case var _0) {
               if ([if (_0 case var _0?) _0] case (var $2 && var body && var _loop2)) {
@@ -508,7 +508,7 @@ final class PlaygroundParser extends _PegParser<Object> {
                 } else {
                   this.pos = mark;
                 }
-                if (this.matchPattern("\"\"\"") case var $3?) {
+                if (this.matchPattern(_string.$1) case var $3?) {
                   return ($0, $1, $2, $3);
                 }
               }
@@ -517,8 +517,8 @@ final class PlaygroundParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.matchPattern("r") case var $0?) {
-        if (this.matchPattern("'''") case var $1?) {
+      if (this.matchPattern(_string.$9) case var $0?) {
+        if (this.matchPattern(_string.$2) case var $1?) {
           if (this.pos case var mark) {
             if (this.f1() case var _2) {
               if ([if (_2 case var _2?) _2] case (var $2 && var body && var _loop4)) {
@@ -536,7 +536,7 @@ final class PlaygroundParser extends _PegParser<Object> {
                 } else {
                   this.pos = mark;
                 }
-                if (this.matchPattern("'''") case var $3?) {
+                if (this.matchPattern(_string.$2) case var $3?) {
                   return ($0, $1, $2, $3);
                 }
               }
@@ -545,8 +545,8 @@ final class PlaygroundParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.matchPattern("r") case var $0?) {
-        if (this.matchPattern("\"") case var $1?) {
+      if (this.matchPattern(_string.$9) case var $0?) {
+        if (this.matchPattern(_string.$3) case var $1?) {
           if (this.pos case var mark) {
             if (this.f2() case var _4) {
               if ([if (_4 case var _4?) _4] case (var $2 && var body && var _loop6)) {
@@ -564,7 +564,7 @@ final class PlaygroundParser extends _PegParser<Object> {
                 } else {
                   this.pos = mark;
                 }
-                if (this.matchPattern("\"") case var $3?) {
+                if (this.matchPattern(_string.$3) case var $3?) {
                   return ($0, $1, $2, $3);
                 }
               }
@@ -573,8 +573,8 @@ final class PlaygroundParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.matchPattern("r") case var $0?) {
-        if (this.matchPattern("'") case var $1?) {
+      if (this.matchPattern(_string.$9) case var $0?) {
+        if (this.matchPattern(_string.$4) case var $1?) {
           if (this.pos case var mark) {
             if (this.f3() case var _6) {
               if ([if (_6 case var _6?) _6] case (var $2 && var body && var _loop8)) {
@@ -592,7 +592,7 @@ final class PlaygroundParser extends _PegParser<Object> {
                 } else {
                   this.pos = mark;
                 }
-                if (this.matchPattern("'") case var $3?) {
+                if (this.matchPattern(_string.$4) case var $3?) {
                   return ($0, $1, $2, $3);
                 }
               }
@@ -601,7 +601,7 @@ final class PlaygroundParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.matchPattern("\"\"\"") case var $0?) {
+      if (this.matchPattern(_string.$1) case var $0?) {
         if (this.pos case var mark) {
           if (this.f4() case var _8) {
             if ([if (_8 case var _8?) _8] case (var $1 && var body && var _loop10)) {
@@ -619,7 +619,7 @@ final class PlaygroundParser extends _PegParser<Object> {
               } else {
                 this.pos = mark;
               }
-              if (this.matchPattern("\"\"\"") case var $2?) {
+              if (this.matchPattern(_string.$1) case var $2?) {
                 return ($0, $1, $2);
               }
             }
@@ -627,7 +627,7 @@ final class PlaygroundParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.matchPattern("'''") case var $0?) {
+      if (this.matchPattern(_string.$2) case var $0?) {
         if (this.pos case var mark) {
           if (this.f5() case var _10) {
             if ([if (_10 case var _10?) _10] case (var $1 && var body && var _loop12)) {
@@ -645,7 +645,7 @@ final class PlaygroundParser extends _PegParser<Object> {
               } else {
                 this.pos = mark;
               }
-              if (this.matchPattern("'''") case var $2?) {
+              if (this.matchPattern(_string.$2) case var $2?) {
                 return ($0, $1, $2);
               }
             }
@@ -653,7 +653,7 @@ final class PlaygroundParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.matchPattern("\"") case var $0?) {
+      if (this.matchPattern(_string.$3) case var $0?) {
         if (this.pos case var mark) {
           if (this.f6() case var _12) {
             if ([if (_12 case var _12?) _12] case (var $1 && var body && var _loop14)) {
@@ -671,7 +671,7 @@ final class PlaygroundParser extends _PegParser<Object> {
               } else {
                 this.pos = mark;
               }
-              if (this.matchPattern("\"") case var $2?) {
+              if (this.matchPattern(_string.$3) case var $2?) {
                 return ($0, $1, $2);
               }
             }
@@ -679,7 +679,7 @@ final class PlaygroundParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.matchPattern("'") case var $0?) {
+      if (this.matchPattern(_string.$4) case var $0?) {
         if (this.pos case var mark) {
           if (this.f7() case var _14) {
             if ([if (_14 case var _14?) _14] case (var $1 && var body && var _loop16)) {
@@ -697,7 +697,7 @@ final class PlaygroundParser extends _PegParser<Object> {
               } else {
                 this.pos = mark;
               }
-              if (this.matchPattern("'") case var $2?) {
+              if (this.matchPattern(_string.$4) case var $2?) {
                 return ($0, $1, $2);
               }
             }
@@ -710,17 +710,17 @@ final class PlaygroundParser extends _PegParser<Object> {
   /// global::dart::literal::string::interpolation
   Object? r3() {
     if (this.pos case var mark) {
-      if (this.matchPattern("\$") case var $0?) {
-        if (this.matchPattern("{") case var $1?) {
+      if (this.matchPattern(_string.$6) case var $0?) {
+        if (this.matchPattern(_string.$8) case var $1?) {
           if (this.apply(this.r4)! case var $2) {
-            if (this.matchPattern("}") case var $3?) {
+            if (this.matchPattern(_string.$7) case var $3?) {
               return ($0, $1, $2, $3);
             }
           }
         }
       }
       this.pos = mark;
-      if (this.matchPattern("\$") case var $0?) {
+      if (this.matchPattern(_string.$6) case var $0?) {
         if (this.apply(this.r5) case var $1?) {
           return ($0, $1);
         }
@@ -755,14 +755,14 @@ final class PlaygroundParser extends _PegParser<Object> {
 
   /// global::dart::literal::identifier
   String? r5() {
-    if (this.matchRange({ (97, 122), (65, 90), (95, 95), (36, 36) }) case var $0?) {
+    if (this.matchRange(_range.$2) case var $0?) {
       if (this.pos case var mark) {
-        if (this.matchRange({ (97, 122), (65, 90), (48, 57), (95, 95), (36, 36) }) case var _0) {
+        if (this.matchRange(_range.$1) case var _0) {
           if ([if (_0 case var _0?) _0] case (var $1 && var _loop2)) {
             if (_loop2.isNotEmpty) {
               for (;;) {
                 if (this.pos case var mark) {
-                  if (this.matchRange({ (97, 122), (65, 90), (48, 57), (95, 95), (36, 36) }) case var _0?) {
+                  if (this.matchRange(_range.$1) case var _0?) {
                     _loop2.add(_0);
                     continue;
                   }
@@ -844,5 +844,20 @@ final class PlaygroundParser extends _PegParser<Object> {
     RegExp("[a-zA-Z]"),
     RegExp("[a-z]"),
     RegExp("[A-Z]"),
+  );
+  static const _string = (
+    "\"\"\"",
+    "'''",
+    "\"",
+    "'",
+    "\\",
+    "\$",
+    "}",
+    "{",
+    "r",
+  );
+  static const _range = (
+    {(97, 122), (65, 90), (48, 57), (95, 95), (36, 36)},
+    {(97, 122), (65, 90), (95, 95), (36, 36)},
   );
 }

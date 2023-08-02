@@ -1,5 +1,6 @@
 import "dart:convert";
 
+import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
@@ -16,13 +17,21 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
 
   int ruleId = 0;
 
-  final Map<String, int> regexpIds = Map<String, int>.identity();
+  final Map<String, int> regexpIds = <String, int>{};
   final List<String> regexps = <String>[];
   int regexpId = 0;
 
-  final Map<TriePatternNode, int> trieIds = Map<TriePatternNode, int>.identity();
+  final Map<String, int> trieIds = <String, int>{};
   final List<List<String>> tries = <List<String>>[];
   int trieId = 0;
+
+  final Map<String, int> stringIds = <String, int>{};
+  final List<String> strings = <String>[];
+  int stringId = 0;
+
+  final Map<String, int> rangeIds = <String, int>{};
+  final List<Set<(int, int)>> ranges = <Set<(int, int)>>[];
+  int rangeId = 0;
 
   @override
   String visitEpsilonNode(
@@ -52,9 +61,10 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required String? inner,
     required bool reported,
   }) {
-    int id = switch (trieIds[node]) {
+    String key = jsonEncode(node.options);
+    int id = switch (trieIds[key]) {
       int id => id,
-      null => (tries..add(node.options), trieIds[node] = ++trieId).$2,
+      null => (tries..add(node.options), trieIds[key] = ++trieId).$2,
     };
 
     List<String> buffer = <String>[
@@ -77,8 +87,14 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required String? inner,
     required bool reported,
   }) {
+    String key = node.literal;
+    int id = switch (stringIds[key]) {
+      int id => id,
+      null => (strings..add(node.literal), stringIds[key] = ++stringId).$2,
+    };
+
     List<String> buffer = <String>[
-      "if (this.matchPattern(${encode(node.value)}) case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
+      "if (this.matchPattern(_string.\$$id) case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
       if (inner != null) //
         inner.indent()
       else
@@ -96,8 +112,20 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required String? inner,
     required bool reported,
   }) {
+    String key = node.ranges //
+        .map(
+          ((int, int) v) => switch (v) {
+            (int l, int r) when l == r => "$l",
+            (int l, int r) => "$l-$r",
+          },
+        )
+        .join(",");
+    int id = switch (rangeIds[key]) {
+      int id => id,
+      null => (ranges..add(node.ranges), rangeIds[key] = ++rangeId).$2,
+    };
     List<String> buffer = <String>[
-      "if (this.matchRange({ ${node.ranges.join(", ")} }) case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
+      "if (this.matchRange(_range.\$$id) case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
       if (inner != null) //
         inner.indent()
       else
@@ -116,10 +144,10 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required String? inner,
     required bool reported,
   }) {
-    String pattern = node.value.pattern;
-    int id = switch (regexpIds[pattern]) {
+    String key = node.value.pattern;
+    int id = switch (regexpIds[key]) {
       int id => id,
-      null => (regexps..add(pattern), regexpIds[pattern] = ++regexpId).$2,
+      null => (regexps..add(key), regexpIds[key] = ++regexpId).$2,
     };
     List<String> buffer = <String>[
       "if (matchPattern(_regexp.\$$id) case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
@@ -168,8 +196,8 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
   }) {
     List<String> names = <String>[for (int i = 0; i < node.children.length; ++i) "\$$i"];
     String lowestInner = inner ?? //
-        node.choose?.map((int v) => "return \$$v;") ??
-        names.join(", ").map((String v) => "return ($v);");
+        node.choose?.apply((int v) => "return \$$v;") ??
+        names.join(", ").apply((String v) => "return ($v);");
 
     String aliased = switch (withNames) {
       null => lowestInner,
@@ -865,25 +893,4 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     ];
     return buffer.join("\n");
   }
-}
-
-extension on Set<String>? {
-  String get singleName => this == null ? r"$" : this!.first;
-  String get varNames => switch (this) {
-        null => r"var $",
-        Set<String?>(length: 1, single: "null") => "null",
-        Set<String?>(length: 1, single: "!null") => "!= null",
-        Set<String?>(length: 1, single: String name) => "var $name",
-        Set<String?> set =>
-          "(${set.map((String? v) => v == "!null" ? "!= null" : v == "null" ? v : "var $v").join(" && ")})",
-      };
-}
-
-extension on String {
-  String indent([int count = 1]) =>
-      trimRight().split("\n").map((String v) => v.isEmpty ? v : "${"  " * count}$v").join("\n");
-}
-
-extension<T> on T {
-  O map<O extends Object>(O Function(T) fn) => fn(this);
 }

@@ -334,6 +334,14 @@ final class ParserGenerator {
 
     fullBuffer.writeln();
 
+    if (compilerVisitor.regexps.isNotEmpty) {
+      fullBuffer.writeln("static final _regexp = (".indent());
+      for (String regExp in compilerVisitor.regexps) {
+        fullBuffer.writeln("RegExp(${encode(regExp)}),".indent(2));
+      }
+      fullBuffer.writeln(");".indent());
+    }
+
     if (compilerVisitor.tries.isNotEmpty) {
       fullBuffer.writeln("static final _trie = (".indent());
       for (List<String> options in compilerVisitor.tries) {
@@ -342,10 +350,27 @@ final class ParserGenerator {
       fullBuffer.writeln(");".indent());
     }
 
-    if (compilerVisitor.regexps.isNotEmpty) {
-      fullBuffer.writeln("static final _regexp = (".indent());
-      for (String regExp in compilerVisitor.regexps) {
-        fullBuffer.writeln("RegExp(${encode(regExp)}),".indent(2));
+    if (compilerVisitor.strings.isNotEmpty) {
+      fullBuffer.writeln("static const _string = (".indent());
+      for (String string in compilerVisitor.strings) {
+        fullBuffer.writeln("${encode(string)},".indent(2));
+      }
+      fullBuffer.writeln(");".indent());
+    }
+
+    if (compilerVisitor.ranges.isNotEmpty) {
+      fullBuffer.writeln("static const _range = (".indent());
+      for (Set<(int, int)> ranges in compilerVisitor.ranges) {
+        fullBuffer.write("    ");
+        fullBuffer.write("{");
+        for (var (int i, (int low, int high)) in ranges.indexed) {
+          fullBuffer.write("($low, $high)");
+
+          if (i < ranges.length - 1) {
+            fullBuffer.write(", ");
+          }
+        }
+        fullBuffer.writeln("},");
       }
       fullBuffer.writeln(");".indent());
     }
@@ -395,7 +420,7 @@ final class ParserGenerator {
       RegExpNode() => false,
       RegExpEscapeNode() => false,
       CountedNode() => node.min <= 0 || isNullable(node.child),
-      StringLiteralNode() => node.value.isEmpty,
+      StringLiteralNode() => node.literal.isEmpty,
       SequenceNode() => (_isNullable[node] = true, node.children.every(isNullable)).$2,
       ChoiceNode() => (_isNullable[node] = false, node.children.any(isNullable)).$2,
       PlusSeparatedNode() => isNullable(node.child) && isNullable(node.separator),
