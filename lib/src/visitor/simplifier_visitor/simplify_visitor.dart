@@ -50,7 +50,8 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
       Node generated = createFragment(
         SequenceNode(
           <Node>[
-            for (Node child in node.children) child.acceptSimplifierVisitor(this, 0),
+            for (Node child in node.children) //
+              child.acceptSimplifierVisitor(this, 1),
           ],
           choose: node.choose,
         ),
@@ -59,7 +60,10 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
       return generated;
     } else {
       Node generated = SequenceNode(
-        <Node>[for (Node child in node.children) child.acceptSimplifierVisitor(this, depth + 1)],
+        <Node>[
+          for (Node child in node.children) //
+            child.acceptSimplifierVisitor(this, depth + 1),
+        ],
         choose: node.choose,
       );
 

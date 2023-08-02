@@ -61,6 +61,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitTriePatternNode(
     TriePatternNode node, {
@@ -68,6 +69,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitStringLiteralNode(
     StringLiteralNode node, {
@@ -75,6 +77,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitRangeNode(
     RangeNode node, {
@@ -82,6 +85,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitRegExpNode(
     RegExpNode node, {
@@ -89,6 +93,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitRegExpEscapeNode(
     RegExpEscapeNode node, {
@@ -96,6 +101,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitSequenceNode(
     SequenceNode node, {
@@ -103,6 +109,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitChoiceNode(
     ChoiceNode node, {
@@ -110,6 +117,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitCountedNode(
     CountedNode node, {
@@ -117,6 +125,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitPlusSeparatedNode(
     PlusSeparatedNode node, {
@@ -124,6 +133,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitStarSeparatedNode(
     StarSeparatedNode node, {
@@ -131,6 +141,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitPlusNode(
     PlusNode node, {
@@ -138,6 +149,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitStarNode(
     StarNode node, {
@@ -145,6 +157,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitAndPredicateNode(
     AndPredicateNode node, {
@@ -152,6 +165,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitNotPredicateNode(
     NotPredicateNode node, {
@@ -159,6 +173,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitOptionalNode(
     OptionalNode node, {
@@ -166,6 +181,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitReferenceNode(
     ReferenceNode node, {
@@ -173,6 +189,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitFragmentNode(
     FragmentNode node, {
@@ -180,6 +197,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitNamedNode(
     NamedNode node, {
@@ -187,6 +205,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitActionNode(
     ActionNode node, {
@@ -194,6 +213,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitInlineActionNode(
     InlineActionNode node, {
@@ -201,6 +221,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitStartOfInputNode(
     StartOfInputNode node, {
@@ -208,6 +229,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitEndOfInputNode(
     EndOfInputNode node, {
@@ -215,6 +237,7 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
   O visitAnyCharacterNode(
     AnyCharacterNode node, {
@@ -222,5 +245,6 @@ abstract class CompilerNodeVisitor<O, I> {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
 }

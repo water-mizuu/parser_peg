@@ -2,11 +2,12 @@ import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
 class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
-  const ResolveReferencesVisitor(this.prefixes, this.rules, this.fragments);
+  const ResolveReferencesVisitor(this.prefixes, this.rules, this.fragments, this.inline);
 
   final List<String> prefixes;
   final Map<String, (String?, Node)> rules;
   final Map<String, (String?, Node)> fragments;
+  final Map<String, (String?, Node)> inline;
 
   @override
   Node visitEpsilonNode(EpsilonNode node) {
@@ -112,6 +113,8 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
         name,
       ].join("::");
       switch (potentialName) {
+        case String name when inline.containsKey(name):
+          return inline[name]!.$2;
         case String name when rules.containsKey(name):
           return ReferenceNode(name);
         case String name when fragments.containsKey(name):

@@ -4,6 +4,8 @@ import "dart:io";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/parser/parser.dart";
 
+import "../examples/math/math.dart";
+
 String readFile(String path) => File(path).readAsStringSync().replaceAll("\r", "").trim();
 
 void main(List<String> arguments) {
@@ -47,5 +49,9 @@ void main(List<String> arguments) {
           stdout.writeln(grammar.reportFailures());
       }
     }
+  }
+
+  if (MathParser() case MathParser parser) {
+    stdout.writeln(parser.parse("1 + 2 * 3"));
   }
 }

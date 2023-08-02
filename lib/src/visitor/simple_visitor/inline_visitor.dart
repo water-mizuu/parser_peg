@@ -1,0 +1,200 @@
+import "package:parser_peg/src/node.dart";
+import "package:parser_peg/src/visitor/node_visitor.dart";
+
+class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
+  const InlineVisitor(this.inline);
+
+  final Map<String, (String?, Node)> inline;
+
+  @override
+  (bool, Node) visitEpsilonNode(EpsilonNode node) {
+    return (false, node);
+  }
+
+  @override
+  (bool, Node) visitTriePatternNode(TriePatternNode node) {
+    return (false, node);
+  }
+
+  @override
+  (bool, Node) visitStringLiteralNode(StringLiteralNode node) {
+    return (false, node);
+  }
+
+  @override
+  (bool, Node) visitRangeNode(RangeNode node) {
+    return (false, node);
+  }
+
+  @override
+  (bool, Node) visitRegExpNode(RegExpNode node) {
+    return (false, node);
+  }
+
+  @override
+  (bool, Node) visitRegExpEscapeNode(RegExpEscapeNode node) {
+    return (false, node);
+  }
+
+  @override
+  (bool, Node) visitSequenceNode(SequenceNode node) {
+    bool hasChanged = false;
+
+    return (
+      hasChanged,
+      SequenceNode(
+        <Node>[
+          for (Node sub in node.children)
+            if (sub.acceptSimpleVisitor(this) case (bool changed, Node node)) //
+              (hasChanged |= changed, node).$2,
+        ],
+        choose: node.choose,
+      )
+    );
+  }
+
+  @override
+  (bool, Node) visitChoiceNode(ChoiceNode node) {
+    bool hasChanged = false;
+
+    return (
+      hasChanged,
+      ChoiceNode(
+        <Node>[
+          for (Node sub in node.children)
+            if (sub.acceptSimpleVisitor(this) case (bool changed, Node node)) //
+              (hasChanged |= changed, node).$2,
+        ],
+      )
+    );
+  }
+
+  @override
+  (bool, Node) visitCountedNode(CountedNode node) {
+    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+
+    return (changed, CountedNode(node.min, node.max, child));
+  }
+
+  @override
+  (bool, Node) visitPlusSeparatedNode(PlusSeparatedNode node) {
+    var (bool changed0, Node separator) = node.separator.acceptSimpleVisitor(this);
+    var (bool changed1, Node child) = node.child.acceptSimpleVisitor(this);
+
+    return (
+      changed0 || changed1,
+      PlusSeparatedNode(separator, child, isTrailingAllowed: node.isTrailingAllowed),
+    );
+  }
+
+  @override
+  (bool, Node) visitStarSeparatedNode(StarSeparatedNode node) {
+    var (bool changed0, Node separator) = node.separator.acceptSimpleVisitor(this);
+    var (bool changed1, Node child) = node.child.acceptSimpleVisitor(this);
+
+    return (
+      changed0 || changed1,
+      StarSeparatedNode(separator, child, isTrailingAllowed: node.isTrailingAllowed),
+    );
+  }
+
+  @override
+  (bool, Node) visitPlusNode(PlusNode node) {
+    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+
+    return (changed, PlusNode(child));
+  }
+
+  @override
+  (bool, Node) visitStarNode(StarNode node) {
+    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+
+    return (changed, StarNode(child));
+  }
+
+  @override
+  (bool, Node) visitAndPredicateNode(AndPredicateNode node) {
+    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+
+    return (changed, AndPredicateNode(child));
+  }
+
+  @override
+  (bool, Node) visitNotPredicateNode(NotPredicateNode node) {
+    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+
+    return (changed, NotPredicateNode(child));
+  }
+
+  @override
+  (bool, Node) visitOptionalNode(OptionalNode node) {
+    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+
+    return (changed, OptionalNode(child));
+  }
+
+  (bool, Node)? resolveReference(String name) {
+    if (inline.containsKey(name)) {
+      return (true, inline[name]!.$2);
+    }
+    return null;
+  }
+
+  @override
+  (bool, Node) visitReferenceNode(ReferenceNode node) {
+    return resolveReference(node.ruleName) ?? (false, node);
+  }
+
+  @override
+  (bool, Node) visitFragmentNode(FragmentNode node) {
+    return resolveReference(node.fragmentName) ?? (false, node);
+  }
+
+  @override
+  (bool, Node) visitNamedNode(NamedNode node) {
+    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+
+    return (changed, NamedNode(node.name, child));
+  }
+
+  @override
+  (bool, Node) visitActionNode(ActionNode node) {
+    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+    return (
+      changed,
+      ActionNode(
+        child,
+        node.action,
+        areIndicesProvided: node.areIndicesProvided,
+      ),
+    );
+  }
+
+  @override
+  (bool, Node) visitInlineActionNode(InlineActionNode node) {
+    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+    return (
+      changed,
+      InlineActionNode(
+        child,
+        node.action,
+        areIndicesProvided: node.areIndicesProvided,
+      ),
+    );
+  }
+
+  @override
+  (bool, Node) visitStartOfInputNode(StartOfInputNode node) {
+    return (false, node);
+  }
+
+  @override
+  (bool, Node) visitEndOfInputNode(EndOfInputNode node) {
+    return (false, node);
+  }
+
+  @override
+  (bool, Node) visitAnyCharacterNode(AnyCharacterNode node) {
+    return (false, node);
+  }
+}

@@ -27,9 +27,10 @@ num factor =
 
 num primary = "(" _ expr _ ")" @2 | number;
 
-num number =
-  | \d+ "." \d+ { double.parse(buffer.substring(from, to)) }
-  | \d+         { int.parse(buffer.substring(from, to)) };
+@inline {
+  num number =
+    | \d+ "." \d+ { double.parse(buffer.substring(from, to)) }
+    | \d+         { int.parse(buffer.substring(from, to)) };
 
-
-_ = (r"\s")* { "" };
+  _ = /\s*/ { "" };
+}

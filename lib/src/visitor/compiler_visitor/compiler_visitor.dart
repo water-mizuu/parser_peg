@@ -12,7 +12,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required this.fixName,
   });
 
-  bool Function(Node) isNullable;
+  bool Function(Node, String) isNullable;
   String Function(String) fixName;
 
   int ruleId = 0;
@@ -40,6 +40,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     List<String> buffer = <String>[
       "if ('' case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
@@ -60,6 +61,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     String key = jsonEncode(node.options);
     int id = switch (trieIds[key]) {
@@ -86,6 +88,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     String key = node.literal;
     int id = switch (stringIds[key]) {
@@ -111,6 +114,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     String key = node.ranges //
         .map(
@@ -143,6 +147,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     String key = node.value.pattern;
     int id = switch (regexpIds[key]) {
@@ -168,6 +173,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     String pattern = node.pattern;
     int id = switch (regexpIds[pattern]) {
@@ -193,6 +199,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     List<String> names = <String>[for (int i = 0; i < node.children.length; ++i) "\$$i"];
     String lowestInner = inner ?? //
@@ -208,15 +215,20 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     };
 
     String body = node.children.indexed.toList().reversed.fold(
-          aliased,
-          (String inner, (int, Node) pair) => pair.$2.acceptCompilerVisitor(
-            this,
-            withNames: <String>{"\$${pair.$1}"},
-            inner: inner,
-            isNullAllowed: isNullable.call(pair.$2),
-            reported: reported,
-          ),
+      aliased,
+      (String inner, (int, Node) pair) {
+        var (int index, Node node) = pair;
+
+        return node.acceptCompilerVisitor(
+          this,
+          withNames: <String>{"\$$index"},
+          inner: inner,
+          isNullAllowed: isNullable.call(node, declarationName),
+          reported: reported,
+          declarationName: declarationName,
         );
+      },
+    );
 
     return body;
   }
@@ -228,6 +240,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     StringBuffer buffer = StringBuffer();
     StringBuffer innerBuffer = StringBuffer();
@@ -242,6 +255,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
           withNames: withNames,
           inner: inner,
           reported: reported,
+          declarationName: declarationName,
         ),
       );
     }
@@ -260,6 +274,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     String variableName = "_${ruleId++}";
     String containerName = "_loop${++ruleId}";
@@ -271,8 +286,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
             this,
             withNames: <String>{variableName},
             inner: "$containerName.add($variableName);\ncontinue;",
-            isNullAllowed: isNullable(node.child),
+            isNullAllowed: isNullable(node.child, declarationName),
             reported: reported,
+            declarationName: declarationName,
           )
           .indent(3);
       StringBuffer loopBuffer = StringBuffer();
@@ -305,8 +321,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
         this,
         withNames: <String>{variableName},
         inner: loopBuffer.toString(),
-        isNullAllowed: isNullable(node.child),
+        isNullAllowed: isNullable(node.child, declarationName),
         reported: reported,
+        declarationName: declarationName,
       );
     } else {
       String loopBody = node.child
@@ -314,11 +331,12 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
             this,
             withNames: <String>{variableName},
             inner: "$containerName.add($variableName);\ncontinue;",
-            isNullAllowed: isNullable(node.child),
+            isNullAllowed: isNullable(node.child, declarationName),
             reported: reported,
+            declarationName: declarationName,
           )
           .indent(5);
-      String question = isNullable(node.child) ? "" : "?";
+      String question = isNullable(node.child, declarationName) ? "" : "?";
       StringBuffer loopBuffer = StringBuffer();
       loopBuffer.writeln("if (this.pos case var mark) {");
       loopBuffer.writeln(
@@ -351,6 +369,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
         isNullAllowed: true,
         inner: loopBuffer.toString(),
         reported: reported,
+        declarationName: declarationName,
       );
     }
   }
@@ -362,6 +381,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     String variableName = "_${ruleId++}";
     String containerName = "_loop${++ruleId}";
@@ -374,21 +394,24 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
           withNames: <String>{"null"},
           inner: "this.pos = mark;",
           reported: reported,
+          declarationName: declarationName,
         )
         .indent(2);
     String loopBody = node.separator
         .acceptCompilerVisitor(
           this,
-          isNullAllowed: isNullable(node.separator),
+          isNullAllowed: isNullable(node.separator, declarationName),
           withNames: <String>{"_"},
           inner: node.child.acceptCompilerVisitor(
             this,
             withNames: <String>{variableName},
             inner: "$containerName.add($variableName);\ncontinue;",
-            isNullAllowed: isNullable(node.child),
+            isNullAllowed: isNullable(node.child, declarationName),
             reported: reported,
+            declarationName: declarationName,
           ),
           reported: reported,
+          declarationName: declarationName,
         )
         .indent(3);
     StringBuffer loopBuffer = StringBuffer();
@@ -416,8 +439,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
       this,
       withNames: <String>{variableName},
       inner: loopBuffer.toString(),
-      isNullAllowed: isNullable(node.child),
+      isNullAllowed: isNullable(node.child, declarationName),
       reported: reported,
+      declarationName: declarationName,
     );
   }
 
@@ -428,6 +452,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     String variableName = "_${ruleId++}";
     String containerName = "_loop${++ruleId}";
@@ -441,14 +466,16 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
             this,
             withNames: <String>{variableName},
             inner: "$containerName.add($variableName);\ncontinue;",
-            isNullAllowed: isNullable(node.child),
+            isNullAllowed: isNullable(node.child, declarationName),
             reported: reported,
+            declarationName: declarationName,
           ),
-          isNullAllowed: isNullable(node.separator),
+          isNullAllowed: isNullable(node.separator, declarationName),
           reported: reported,
+          declarationName: declarationName,
         )
         .indent(5);
-    String question = isNullable(node.child) ? "" : "?";
+    String question = isNullable(node.child, declarationName) ? "" : "?";
     StringBuffer loopBuffer = StringBuffer();
     loopBuffer.writeln(
       "if ([if ($variableName case var $variableName$question) $variableName] "
@@ -462,7 +489,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     loopBuffer.writeln("        break;");
     loopBuffer.writeln("      }");
     loopBuffer.writeln("    }");
-    if (!isNullable(node) && node.isTrailingAllowed) {
+    if (!isNullable(node, declarationName) && node.isTrailingAllowed) {
       loopBuffer.writeln("    if (this.pos case var mark) {");
       loopBuffer.writeln(
         node.separator
@@ -472,6 +499,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
               withNames: <String>{"null"},
               inner: "this.pos = mark;",
               reported: reported,
+              declarationName: declarationName,
             )
             .indent(3),
       );
@@ -497,6 +525,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
             isNullAllowed: true,
             inner: loopBuffer.toString(),
             reported: reported,
+            declarationName: declarationName,
           )
           .indent(),
     );
@@ -512,6 +541,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     String variableName = "_${ruleId++}";
     String containerName = "_loop${++ruleId}";
@@ -522,8 +552,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
           this,
           withNames: <String>{variableName},
           inner: "$containerName.add($variableName);\ncontinue;",
-          isNullAllowed: isNullable(node.child),
+          isNullAllowed: isNullable(node.child, declarationName),
           reported: reported,
+          declarationName: declarationName,
         )
         .indent(3);
     StringBuffer loopBuffer = StringBuffer();
@@ -546,8 +577,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
       this,
       withNames: <String>{variableName},
       inner: loopBuffer.toString(),
-      isNullAllowed: isNullable(node.child),
+      isNullAllowed: isNullable(node.child, declarationName),
       reported: reported,
+      declarationName: declarationName,
     );
   }
 
@@ -558,6 +590,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     String variableName = "_${ruleId++}";
     String containerName = "_loop${++ruleId}";
@@ -568,11 +601,12 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
           this,
           withNames: <String>{variableName},
           inner: "$containerName.add($variableName);\ncontinue;",
-          isNullAllowed: isNullable(node.child),
+          isNullAllowed: isNullable(node.child, declarationName),
           reported: reported,
+          declarationName: declarationName,
         )
         .indent(4);
-    String question = isNullable(node.child) ? "" : "?";
+    String question = isNullable(node.child, declarationName) ? "" : "?";
     StringBuffer loopBuffer = StringBuffer();
     loopBuffer.writeln(
       "if ([if ($variableName case var $variableName$question) $variableName] "
@@ -606,6 +640,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
             isNullAllowed: true,
             inner: loopBuffer.toString(),
             reported: reported,
+            declarationName: declarationName,
           )
           .indent(),
     );
@@ -621,6 +656,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     List<String> buffer = <String>[
       "if (this.pos case var mark) {",
@@ -629,8 +665,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
             this,
             withNames: withNames,
             inner: "this.pos = mark;\n${inner ?? ""}",
-            isNullAllowed: isNullable(node.child),
+            isNullAllowed: isNullable(node.child, declarationName),
             reported: reported,
+            declarationName: declarationName,
           )
           .indent(),
       "}",
@@ -646,6 +683,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     StringBuffer buffer = StringBuffer();
 
@@ -658,6 +696,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
             withNames: <String>{...withNames ?? <String>{}, "null"},
             inner: "this.pos = mark;\n${inner ?? "return null;"}",
             reported: reported,
+            declarationName: declarationName,
           )
           .indent(),
     );
@@ -673,6 +712,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     return node.child.acceptCompilerVisitor(
       this,
@@ -680,6 +720,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
       inner: inner,
       isNullAllowed: true,
       reported: reported,
+      declarationName: declarationName,
     );
   }
 
@@ -690,8 +731,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
-    bool ruleIsNullable = isNullable(node);
+    bool ruleIsNullable = isNullable(node, declarationName);
     String ruleName = fixName(node.ruleName);
 
     List<String> buffer = <String>[
@@ -713,6 +755,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     String fragmentName = fixName(node.fragmentName);
 
@@ -735,6 +778,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     return node.child.acceptCompilerVisitor(
       this,
@@ -742,6 +786,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
       withNames: <String>{...withNames ?? <String>{}, node.name},
       inner: inner,
       reported: reported,
+      declarationName: declarationName,
     );
   }
 
@@ -752,10 +797,11 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
-    if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
-      (withNames ??= <String>{}).add(r"$");
-    }
+    // if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
+    (withNames ??= <String>{}).add(r"$");
+    // }
 
     if (node.areIndicesProvided) {
       StringBuffer buffer = StringBuffer();
@@ -770,8 +816,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
                     ..writeln(node.action.indent())
                     ..writeln("}"))
                   .toString(),
-              isNullAllowed: isNullable(node.child),
+              isNullAllowed: isNullable(node.child, declarationName),
               reported: reported,
+              declarationName: declarationName,
             )
             .indent(),
       );
@@ -783,8 +830,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
         this,
         withNames: withNames,
         inner: node.action,
-        isNullAllowed: isNullable(node.child),
+        isNullAllowed: isNullable(node.child, declarationName),
         reported: reported,
+        declarationName: declarationName,
       );
     }
   }
@@ -796,10 +844,11 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
-    if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
-      (withNames ??= <String>{}).add(r"$");
-    }
+    // if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
+    (withNames ??= <String>{}).add(r"$");
+    // }
     if (node.areIndicesProvided) {
       StringBuffer buffer = StringBuffer();
       buffer.writeln("if (this.pos case var from) {");
@@ -813,8 +862,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
                     ..writeln("  return ${node.action};")
                     ..writeln("}"))
                   .toString(),
-              isNullAllowed: isNullable(node.child),
+              isNullAllowed: isNullable(node.child, declarationName),
               reported: reported,
+              declarationName: declarationName,
             )
             .indent(),
       );
@@ -826,8 +876,9 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
         this,
         withNames: withNames,
         inner: "return ${node.action};",
-        isNullAllowed: isNullable(node.child),
+        isNullAllowed: isNullable(node.child, declarationName),
         reported: reported,
+        declarationName: declarationName,
       );
     }
   }
@@ -839,6 +890,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     List<String> buffer = <String>[
       "if (this.pos case ${withNames.varNames} when this.pos <= 0) {",
@@ -859,6 +911,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     List<String> buffer = <String>[
       "if (this.pos case ${withNames.varNames} when this.pos >= this.buffer.length) {",
@@ -879,13 +932,14 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required Set<String>? withNames,
     required String? inner,
     required bool reported,
+    required String declarationName,
   }) {
     List<String> buffer = <String>[
       "if (pos < buffer.length) {",
       "  if (buffer[pos] case ${withNames.varNames}) {",
       "    pos++;",
       if (inner != null) //
-        inner.indent()
+        inner.indent(2)
       else
         "    return ${withNames.singleName};",
       "  }",

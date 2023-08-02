@@ -24,7 +24,9 @@ String preamble = `{` _ code:code::curly _ `}` { code };
 Statement statement =
   | namespace
   | fragment
-  | rule;
+  | inline
+  | rule
+  ;
 
 @fragment
 String namespacedRaw = (identifier "::" @0)* literal::raw { $0.isEmpty ? $1 : "${$0.join("::")}::${$1}" };
@@ -41,11 +43,14 @@ Node body = `=` :choice `;` { choice };
 /// A namespace is a block of statements which can apply a tag and/or be encapsulated
 ///   under a name.
 Statement namespace =
-  | kw::fragment name:identifier? `{` statements:_.statement+ `}` {
+  | kw::decorator::fragment name:identifier? `{` statements:_.statement+ `}` {
       NamespaceStatement(name, statements, tag: Tag.fragment)
     }
-  | kw::rule name:identifier? `{` statements:_.statement+ `}` {
+  | kw::decorator::rule name:identifier? `{` statements:_.statement+ `}` {
       NamespaceStatement(name, statements, tag: Tag.rule)
+    }
+  | kw::decorator::inline name:identifier? `{` statements:_.statement+ `}` {
+      NamespaceStatement(name, statements, tag: Tag.inline)
     }
   | name:identifier? `{` statements:_.statement+ `}` {
       NamespaceStatement(name, statements, tag: null)
@@ -57,16 +62,16 @@ Statement namespace =
 /// It can be explicitly stated with a `@rule` keyword, but it is not necessary.
 /// It can, however, be useful if it is used inside a `@fragment` tagged namespace.
 Statement rule =
-  | kw::rule? kw::var :name :body {
+  | kw::decorator::rule? kw::var :name :body {
       DeclarationStatement(null, name, body, tag: $0 == null ? null : Tag.rule)
     }
-  | kw::rule? :name :body {
+  | kw::decorator::rule? :name :body {
       DeclarationStatement(null, name, body, tag: $0 == null ? null : Tag.rule)
     }
-  | kw::rule? type:(type::main) :name :body {
+  | kw::decorator::rule? type:(type::main) :name :body {
       DeclarationStatement(type, name, body, tag: $0 == null ? null : Tag.rule)
     }
-  | kw::rule? :name `:` type:(type::main) :body {
+  | kw::decorator::rule? :name `:` type:(type::main) :body {
       DeclarationStatement(type, name, body, tag: $0 == null ? null : Tag.rule)
     }
   ;
@@ -74,17 +79,34 @@ Statement rule =
 /// A fragment is a declaration that is faster, but doesn't support left recursion / memoization.
 /// It can be explicitly stated with a `@fragment` keyword.
 Statement fragment =
-  | kw::fragment kw::var :name :body {
+  | kw::decorator::fragment kw::var :name :body {
       DeclarationStatement(null, name, body, tag: Tag.fragment)
     }
-  | kw::fragment :name :body {
+  | kw::decorator::fragment :name :body {
       DeclarationStatement(null, name, body, tag: Tag.fragment)
     }
-  | kw::fragment type:(type::main) :name :body {
+  | kw::decorator::fragment type:(type::main) :name :body {
       DeclarationStatement(type, name, body, tag: Tag.fragment)
     }
-  | kw::fragment :name `:` type:(type::main) :body {
+  | kw::decorator::fragment :name `:` type:(type::main) :body {
       DeclarationStatement(type, name, body, tag: Tag.fragment)
+    }
+  ;
+
+/// A fragment is a declaration that is faster, but doesn't support left recursion / memoization.
+/// It can be explicitly stated with a `@fragment` keyword.
+Statement inline =
+  | kw::decorator::inline kw::var :name :body {
+      DeclarationStatement(null, name, body, tag: Tag.inline)
+    }
+  | kw::decorator::inline :name :body {
+      DeclarationStatement(null, name, body, tag: Tag.inline)
+    }
+  | kw::decorator::inline type:(type::main) :name :body {
+      DeclarationStatement(type, name, body, tag: Tag.inline)
+    }
+  | kw::decorator::inline :name `:` type:(type::main) :body {
+      DeclarationStatement(type, name, body, tag: Tag.inline)
     }
   ;
 
@@ -267,24 +289,7 @@ code {
     String atom = \\ . @1 | !"]" any @1;
   }
 
-  String raw = "`" inner:(!"`" . @1)* "`" () {
-    StringBuffer buffer = StringBuffer(r"$");
-
-    for (var (int i, String character) in inner.indexed) {
-      int unit = character.codeUnits.single;
-
-      if (64 + 1 <= unit && unit <= 64 + 26 || 96 + 1 <= unit && unit <= 96 + 26) {
-        buffer.write(character);
-      } else {
-        buffer.write(unit);
-        if (i < inner.length - 1) {
-          buffer.write("_");
-        }
-      }
-    }
-
-    return buffer.toString();
-  };
+  String raw = "`" inner:(!"`" . @1)* "`"  { inner.join() };
 }
 
 
@@ -363,12 +368,16 @@ type {
 ///   Since they are not recursive, they are not defined as rules.
 @fragment {
   String identifier = [a-zA-Z_$][a-zA-Z\d_$]* { $0 + $1.join() };
-  String raw = "`" inner:(!"`" std::any @1)* "`" { inner.join() };
-  int number = std::digit+ { int.parse($.join()) };
+  String raw = "`" inner:(!"`" . @1)* "`" { inner.join() };
+  int number = \d+ { int.parse($.join()) };
 
   kw {
-    String rule      = _ "@rule" _        @1;
-    String fragment  = _ "@fragment" _    @1;
+    decorator {
+      String rule      = _ "@rule" _        @1;
+      String fragment  = _ "@fragment" _    @1;
+      String inline    = _ "@inline" _      @1;
+    }
+
     String start     = _ "startOfInput" _ @1;
     String end       = _ "endOfInput" _   @1;
     String backslash = _ "backslash" _    @1;
@@ -431,5 +440,5 @@ type {
   String DOLLAR  = _ "$"  _ @1;
 
   /// Layout parser allows comments (like this) and space between parsers.
-  String _  = (\s | /\/{2}.*(?:(?:\r?\n)|(?:$))/)* { "" };
+  String _  = /(?:(?:\s)|(?:\/{2}.*(?:(?:\r?\n)|(?:$))))*/ { "" };
 }

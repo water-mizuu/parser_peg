@@ -11,6 +11,7 @@ sealed class Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   });
 
   Iterable<Node> get children;
@@ -37,6 +38,7 @@ class EpsilonNode implements AtomicNode {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitEpsilonNode(
         this,
@@ -44,6 +46,7 @@ class EpsilonNode implements AtomicNode {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -68,6 +71,7 @@ class TriePatternNode implements AtomicNode {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitTriePatternNode(
         this,
@@ -75,6 +79,7 @@ class TriePatternNode implements AtomicNode {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -99,6 +104,7 @@ class StringLiteralNode implements AtomicNode {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitStringLiteralNode(
         this,
@@ -106,6 +112,7 @@ class StringLiteralNode implements AtomicNode {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -129,6 +136,7 @@ class RangeNode implements AtomicNode {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitRangeNode(
         this,
@@ -136,6 +144,7 @@ class RangeNode implements AtomicNode {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -159,6 +168,7 @@ class RegExpNode implements AtomicNode {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitRegExpNode(
         this,
@@ -166,6 +176,7 @@ class RegExpNode implements AtomicNode {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -184,6 +195,7 @@ abstract interface class RegExpEscapeNode implements AtomicNode {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitRegExpEscapeNode(
         this,
@@ -191,6 +203,7 @@ abstract interface class RegExpEscapeNode implements AtomicNode {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 
   @override
@@ -233,6 +246,7 @@ enum SimpleRegExpEscapeNode implements RegExpEscapeNode {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitRegExpEscapeNode(
         this,
@@ -240,6 +254,7 @@ enum SimpleRegExpEscapeNode implements RegExpEscapeNode {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 
   @override
@@ -271,6 +286,7 @@ class SequenceNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitSequenceNode(
         this,
@@ -278,6 +294,7 @@ class SequenceNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -300,6 +317,7 @@ class ChoiceNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitChoiceNode(
         this,
@@ -307,6 +325,7 @@ class ChoiceNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -330,6 +349,7 @@ class CountedNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitCountedNode(
         this,
@@ -337,6 +357,7 @@ class CountedNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 
   @override
@@ -364,6 +385,7 @@ class PlusSeparatedNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitPlusSeparatedNode(
         this,
@@ -371,6 +393,7 @@ class PlusSeparatedNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 
   @override
@@ -398,6 +421,7 @@ class StarSeparatedNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitStarSeparatedNode(
         this,
@@ -405,6 +429,7 @@ class StarSeparatedNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 
   @override
@@ -431,6 +456,7 @@ class PlusNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitPlusNode(
         this,
@@ -438,6 +464,7 @@ class PlusNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -461,6 +488,7 @@ class StarNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitStarNode(
         this,
@@ -468,6 +496,7 @@ class StarNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -492,6 +521,7 @@ class AndPredicateNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitAndPredicateNode(
         this,
@@ -499,6 +529,7 @@ class AndPredicateNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -523,6 +554,7 @@ class NotPredicateNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitNotPredicateNode(
         this,
@@ -530,6 +562,7 @@ class NotPredicateNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -553,6 +586,7 @@ class OptionalNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitOptionalNode(
         this,
@@ -560,6 +594,7 @@ class OptionalNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -583,6 +618,7 @@ class ReferenceNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitReferenceNode(
         this,
@@ -590,6 +626,7 @@ class ReferenceNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -613,6 +650,7 @@ class FragmentNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitFragmentNode(
         this,
@@ -620,6 +658,7 @@ class FragmentNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -644,6 +683,7 @@ class NamedNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitNamedNode(
         this,
@@ -651,6 +691,7 @@ class NamedNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -676,6 +717,7 @@ class ActionNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitActionNode(
         this,
@@ -683,6 +725,7 @@ class ActionNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -709,6 +752,7 @@ class InlineActionNode implements Node {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitInlineActionNode(
         this,
@@ -716,6 +760,7 @@ class InlineActionNode implements Node {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -741,6 +786,7 @@ class StartOfInputNode implements SpecialSymbolNode {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitStartOfInputNode(
         this,
@@ -748,6 +794,7 @@ class StartOfInputNode implements SpecialSymbolNode {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -770,6 +817,7 @@ class EndOfInputNode implements SpecialSymbolNode {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitEndOfInputNode(
         this,
@@ -777,6 +825,7 @@ class EndOfInputNode implements SpecialSymbolNode {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }
 
@@ -800,6 +849,7 @@ class AnyCharacterNode implements SpecialSymbolNode {
     required Set<String>? withNames,
     required I? inner,
     required bool reported,
+    required String declarationName,
   }) =>
       visitor.visitAnyCharacterNode(
         this,
@@ -807,5 +857,6 @@ class AnyCharacterNode implements SpecialSymbolNode {
         withNames: withNames,
         inner: inner,
         reported: reported,
+        declarationName: declarationName,
       );
 }

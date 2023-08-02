@@ -84,12 +84,10 @@ class SExpressionVisitor implements SimpleNodeVisitor<String> {
   String visitNamedNode(NamedNode node) => "(named ${jsonEncode(node.name)} ${node.child.acceptSimpleVisitor(this)})";
 
   @override
-  String visitActionNode(ActionNode node) =>
-      "(action ${node.child.acceptSimpleVisitor(this)} (){\n${node.action.replaceAll("\n", r"\n")}\n})";
+  String visitActionNode(ActionNode node) => "(action ${node.child.acceptSimpleVisitor(this)} (){ ... })";
 
   @override
-  String visitInlineActionNode(InlineActionNode node) =>
-      "(action ${node.child.acceptSimpleVisitor(this)} { ${node.action} })";
+  String visitInlineActionNode(InlineActionNode node) => "(action ${node.child.acceptSimpleVisitor(this)} { ... })";
 
   @override
   String visitStartOfInputNode(StartOfInputNode node) => "^";

@@ -7,6 +7,7 @@ import "dart:io";
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
 import "package:parser_peg/src/visitor/compiler_visitor/compiler_visitor.dart";
+import "package:parser_peg/src/visitor/simple_visitor/can_inline_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/rename_visitors.dart";
 import "package:parser_peg/src/visitor/simple_visitor/resolve_references_visitor.dart";
 import "package:parser_peg/src/visitor/simplifier_visitor/simplify_visitor.dart";
@@ -57,7 +58,7 @@ const List<String> ignores = <String>[
 final class ParserGenerator {
   ParserGenerator.fromParsed({required List<Statement> statements, required this.preamble}) {
     /// We add all the special nodes :)
-    predefined.forEach(statements.add);
+    // predefined.forEach(statements.add);
 
     /// We add ALL the rules in advance.
     ///   Why? Because we need ALL the rules to be able to resolve references.
@@ -72,6 +73,9 @@ final class ParserGenerator {
 
     /// We simplify the rules to prepare for codegen.
     if (SimplifyVisitor() case SimplifyVisitor visitor) {
+      for (var (String name, (String? type, Node node)) in inline.pairs) {
+        inline[name] = (type, node.acceptSimplifierVisitor(visitor, 0));
+      }
       for (var (String name, (String? type, Node node)) in rules.pairs) {
         rules[name] = (type, node.acceptSimplifierVisitor(visitor, 0));
       }
@@ -103,9 +107,21 @@ final class ParserGenerator {
       redirects[name] = simplifiedName;
       reverseRedirects[simplifiedName] = name;
     }
+    redirectId = 0;
+    for (var (String name, (String? type, Node node)) in inline.pairs.toList()) {
+      String simplifiedName = "i${(redirectId++).toRadixString(36)}";
+
+      inline.remove(name);
+      inline[simplifiedName] = (type, node);
+      redirects[name] = simplifiedName;
+      reverseRedirects[simplifiedName] = name;
+    }
 
     /// We rename the references.
     if (RenameDeclarationVisitor(redirects) case RenameDeclarationVisitor visitor) {
+      for (var (String name, (String? type, Node node)) in inline.pairs) {
+        inline[name] = (type, node.acceptSimpleVisitor(visitor));
+      }
       for (var (String name, (String? type, Node node)) in rules.pairs) {
         rules[name] = (type, node.acceptSimpleVisitor(visitor));
       }
@@ -141,27 +157,17 @@ final class ParserGenerator {
   /// Adds the rules from [Statement]s to the [rules] and [fragments] maps.
   void addResolvedRules(Statement statement, List<String> prefix, Tag? tag) {
     switch (statement) {
-      case DeclarationStatement(
-          :String? type,
-          :String name,
-          :Node node,
-          tag: Tag? declarationTag,
-        ):
+      case DeclarationStatement(:String? type, :String name, :Node node, tag: Tag? declarationTag):
         String resolvedName = <String>[...prefix, name].join("::");
-        switch (declarationTag) {
+        switch (declarationTag ?? tag) {
+          case Tag.inline when node.canBeInlined:
+            inline[resolvedName] = (type, node);
+          case Tag.inline:
           case Tag.fragment:
             fragments[resolvedName] = (type, node);
+          case null:
           case Tag.rule:
             rules[resolvedName] = (type, node);
-          case null:
-            switch (tag) {
-              case Tag.fragment:
-                fragments[resolvedName] = (type, node);
-              case Tag.rule:
-              // Default tag is rule.
-              case null:
-                rules[resolvedName] = (type, node);
-            }
         }
       case NamespaceStatement(
           :String name,
@@ -184,30 +190,21 @@ final class ParserGenerator {
 
   void processStatement(Statement statement, List<String> prefixes, Tag? tag) {
     switch (statement) {
-      case DeclarationStatement(
-          :String? type,
-          :String name,
-          :Node node,
-          tag: Tag? declarationTag,
-        ):
-        ResolveReferencesVisitor visitor = ResolveReferencesVisitor(prefixes, rules, fragments);
+      case DeclarationStatement(:String? type, :String name, :Node node, tag: Tag? declarationTag):
+        ResolveReferencesVisitor visitor = ResolveReferencesVisitor(prefixes, rules, fragments, inline);
         String resolvedName = <String>[...prefixes, name].join("::");
         Node resolvedNode = node.acceptSimpleVisitor(visitor);
 
-        switch (declarationTag) {
+        switch (declarationTag ?? tag) {
+          case Tag.inline when node.canBeInlined:
+            inline[resolvedName] = (type, resolvedNode);
+          case Tag.inline:
           case Tag.fragment:
             fragments[resolvedName] = (type, resolvedNode);
+          // Default tag is rule.
+          case null:
           case Tag.rule:
             rules[resolvedName] = (type, resolvedNode);
-          case null:
-            switch (tag) {
-              case Tag.fragment:
-                fragments[resolvedName] = (type, resolvedNode);
-              case Tag.rule:
-              // Default tag is rule.
-              case null:
-                rules[resolvedName] = (type, resolvedNode);
-            }
         }
       case NamespaceStatement(:String name, :List<Statement> children, tag: Tag? declaredTag):
         for (Statement sub in children) {
@@ -225,24 +222,9 @@ final class ParserGenerator {
   final Map<String, String> reverseRedirects = <String, String>{};
   final Map<String, (String?, Node)> rules = <String, (String?, Node)>{};
   final Map<String, (String?, Node)> fragments = <String, (String?, Node)>{};
+  final Map<String, (String?, Node)> inline = <String, (String?, Node)>{};
 
   final String? preamble;
-
-  void verifyGrammar() {
-    for (var (String rootRuleName, (_, Node ruleNode)) in rules.pairs.followedBy(fragments.pairs)) {
-      Queue<Node> queue = Queue<Node>()..add(ruleNode);
-      while (queue.isNotEmpty) {
-        Node node = queue.removeFirst();
-        if (node case ReferenceNode(:String ruleName) when !rules.containsKey(ruleName)) {
-          notFound(ruleName, rootRuleName);
-        } else if (node case FragmentNode(:String fragmentName) when !fragments.containsKey(fragmentName)) {
-          notFound(fragmentName, rootRuleName);
-        }
-
-        queue.addAll(node.children);
-      }
-    }
-  }
 
   String compile(String parserName, {String? start, String? type}) {
     String parserTypeString = type ?? rules.values.firstOrNull?.$1 ?? fragments.values.firstOrNull?.$1 ?? "Object";
@@ -276,25 +258,27 @@ final class ParserGenerator {
       compilerVisitor.ruleId = 0;
 
       StringBuffer inner = StringBuffer();
+      String displayName = reverseRedirects[rawName]!;
       String fragmentName = fixName(rawName);
       String body = node
           .acceptCompilerVisitor(
             compilerVisitor,
-            isNullAllowed: isNullable(node),
+            isNullAllowed: isNullable(node, displayName),
             withNames: null,
             inner: null,
             reported: true,
+            declarationName: displayName,
           )
           .indent();
 
       inner.writeln();
-      inner.writeln("/// `${reverseRedirects[rawName]}`");
+      inner.writeln("/// `$displayName`");
       if (type == null) {
         inner.writeln("late final $fragmentName = () {");
         inner.writeln(body);
         inner.writeln("};");
       } else {
-        inner.writeln("$type${isNullable(node) ? "" : "?"} $fragmentName() {");
+        inner.writeln("$type${isNullable(node, fragmentName) ? "" : "?"} $fragmentName() {");
         inner.writeln(body);
         inner.writeln("}");
       }
@@ -306,25 +290,27 @@ final class ParserGenerator {
       compilerVisitor.ruleId = 0;
 
       StringBuffer inner = StringBuffer();
+      String displayName = reverseRedirects[rawName]!;
       String ruleName = fixName(rawName);
       String body = node
           .acceptCompilerVisitor(
             compilerVisitor,
-            isNullAllowed: isNullable(node),
+            isNullAllowed: isNullable(node, ruleName),
             withNames: null,
             inner: null,
             reported: true,
+            declarationName: displayName,
           )
           .indent();
 
       inner.writeln();
-      inner.writeln("/// `${reverseRedirects[rawName]}`");
+      inner.writeln("/// `$displayName`");
       if (type == null) {
         inner.writeln("late final $ruleName = () {");
         inner.writeln(body);
         inner.writeln("};");
       } else {
-        inner.writeln("$type${isNullable(node) ? "" : "?"} $ruleName() {");
+        inner.writeln("$type${isNullable(node, ruleName) ? "" : "?"} $ruleName() {");
         inner.writeln(body);
         inner.writeln("}");
       }
@@ -409,7 +395,7 @@ final class ParserGenerator {
   final Expando<bool> _isNullable = Expando<bool>();
 
   /// Returns `true` if the node should pass even if the answer was null.
-  bool isNullable(Node node) {
+  bool isNullable(Node node, String ruleName) {
     return _isNullable[node] ??= switch (node) {
       SpecialSymbolNode() => false,
       EpsilonNode() => true,
@@ -419,28 +405,29 @@ final class ParserGenerator {
       /// Absolutely false, because [matchPattern] is nullable.
       RegExpNode() => false,
       RegExpEscapeNode() => false,
-      CountedNode() => node.min <= 0 || isNullable(node.child),
+      CountedNode() => node.min <= 0 || isNullable(node.child, ruleName),
       StringLiteralNode() => node.literal.isEmpty,
-      SequenceNode() => (_isNullable[node] = true, node.children.every(isNullable)).$2,
-      ChoiceNode() => (_isNullable[node] = false, node.children.any(isNullable)).$2,
-      PlusSeparatedNode() => isNullable(node.child) && isNullable(node.separator),
+      SequenceNode() => (_isNullable[node] = true, node.children.every((Node node) => isNullable(node, ruleName))).$2,
+      ChoiceNode() => (_isNullable[node] = false, node.children.any((Node node) => isNullable(node, ruleName))).$2,
+      PlusSeparatedNode() => isNullable(node.child, ruleName) && isNullable(node.separator, ruleName),
       StarSeparatedNode() => true,
-      PlusNode() => isNullable(node.child),
+      PlusNode() => isNullable(node.child, ruleName),
       StarNode() => true,
-      AndPredicateNode() => isNullable(node.child),
-      NotPredicateNode() => isNullable(node.child),
-      OptionalNode() => isNullable(node.child),
-      ReferenceNode() => isNullable(rules[node.ruleName]?.$2 ?? notFound(node.ruleName)),
-      FragmentNode() => isNullable(fragments[node.fragmentName]?.$2 ?? notFound(node.fragmentName)),
-      NamedNode() => isNullable(node.child),
-      ActionNode() => isNullable(node.child),
-      InlineActionNode() => isNullable(node.child),
+      AndPredicateNode() => isNullable(node.child, ruleName),
+      NotPredicateNode() => isNullable(node.child, ruleName),
+      OptionalNode() => isNullable(node.child, ruleName),
+      ReferenceNode() => isNullable(rules[node.ruleName]?.$2 ?? notFound(node.ruleName, Tag.rule, ruleName), ruleName),
+      FragmentNode() =>
+        isNullable(fragments[node.fragmentName]?.$2 ?? notFound(node.fragmentName, Tag.fragment, ruleName), ruleName),
+      NamedNode() => isNullable(node.child, ruleName),
+      ActionNode() => isNullable(node.child, ruleName),
+      InlineActionNode() => isNullable(node.child, ruleName),
     };
   }
 }
 
-Never notFound(String name, [String? root]) {
-  throw ArgumentError.value(name, "name", "Rule not found${root == null ? "" : " in $root"}");
+Never notFound(String name, Tag tag, [String? root]) {
+  throw ArgumentError.value(name, "name", "$tag not found${root == null ? "" : " in $root"}");
 }
 
 extension IndentationExtension on String {

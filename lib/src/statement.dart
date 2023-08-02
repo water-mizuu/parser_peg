@@ -3,6 +3,7 @@ import "package:parser_peg/src/node.dart";
 enum Tag {
   rule,
   fragment,
+  inline,
 }
 
 sealed class Statement {}
