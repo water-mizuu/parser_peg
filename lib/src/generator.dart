@@ -253,22 +253,22 @@ final class ParserGenerator {
     }
   }
 
-  static final List<Statement> predefined = <Statement>[
+  static const List<Statement> predefined = <Statement>[
     NamespaceStatement(
       "std",
       <Statement>[
-        const DeclarationStatement.predefined("any", AnyCharacterNode()),
-        const DeclarationStatement.predefined("epsilon", EpsilonNode()),
-        const DeclarationStatement.predefined("start", StartOfInputNode(), type: "int"),
-        const DeclarationStatement.predefined("end", EndOfInputNode(), type: "int"),
-        DeclarationStatement.predefined("whitespace", RegExpNode(RegExp(r"\s"))),
-        DeclarationStatement.predefined("digit", RegExpNode(RegExp(r"\d"))),
-        DeclarationStatement.predefined("alpha", RegExpNode(RegExp("[a-zA-Z]"))),
+        DeclarationStatement.predefined("any", AnyCharacterNode()),
+        DeclarationStatement.predefined("epsilon", EpsilonNode()),
+        DeclarationStatement.predefined("start", StartOfInputNode(), type: "int"),
+        DeclarationStatement.predefined("end", EndOfInputNode(), type: "int"),
+        DeclarationStatement.predefined("whitespace", RegExpNode(r"\s")),
+        DeclarationStatement.predefined("digit", RegExpNode(r"\d")),
+        DeclarationStatement.predefined("alpha", RegExpNode("[a-zA-Z]")),
         NamespaceStatement(
           "alpha",
           <Statement>[
-            DeclarationStatement.predefined("lower", RegExpNode(RegExp("[a-z]"))),
-            DeclarationStatement.predefined("upper", RegExpNode(RegExp("[A-Z]"))),
+            DeclarationStatement.predefined("lower", RegExpNode("[a-z]")),
+            DeclarationStatement.predefined("upper", RegExpNode("[A-Z]")),
           ],
           tag: null,
         ),

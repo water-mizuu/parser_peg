@@ -17,7 +17,7 @@ class ImperativeVisitor implements SimpleNodeVisitor<String> {
   String visitRangeNode(RangeNode node) => "[${node.ranges.map(((int, int) v) => "${v.$1}-${v.$2}").join()}}]";
 
   @override
-  String visitRegExpNode(RegExpNode node) => "/${node.value.pattern}/";
+  String visitRegExpNode(RegExpNode node) => "/${node.value}/";
 
   @override
   String visitRegExpEscapeNode(RegExpEscapeNode node) => node.pattern;

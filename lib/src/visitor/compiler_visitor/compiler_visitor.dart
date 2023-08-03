@@ -151,7 +151,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required bool reported,
     required String declarationName,
   }) {
-    String key = node.value.pattern;
+    String key = node.value;
     int id = switch (regexpIds[key]) {
       int id => id,
       null => (regexps..add(key), regexpIds[key] = ++regexpId).$2,

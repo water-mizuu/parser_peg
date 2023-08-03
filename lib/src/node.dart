@@ -150,7 +150,7 @@ class RangeNode implements AtomicNode {
 
 class RegExpNode implements AtomicNode {
   const RegExpNode(this.value);
-  final RegExp value;
+  final String value;
 
   @override
   Iterable<Node> get children => <Node>[];

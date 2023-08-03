@@ -18,7 +18,7 @@ class SExpressionVisitor implements SimpleNodeVisitor<String> {
   String visitRangeNode(RangeNode node) => "(range ${node.ranges.join(" ")}})";
 
   @override
-  String visitRegExpNode(RegExpNode node) => "(regexp ${node.value.pattern})";
+  String visitRegExpNode(RegExpNode node) => "(regexp ${node.value})";
 
   @override
   String visitRegExpEscapeNode(RegExpEscapeNode node) => "(escape ${node.pattern})";
