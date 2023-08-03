@@ -1,4 +1,5 @@
 {
+
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
@@ -7,6 +8,7 @@ final _regexps = (
   from: RegExp(r"\bfrom\b"),
   to: RegExp(r"\bto\b"),
 );
+
 }
 
 /// A grammar file contains an optional preamble and statements.
@@ -122,18 +124,18 @@ Node acted =
         areIndicesProvided: true,
       );
     }
-  | :sequence `{` _ code:code.curly _ `}`  () {
+  | :sequence `{` _ :code.curly _ `}`  () {
       return InlineActionNode(
         sequence,
-        code.trimRight(),
-        areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
+        curly.trimRight(),
+        areIndicesProvided: curly.contains(_regexps.from) && curly.contains(_regexps.to),
       );
     }
-  | :sequence `(` `)` `{` _ code:code.curly _ `}`  () {
+  | :sequence `(` `)` `{` _ :code.curly _ `}`  () {
       return ActionNode(
         sequence,
-        code.trimRight(),
-        areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
+        curly.trimRight(),
+        areIndicesProvided: curly.contains(_regexps.from) && curly.contains(_regexps.to),
       );
     }
   | sequence
@@ -183,8 +185,8 @@ Node special =
   | min:number `..` max:number? :atom { CountedNode(min, max, atom) }
   | :number :atom                     { CountedNode(number, number, atom) }
   /// Pegen style separators.
-  | sep:call `..` expr:call `+`? { PlusSeparatedNode(sep, expr, isTrailingAllowed: false) }
-  | sep:call `..` expr:call `*`  { StarSeparatedNode(sep, expr, isTrailingAllowed: false) }
+  | sep:callLike `..` expr:callLike `+`? { PlusSeparatedNode(sep, expr, isTrailingAllowed: false) }
+  | sep:callLike `..` expr:callLike `*`  { StarSeparatedNode(sep, expr, isTrailingAllowed: false) }
   | postfix
   ;
 
@@ -203,25 +205,32 @@ Node prefix =
   | `~` prefix @1 { SequenceNode([NotPredicateNode($), const AnyCharacterNode()], choose: 1) }
   | `&` prefix @1 { AndPredicateNode($) }
   | `!` prefix @1 { NotPredicateNode($) }
-  | call
+  | callLike
   ;
 
-Node call =
+/// "Call"-like because they technically look like a call, but this is special syntax.
+///   (Calls don't exist.)
+Node callLike =
   /// Flattens a parser result.
   ///   a.flat!()
-  | target:call DOT mac.flat `(`  `)` {
+  | target:callLike DOT mac.flat `(`  `)` {
       InlineActionNode(target, "this.buffer.substring(from, to)", areIndicesProvided: true)
     }
   /// Expects a number of results.
-  | target:call DOT mac.range `(` min:number `,` max:number `)` { CountedNode(min, max, target) }
-  | target:call DOT mac.range `(` :number `)`                   { CountedNode(number, number, target) }
-  | target:call DOT mac.range   _ :number _                     { CountedNode(number, number, target) }
-  /// Method like "a".sep()
-  | sep:call DOT mac.sep `{` body:choice `}` `+` `?` { PlusSeparatedNode(sep, body, isTrailingAllowed: true)  }
-  | sep:call DOT mac.sep `{` body:choice `}` `+`     { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | sep:call DOT mac.sep `{` body:choice `}` `*` `?` { StarSeparatedNode(sep, body, isTrailingAllowed: true)  }
-  | sep:call DOT mac.sep `{` body:choice `}` `*`     { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | sep:call DOT mac.sep `{` body:choice `}`         { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  ///  a.range!(2, 4)
+  ///  a.range!(2)
+  ///  a.range! 2
+  | target:callLike DOT mac.range `(` min:number `,` max:number `)` { CountedNode(min, max, target) }
+  | target:callLike DOT mac.range `(` :number `)`                   { CountedNode(number, number, target) }
+  | target:callLike DOT mac.range   _ :number _                     { CountedNode(number, number, target) }
+  /// Separates a parser by a separator.
+  ///  a.sep! b
+  | sep:callLike DOT mac.sep `(` body:choice `)` `+` `?` { PlusSeparatedNode(sep, body, isTrailingAllowed: true)  }
+  | sep:callLike DOT mac.sep `(` body:choice `)` `+`     { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:callLike DOT mac.sep `(` body:choice `)` `*` `?` { StarSeparatedNode(sep, body, isTrailingAllowed: true)  }
+  | sep:callLike DOT mac.sep `(` body:choice `)` `*`     { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:callLike DOT mac.sep `(` body:choice `)`         { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:callLike DOT mac.sep _ body:atom _               { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
   | atom
   ;
 
@@ -251,6 +260,7 @@ Node atom =
   | literal.string { StringLiteralNode($) }
   | name           { ReferenceNode($) }
   ;
+
 code {
   String curly =
     | "`" ~"`"* "`" @1 { $.join() }
@@ -402,9 +412,9 @@ type {
     ;
   /// Tokens used in "macro-like" rules.
   mac {
-    String range = _ "range!" _   @1;
-    String flat = _ "flat!" _   @1;
-    String sep = _ "sep!" _   @1;
+    String range = _ "range!" _ @1;
+    String flat  = _ "flat!"  _ @1;
+    String sep   = _ "sep!"   _ @1;
   }
 
   regexEscape {

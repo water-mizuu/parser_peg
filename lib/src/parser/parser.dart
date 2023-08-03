@@ -2397,14 +2397,14 @@ final class PegParser extends _PegParser<ParserGenerator> {
         if (this.apply(this.r9) case var sequence?) {
           if (this.f13() case _?) {
             if (this.f1l() case _?) {
-              if (this.apply(this.rh)! case var code) {
+              if (this.apply(this.rh)! case var curly) {
                 if (this.f1l() case _?) {
                   if (this.f12() case _?) {
                     if (this.pos case var to) {
                       return InlineActionNode(
                               sequence,
-                              code.trimRight(),
-                              areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
+                              curly.trimRight(),
+                              areIndicesProvided: curly.contains(_regexps.from) && curly.contains(_regexps.to),
                             );
                     }
                   }
@@ -2422,14 +2422,14 @@ final class PegParser extends _PegParser<ParserGenerator> {
             if (this.f14() case _?) {
               if (this.f13() case _?) {
                 if (this.f1l() case _?) {
-                  if (this.apply(this.rh)! case var code) {
+                  if (this.apply(this.rh)! case var curly) {
                     if (this.f1l() case _?) {
                       if (this.f12() case _?) {
                         if (this.pos case var to) {
                           return ActionNode(
                                   sequence,
-                                  code.trimRight(),
-                                  areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
+                                  curly.trimRight(),
+                                  areIndicesProvided: curly.contains(_regexps.from) && curly.contains(_regexps.to),
                                 );
                         }
                       }
@@ -2673,7 +2673,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::call`
+  /// `global::callLike`
   Node? rf() {
     if (this.pos case var mark) {
       if (this.pos case var from) {
@@ -2742,9 +2742,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.apply(this.rf) case var sep?) {
         if (this.f1h() case _?) {
           if (this.fs() case _?) {
-            if (this.f13() case _?) {
+            if (this.f15() case _?) {
               if (this.apply(this.r7) case var body?) {
-                if (this.f12() case _?) {
+                if (this.f14() case _?) {
                   if (this.f1d() case _?) {
                     if (this.f18() case _?) {
                       return PlusSeparatedNode(sep, body, isTrailingAllowed: true);
@@ -2760,9 +2760,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.apply(this.rf) case var sep?) {
         if (this.f1h() case _?) {
           if (this.fs() case _?) {
-            if (this.f13() case _?) {
+            if (this.f15() case _?) {
               if (this.apply(this.r7) case var body?) {
-                if (this.f12() case _?) {
+                if (this.f14() case _?) {
                   if (this.f1d() case _?) {
                     return PlusSeparatedNode(sep, body, isTrailingAllowed: false);
                   }
@@ -2776,9 +2776,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.apply(this.rf) case var sep?) {
         if (this.f1h() case _?) {
           if (this.fs() case _?) {
-            if (this.f13() case _?) {
+            if (this.f15() case _?) {
               if (this.apply(this.r7) case var body?) {
-                if (this.f12() case _?) {
+                if (this.f14() case _?) {
                   if (this.f1c() case _?) {
                     if (this.f18() case _?) {
                       return StarSeparatedNode(sep, body, isTrailingAllowed: true);
@@ -2794,9 +2794,9 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.apply(this.rf) case var sep?) {
         if (this.f1h() case _?) {
           if (this.fs() case _?) {
-            if (this.f13() case _?) {
+            if (this.f15() case _?) {
               if (this.apply(this.r7) case var body?) {
-                if (this.f12() case _?) {
+                if (this.f14() case _?) {
                   if (this.f1c() case _?) {
                     return StarSeparatedNode(sep, body, isTrailingAllowed: false);
                   }
@@ -2810,9 +2810,23 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.apply(this.rf) case var sep?) {
         if (this.f1h() case _?) {
           if (this.fs() case _?) {
-            if (this.f13() case _?) {
+            if (this.f15() case _?) {
               if (this.apply(this.r7) case var body?) {
-                if (this.f12() case _?) {
+                if (this.f14() case _?) {
+                  return PlusSeparatedNode(sep, body, isTrailingAllowed: false);
+                }
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.rf) case var sep?) {
+        if (this.f1h() case _?) {
+          if (this.fs() case _?) {
+            if (this.f1l() case _?) {
+              if (this.apply(this.rg) case var body?) {
+                if (this.f1l() case _?) {
                   return PlusSeparatedNode(sep, body, isTrailingAllowed: false);
                 }
               }
