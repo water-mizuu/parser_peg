@@ -146,9 +146,17 @@ abstract base class _PegParser<R extends Object> {
 
   // ignore: body_might_complete_normally_nullable
   String? matchPattern(Pattern pattern, {bool isReported = true}) {
-    if (pattern.matchAsPrefix(buffer, pos) case Match(:int start, :int end)) {
+    if (_patternMemo[(pattern, this.pos)] case (int pos, String value)) {
+      this.pos = pos;
+      return value;
+    }
+
+    if (pattern.matchAsPrefix(this.buffer, this.pos) case Match(:int start, :int end)) {
+      String result = buffer.substring(start, end);
+      _patternMemo[(pattern, start)] = (end, result);
       this.pos = end;
-      return buffer.substring(start, end);
+
+      return result;
     }
 
     if (isReported) {
@@ -188,6 +196,7 @@ abstract base class _PegParser<R extends Object> {
   final Map<int, _Head<void>> _heads = <int, _Head<void>>{};
   final Queue<_Lr<void>> _lrStack = DoubleLinkedQueue<_Lr<void>>();
   final Map<(_Rule<void>, int), _Memo> _memo = <(_Rule<void>, int), _Memo>{};
+  final Map<(Pattern, int), (int, String)> _patternMemo = <(Pattern, int), (int, String)>{};
 
   late String buffer;
   int pos = 0;
