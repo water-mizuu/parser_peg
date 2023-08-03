@@ -1,9 +1,77 @@
-Object main = "Hi" S;
 
-@inline {
-  Object S =
-    | S std::whitespace std::any std::whitespace @1
-    | std::any;
+dart {
+  Object expression =
+    | assignableExpression assignmentOperator expression
+    | conditionalExpression
+    | cascade
+    | throwExpression
+    ;
 
-  String space = /(?:(?:\s)|(?:\/{2}.*(?:(?:\r?\n)|(?:$))))*/ { "" };
+  Object expressionWithoutCascade =
+    | assignableExpression assignmentOperator expressionWithoutCascade
+    | conditionalExpression
+    | throwExpressionWithoutCascade
+    ;
+
+  Object expressionList = COMMA.sep!expression+;
+
+  Object primary =
+    | thisExpression
+    | SUPER unconditionalAssignableSelector
+    | SUPER argumentPart
+    | functionExpression
+    | literal
+    | identifier
+    | newExpression
+    | constObjectExpression
+    | constructorInvocation
+    | L_PAREN expression R_PAREN
+    ;
+
+  Object literal =
+    | nullLiteral
+    | numericLiteral
+    | stringLiteral
+    | symbolLiteral
+    | listLiteral
+    | setOrMapLiteral
+    ;
+
+  /// 17.9 Collection Literals
+  Object listLiteral = CONST? typeArguments? L_SQUARE elements? R_SQUARE;
+  Object setOrMapLiteral = CONST? typeArguments? L_CURLY elements? R_CURLY;
+  Object elements = element? (COMMA element)* COMMA?;
+  Object element =
+    | mapElement
+    | expressionElement
+    | spreadElement
+    | ifElement
+    | forElement
+    ;
+
+  Object expressionElement = expression;
+  Object mapElement = expression COLON expression;
+  Object spreadElement = (_ ("..." | "...?") _ @1) expression;
+  Object ifElement = IF L_PAREN element R_PAREN (ELSE element)?;
+  Object forElement = AWAIT? FOR L_PAREN forLoopParts R_PAREN element;
+}
+
+@fragment {
+  CONST    = _ "const" _ @1;
+  SUPER    = _ "super" _ @1;
+  THIS     = _ "this"  _ @1;
+  NEW      = _ "new"   _ @1;
+  AWAIT    = _ "await" _ @1;
+  IF       = _ "if"    _ @1;
+  ELSE     = _ "else"  _ @1;
+  COLON    = _ ":"     _ @1;
+  COMMA    = _ ","     _ @1;
+  L_PAREN  = _ "("     _ @1;
+  R_PAREN  = _ ")"     _ @1;
+  L_CURLY  = _ "{"     _ @1;
+  R_CURLY  = _ "}"     _ @1;
+  L_SQUARE = _ "["     _ @1;
+  R_SQUARE = _ "]"     _ @1;
+
+  _ = std::whitespace;
 }

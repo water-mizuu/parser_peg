@@ -23,33 +23,33 @@ void main(List<String> arguments) {
     }
   }
 
-  if (readFile("examples/playground/playground.dart_grammar") case String input) {
-    if (PegParser() case PegParser grammar) {
-      switch (grammar.parse(input)) {
-        case ParserGenerator generator:
-          File("examples/playground/playground.dart")
-            ..createSync(recursive: true)
-            ..writeAsStringSync(generator.compile("PlaygroundParser"));
-          stdout.writeln("Successfully parsed grammar!");
-        case _:
-          stdout.writeln(grammar.reportFailures());
-      }
-    }
-  }
+  // if (readFile("examples/playground/playground.dart_grammar") case String input) {
+  //   if (PegParser() case PegParser grammar) {
+  //     switch (grammar.parse(input)) {
+  //       case ParserGenerator generator:
+  //         File("examples/playground/playground.dart")
+  //           ..createSync(recursive: true)
+  //           ..writeAsStringSync(generator.compile("PlaygroundParser"));
+  //         stdout.writeln("Successfully parsed grammar!");
+  //       case _:
+  //         stdout.writeln(grammar.reportFailures());
+  //     }
+  //   }
+  // }
 
-  if (readFile("examples/math/math.dart_grammar") case String input) {
-    if (PegParser() case PegParser grammar) {
-      switch (grammar.parse(input)) {
-        case ParserGenerator generator:
-          File("examples/math/math.dart")
-            ..createSync(recursive: true)
-            ..writeAsStringSync(generator.compile("MathParser"));
-          stdout.writeln("Successfully parsed grammar!");
-        case _:
-          stdout.writeln(grammar.reportFailures());
-      }
-    }
-  }
+  // if (readFile("examples/math/math.dart_grammar") case String input) {
+  //   if (PegParser() case PegParser grammar) {
+  //     switch (grammar.parse(input)) {
+  //       case ParserGenerator generator:
+  //         File("examples/math/math.dart")
+  //           ..createSync(recursive: true)
+  //           ..writeAsStringSync(generator.compile("MathParser"));
+  //         stdout.writeln("Successfully parsed grammar!");
+  //       case _:
+  //         stdout.writeln(grammar.reportFailures());
+  //     }
+  //   }
+  // }
 
   if (MathParser() case MathParser parser) {
     stdout.writeln(parser.parse("1 + 2 * 3"));

@@ -82,11 +82,11 @@ final class ParserGenerator {
                 rules[resolvedName] = (type, node);
             }
           case NamespaceStatement(:String name, :List<Statement> children, tag: Tag? declaredTag):
-            for (Statement sub in children) {
+            for (Statement sub in children.reversed) {
               stack.addLast((sub, <String>[...prefix, name], declaredTag ?? tag));
             }
           case NamespaceStatement(name: null, :List<Statement> children, tag: Tag? declaredTag):
-            for (Statement sub in children) {
+            for (Statement sub in children.reversed) {
               stack.addLast((sub, prefix, declaredTag ?? tag));
             }
         }
@@ -118,11 +118,11 @@ final class ParserGenerator {
                 rules[resolvedName] = (type, resolvedNode);
             }
           case NamespaceStatement(:String name, :List<Statement> children, tag: Tag? declaredTag):
-            for (Statement sub in children) {
+            for (Statement sub in children.reversed) {
               stack.addLast((sub, <String>[...prefixes, name], declaredTag ?? tag));
             }
           case NamespaceStatement(name: null, :List<Statement> children, tag: Tag? declaredTag):
-            for (Statement sub in children) {
+            for (Statement sub in children.reversed) {
               stack.addLast((sub, prefixes, declaredTag ?? tag));
             }
         }

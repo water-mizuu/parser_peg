@@ -10,7 +10,7 @@ final _regexps = (
 }
 
 /// A grammar file contains an optional preamble and statements.
-ParserGenerator document = ^ :preamble? statements:_.statement+? $ {
+ParserGenerator document = ^ :preamble? statements:_.sep!{ statement }+? $ {
   ParserGenerator.fromParsed(preamble: preamble, statements: statements)
 };
 
@@ -42,16 +42,16 @@ Node body = `=` :choice `;` { choice };
 /// A namespace is a block of statements which can apply a tag and/or be encapsulated
 ///   under a name.
 Statement namespace =
-  | kw::decorator::fragment name:identifier? `{` statements:_.statement+ `}` {
+  | kw::decorator::fragment name:identifier? `{` statements:_.sep!{ statement }+ `}` {
       NamespaceStatement(name, statements, tag: Tag.fragment)
     }
-  | kw::decorator::rule name:identifier? `{` statements:_.statement+ `}` {
+  | kw::decorator::rule name:identifier? `{` statements:_.sep!{ statement }+ `}` {
       NamespaceStatement(name, statements, tag: Tag.rule)
     }
-  | kw::decorator::inline name:identifier? `{` statements:_.statement+ `}` {
+  | kw::decorator::inline name:identifier? `{` statements:_.sep!{ statement }+ `}` {
       NamespaceStatement(name, statements, tag: Tag.inline)
     }
-  | name:identifier? `{` statements:_.statement+ `}` {
+  | name:identifier? `{` statements:_.sep!{ statement }+ `}` {
       NamespaceStatement(name, statements, tag: null)
     }
   ;
@@ -186,8 +186,8 @@ Node separated =
   | min:number `..` max:number? :atom { CountedNode(min, max, atom) }
   | :number :atom                     { CountedNode(number, number, atom) }
   /// Pegen style separators.
-  | sep:atom DOT expr:atom `+` trailing:`?`? { PlusSeparatedNode(sep, expr, isTrailingAllowed: trailing != null) }
-  | sep:atom DOT expr:atom `*` trailing:`?`? { StarSeparatedNode(sep, expr, isTrailingAllowed: trailing != null) }
+  // | sep:atom DOT expr:atom `+` trailing:`?`? { PlusSeparatedNode(sep, expr, isTrailingAllowed: trailing != null) }
+  // | sep:atom DOT expr:atom `*` trailing:`?`? { StarSeparatedNode(sep, expr, isTrailingAllowed: trailing != null) }
   | postfix
   ;
 
@@ -203,6 +203,7 @@ Node postfix =
 /// A parser that is prefixed.
 ///   Usually with disambiguators such as `and-predicate` and `not-predicate`.
 Node prefix =
+  | `~` prefix @1 { SequenceNode([NotPredicateNode($), const AnyCharacterNode()], choose: 1) }
   | `&` prefix @1 { AndPredicateNode($) }
   | `!` prefix @1 { NotPredicateNode($) }
   | atom
@@ -276,7 +277,7 @@ code {
 
   Node range =  _ range::main _ @1;
   range {
-    Node main = `[` elements:_.element+ `]` { RangeNode(elements.reduce((a, b) => a.union(b))) };
+    Node main = `[` elements:_.sep!{ element }+ `]` { RangeNode(elements.reduce((a, b) => a.union(b))) };
     Set<(int, int)> element =
       | escape
       | l:atom "-" r:atom { {(l.codeUnitAt(0), r.codeUnitAt(0))} }
@@ -300,7 +301,7 @@ dart {
   literal {
     /// Since string literals in [Dart] can be put adjacent, we need to parse while
     ///   there are still string literals.
-    String string = _ _.(string::main { buffer.substring(from, to) })+ _ @1 { $.join() };
+    String string = _ _.sep!{string::main { buffer.substring(from, to) }}+ _ @1 { $.join() };
     String identifier = _ (global::identifier {}) _ @1;
 
     string {
@@ -348,13 +349,13 @@ type {
     ;
 
   String generic = :base `<` :arguments `>` { "$base<$arguments>" };
-  String arguments = `,`.nullable+          { $.join(", ") };
+  String arguments = `,`.sep!{ nullable }+          { $.join(", ") };
 
-  String base = DOT.identifier+ { $.join(".") };
+  String base = DOT.sep!{ identifier }+ { $.join(".") };
 
   @fragment fields {
-    String positional = `,`.field::positional+ { $.join(", ") };
-    String named      = `,`.field::named+      { $.join(", ") };
+    String positional = `,`.sep!{ field::positional }+ { $.join(", ") };
+    String named      = `,`.sep!{ field::named }+      { $.join(", ") };
   }
 
   @fragment field {
@@ -425,6 +426,7 @@ type {
   String `=`   = _ "="  _ @1;
   String `?`   = _ "?"  _ @1;
   String `!`   = _ "!"  _ @1;
+  String `~`   = _ "~"  _ @1;
   String `&`   = _ "&"  _ @1;
   String `*`   = _ "*"  _ @1;
   String `+`   = _ "+"  _ @1;
