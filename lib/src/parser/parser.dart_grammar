@@ -40,6 +40,7 @@ Statement statement =
 
   Node body = `=` :choice `;` { choice };
 }
+
 /// A namespace is a block of statements which can apply a tag and/or be encapsulated
 ///   under a name.
 Statement namespace =
@@ -93,8 +94,8 @@ Statement fragment =
     }
   ;
 
-/// A fragment is a declaration that is faster, but doesn't support left recursion / memoization.
-/// It can be explicitly stated with a `@fragment` keyword.
+/// An inline is a declaration that is inlined in the grammar when possible.
+/// It can be explicitly stated with a `@inline` keyword.
 Statement inline =
   | kw.decorator.inline kw.var :name :body {
       DeclarationStatement(null, name, body, tag: Tag.inline)
@@ -117,26 +118,26 @@ Node choice = `|`? options:`|`..acted { options.length == 1 ? options.single : C
 /// A parser with a bound action.
 Node acted =
   /// An empty inline action means that the parser will only return the recognized substring.
-  | :sequence `{` `}`  () {
-      return InlineActionNode(
+  | :sequence `{` `}` {
+      InlineActionNode(
         sequence,
         "this.buffer.substring(from, to)",
         areIndicesProvided: true,
-      );
+      )
     }
-  | :sequence `{` _ :code.curly _ `}`  () {
-      return InlineActionNode(
+  | :sequence `{` _ :code.curly _ `}` {
+      InlineActionNode(
         sequence,
         curly.trimRight(),
         areIndicesProvided: curly.contains(_regexps.from) && curly.contains(_regexps.to),
-      );
+      )
     }
-  | :sequence `(` `)` `{` _ :code.curly _ `}`  () {
-      return ActionNode(
+  | :sequence `(` `)` `{` _ :code.curly _ `}` {
+      ActionNode(
         sequence,
         curly.trimRight(),
         areIndicesProvided: curly.contains(_regexps.from) && curly.contains(_regexps.to),
-      );
+      )
     }
   | sequence
   ;
@@ -296,16 +297,22 @@ code {
 
   Node range =  _ range.main _ @1;
   range {
-    @inline Node main = `[` elements:_..element+ `]` { RangeNode(elements.reduce((a, b) => a.union(b))) };
+    @inline Node main = _ "[" elements:_..element+ "]" _ { RangeNode(elements.reduce((a, b) => a.union(b))) };
     Set<(int, int)> element =
       | escape
       | l:atom "-" r:atom { {(l.codeUnitAt(0), r.codeUnitAt(0))} }
       | atom              { {($.codeUnitAt(0), $.codeUnitAt(0))} }
       ;
-    Set<(int, int)> escape =
+
+    @inline Set<(int, int)> escape =
+      | " " { {(32, 32)} } // " "
       | \\ r"d" { {(48, 57)} } // 0-9
       | \\ r"w" { {(64 + 1, 64 + 26), (96 + 1, 96 + 26)} } // a-z, A-Z
       | \\ r"s" { {(9, 13), (32, 32)} } // \t, \n, \r, \f, \v, space
+      | regexEscape.newline { {(10, 10)} }
+      | regexEscape.carriageReturn { {(13, 13)} }
+      | regexEscape.tab { {(9, 9)} }
+      | regexEscape.backslash { {(92, 92)} }
       ;
     String atom = \\ . @1 | ~"]";
   }
@@ -313,14 +320,13 @@ code {
   String raw = "`" ~"`"* "`"  @1 { $.join() };
 }
 
-
 /// Rules related to [Dart] expressions.
 dart {
   literal {
     /// Since string literals in [Dart] can be put adjacent, we need to parse while
     ///   there are still string literals.
-    String string = _ _..string.main.flat!()+ _ @1 { $.join() };
-    String identifier = _ global.identifier.flat!() _ @1;
+    String string = _..string.main.flat!()+ { $.join() };
+    String identifier = global.identifier.flat!();
 
     string {
       Object main =
@@ -367,9 +373,9 @@ type {
     ;
 
   @inline {
-    String generic = :base `<` :arguments `>` { "$base<$arguments>" };
-    String arguments = `,`..nullable+  { $.join(", ") };
-    String base = DOT..identifier+ { $.join(".") };
+    String generic   = :base `<` :arguments `>` { "$base<$arguments>" };
+    String arguments = `,`..nullable+   { $.join(", ") };
+    String base      = DOT..identifier+ { $.join(".") };
   }
 
   @fragment fields {
@@ -418,19 +424,21 @@ type {
   }
 
   regexEscape {
-    String backslash       = _ (\\ r"\" @1 { r"\" + $ }) _ @1;
-    String digit           = _ (\\ r"d" @1 { r"\" + $ }) _ @1;
-    String word            = _ (\\ r"w" @1 { r"\" + $ }) _ @1;
-    String space           = _ (\\ r"s" @1 { r"\" + $ }) _ @1;
-    String tab             = _ (\\ r"t" @1 { r"\" + $ }) _ @1;
-    String formFeed        = _ (\\ r"f" @1 { r"\" + $ }) _ @1;
-    String verticalTab     = _ (\\ r"v" @1 { r"\" + $ }) _ @1;
-    String null            = _ (\\ r"0" @1 { r"\" + $ }) _ @1;
-    String control         = _ (\\ r"c" @1 { r"\" + $ }) _ @1;
-    String hex             = _ (\\ r"x" @1 { r"\" + $ }) _ @1;
-    String unicode         = _ (\\ r"u" @1 { r"\" + $ }) _ @1;
-    String unicodeExtended = _ (\\ r"U" @1 { r"\" + $ }) _ @1;
-    String literal         = _ (\\ r"." @1 { r"\" + $ }) _ @1;
+    String backslash       = _ (\\ r"\").flat!() _ @1;
+    String digit           = _ (\\ r"d").flat!() _ @1;
+    String word            = _ (\\ r"w").flat!() _ @1;
+    String space           = _ (\\ r"s").flat!() _ @1;
+    String newline         = _ (\\ r"n").flat!() _ @1;
+    String carriageReturn  = _ (\\ r"r").flat!() _ @1;
+    String tab             = _ (\\ r"t").flat!() _ @1;
+    String formFeed        = _ (\\ r"f").flat!() _ @1;
+    String verticalTab     = _ (\\ r"v").flat!() _ @1;
+    String null            = _ (\\ r"0").flat!() _ @1;
+    String control         = _ (\\ r"c").flat!() _ @1;
+    String hex             = _ (\\ r"x").flat!() _ @1;
+    String unicode         = _ (\\ r"u").flat!() _ @1;
+    String unicodeExtended = _ (\\ r"U").flat!() _ @1;
+    String literal         = _ (\\ r".").flat!() _ @1;
   }
 
   /// Literal tokens
@@ -468,5 +476,5 @@ type {
   String DOLLAR  = _ "$"  _ @1;
 
   /// Layout parser allows comments (like this) and space between parsers.
-  String _  = /(?:(?:\s)|(?:\/{2}.*(?:(?:\r?\n)|(?:$))))*/ { "" };
+  String _ "whitespace" = /(?:(?:\s)|(?:\/{2}.*(?:(?:\r?\n)|(?:$))))*/ { "" };
 }

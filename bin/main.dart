@@ -1,4 +1,3 @@
-// cspell:disable
 import "dart:io";
 
 import "package:parser_peg/src/generator.dart";
