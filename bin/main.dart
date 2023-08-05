@@ -12,12 +12,12 @@ void main(List<String> arguments) {
     if (PegParser() case PegParser grammar) {
       switch (grammar.parse(input)) {
         case ParserGenerator generator:
+          stdout.writeln("Successfully parsed grammar!");
           File("lib/src/parser/parser.dart")
             ..createSync(recursive: true)
             ..writeAsStringSync(generator.compile("PegParser"));
 
-          stdout.writeln(generator.fragments);
-          stdout.writeln("Successfully parsed grammar!");
+          // stdout.writeln(generator.fragments);
         case _:
           stdout.writeln(grammar.reportFailures());
       }

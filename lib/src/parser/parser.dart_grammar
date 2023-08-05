@@ -345,22 +345,22 @@ dart {
   literal {
     /// Since string literals in [Dart] can be put adjacent, we need to parse while
     ///   there are still string literals.
-    String string = _..string.main.flat!()+ { $.join() };
+    String string = _..flat!{ string.body }+ { $.join() };
     String identifier = global.identifier.flat!();
 
     string {
-      @inline main = (
+      @inline body =
         /// Raw string literals
         | "r" '"""' ~'"""'* '"""' { () }
         | "r" "'''" ~"'''"* "'''" { () }
         | "r" '"'   ~'"'*   '"'   { () }
         | "r" "'"   ~"'"*   "'"   { () }
         /// Escaped string literals
-        | '"""' (\\ . @1 | &"$" interpolation | ~'"""')* '"""' { () }
-        | "'''" (\\ . @1 | &"$" interpolation | ~"'''")* "'''" { () }
-        | '"'   (\\ . @1 | &"$" interpolation | ~'"'  )* '"'   { () }
-        | "'"   (\\ . @1 | &"$" interpolation | ~"'"  )* "'"   { () }
-      )*;
+        | '"""' (\\ . @1 | &"$" string.interpolation | ~'"""')* '"""' { () }
+        | "'''" (\\ . @1 | &"$" string.interpolation | ~"'''")* "'''" { () }
+        | '"'   (\\ . @1 | &"$" string.interpolation | ~'"'  )* '"'   { () }
+        | "'"   (\\ . @1 | &"$" string.interpolation | ~"'"  )* "'"   { () }
+        ;
 
       Object interpolation =
         | r"$" "{" balanced "}"
