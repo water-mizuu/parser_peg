@@ -2,7 +2,7 @@
 import "dart:math" as math show pow;
 }
 
-num rule = ^ expr $ @1;
+num rule = ^ ~> expr <~ $;
 
 num expr =
   | :expr _ "+" _ :term { expr + term }
@@ -17,19 +17,16 @@ num term =
   | negative;
 
 num negative =
-  | '-' _ :negative { -negative }
-  | factor
-  ;
+  | "-" _ :negative { -negative }
+  | factor;
 
 num factor =
   | :primary _ "^" _ :factor { math.pow(primary, factor) }
   | primary;
 
-@inline {
-  num primary = "(" _ expr _ ")" @2 | number;
-  num number =
-    | \d+ "." \d+ { double.parse(buffer.substring(from, to)) }
-    | \d+         { int.parse(buffer.substring(from, to)) };
+num primary = "(" _ expr _ ")" @2 | number;
+@inline number =
+  | \d+ "." \d+ { double.parse(buffer.substring(from, to)) }
+  | \d+         { int.parse(buffer.substring(from, to)) };
 
-  _ = /\s*/ { "" };
-}
+_ = \s* { () };

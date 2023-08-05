@@ -6,7 +6,7 @@
 import "dart:collection";
 import "dart:math" as math;
 // PREAMBLE
-import"dart:math"as math show pow;
+import "dart:math" as math show pow;
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -149,9 +149,17 @@ abstract base class _PegParser<R extends Object> {
 
   // ignore: body_might_complete_normally_nullable
   String? matchPattern(Pattern pattern, {bool isReported = true}) {
-    if (pattern.matchAsPrefix(buffer, pos) case Match(:int start, :int end)) {
+    if (_patternMemo[(pattern, this.pos)] case (int pos, String value)) {
+      this.pos = pos;
+      return value;
+    }
+
+    if (pattern.matchAsPrefix(this.buffer, this.pos) case Match(:int start, :int end)) {
+      String result = buffer.substring(start, end);
+      _patternMemo[(pattern, start)] = (end, result);
       this.pos = end;
-      return buffer.substring(start, end);
+
+      return result;
     }
 
     if (isReported) {
@@ -191,6 +199,7 @@ abstract base class _PegParser<R extends Object> {
   final Map<int, _Head<void>> _heads = <int, _Head<void>>{};
   final Queue<_Lr<void>> _lrStack = DoubleLinkedQueue<_Lr<void>>();
   final Map<(_Rule<void>, int), _Memo> _memo = <(_Rule<void>, int), _Memo>{};
+  final Map<(Pattern, int), (int, String)> _patternMemo = <(Pattern, int), (int, String)>{};
 
   late String buffer;
   int pos = 0;
@@ -251,14 +260,153 @@ final class MathParser extends _PegParser<num> {
     }
   }
 
-  /// `global::primary`
-  num? f1() {
+  /// `global::rule`
+  num? r0() {
+    if (this.pos <= 0) {
+      if (this.apply(this.r1) case var $1?) {
+        if (this.pos >= this.buffer.length) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::expr`
+  num? r1() {
+    if (this.pos case var mark) {
+      if (this.apply(this.r1) case var expr?) {
+        if (this.apply(this.r6)! case _) {
+          if (this.matchPattern(_string.$1) case _?) {
+            if (this.apply(this.r6)! case _) {
+              if (this.apply(this.r2) case var term?) {
+                return expr + term;
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.r1) case var expr?) {
+        if (this.apply(this.r6)! case _) {
+          if (this.matchPattern(_string.$2) case _?) {
+            if (this.apply(this.r6)! case _) {
+              if (this.apply(this.r2) case var term?) {
+                return expr - term;
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.r2) case var $?) {
+        return $;
+      }
+    }
+  }
+
+  /// `global::term`
+  num? r2() {
+    if (this.pos case var mark) {
+      if (this.apply(this.r2) case var term?) {
+        if (this.apply(this.r6)! case _) {
+          if (this.matchPattern(_string.$3) case _?) {
+            if (this.apply(this.r6)! case _) {
+              if (this.apply(this.r3) case var negative?) {
+                return term * negative;
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.r2) case var term?) {
+        if (this.apply(this.r6)! case _) {
+          if (this.matchPattern(_string.$4) case _?) {
+            if (this.apply(this.r6)! case _) {
+              if (this.apply(this.r3) case var negative?) {
+                return term / negative;
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.r2) case var term?) {
+        if (this.apply(this.r6)! case _) {
+          if (this.matchPattern(_string.$5) case _?) {
+            if (this.apply(this.r6)! case _) {
+              if (this.apply(this.r3) case var negative?) {
+                return term % negative;
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.r2) case var term?) {
+        if (this.apply(this.r6)! case _) {
+          if (this.matchPattern(_string.$6) case _?) {
+            if (this.apply(this.r6)! case _) {
+              if (this.apply(this.r3) case var negative?) {
+                return term ~/ negative;
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.r3) case var $?) {
+        return $;
+      }
+    }
+  }
+
+  /// `global::negative`
+  num? r3() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$2) case _?) {
-        if (this.fh() case _?) {
+        if (this.apply(this.r6)! case _) {
+          if (this.apply(this.r3) case var negative?) {
+            return -negative;
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.r4) case var $?) {
+        return $;
+      }
+    }
+  }
+
+  /// `global::factor`
+  num? r4() {
+    if (this.pos case var mark) {
+      if (this.apply(this.r5) case var primary?) {
+        if (this.apply(this.r6)! case _) {
+          if (this.matchPattern(_string.$7) case _?) {
+            if (this.apply(this.r6)! case _) {
+              if (this.apply(this.r4) case var factor?) {
+                return math.pow(primary, factor);
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.r5) case var $?) {
+        return $;
+      }
+    }
+  }
+
+  /// `global::primary`
+  num? r5() {
+    if (this.pos case var mark) {
+      if (this.matchPattern(_string.$9) case _?) {
+        if (this.apply(this.r6)! case _) {
           if (this.apply(this.r1) case var $2?) {
-            if (this.fi() case _?) {
-              if (this.matchPattern(_string.$1) case _?) {
+            if (this.apply(this.r6)! case _) {
+              if (this.matchPattern(_string.$8) case _?) {
                 return $2;
               }
             }
@@ -280,7 +428,7 @@ final class MathParser extends _PegParser<num> {
                   break;
                 }
               }
-              if (this.matchPattern(_string.$3) case var $1?) {
+              if (this.matchPattern(_string.$10) case var $1?) {
                 if (matchPattern(_regexp.$1) case var _0?) {
                   if ([_0] case (var $2 && var _loop2)) {
                     for (;;) {
@@ -327,272 +475,36 @@ final class MathParser extends _PegParser<num> {
     }
   }
 
-  /// `fragment0`
-  late final f2 = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment1`
-  late final f3 = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment2`
-  late final f4 = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment3`
-  late final f5 = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment4`
-  late final f6 = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment5`
-  late final f7 = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment6`
-  late final f8 = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment7`
-  late final f9 = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment8`
-  late final fa = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment9`
-  late final fb = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment10`
-  late final fc = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment11`
-  late final fd = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment12`
-  late final fe = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment13`
-  late final ff = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment14`
-  late final fg = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment15`
-  late final fh = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `fragment16`
-  late final fi = () {
-    if (matchPattern(_regexp.$2) case var $?) {
-      return "";
-    }
-  };
-
-  /// `global::rule`
-  num? r0() {
-    if (this.pos case _ when this.pos <= 0) {
-      if (this.apply(this.r1) case var $1?) {
-        if (this.pos case _ when this.pos >= this.buffer.length) {
-          return $1;
-        }
-      }
-    }
-  }
-
-  /// `global::expr`
-  num? r1() {
+  /// `global::_`
+  late final r6 = () {
     if (this.pos case var mark) {
-      if (this.apply(this.r1) case var expr?) {
-        if (this.f2() case _?) {
-          if (this.matchPattern(_string.$4) case _?) {
-            if (this.f3() case _?) {
-              if (this.apply(this.r2) case var term?) {
-                return expr + term;
+      if (matchPattern(_regexp.$2) case var _0) {
+        if ([if (_0 case var _0?) _0] case var _loop2) {
+          if (_loop2.isNotEmpty) {
+            for (;;) {
+              if (this.pos case var mark) {
+                if (matchPattern(_regexp.$2) case var _0?) {
+                  _loop2.add(_0);
+                  continue;
+                }
+                this.pos = mark;
+                break;
               }
             }
+          } else {
+            this.pos = mark;
           }
+          return ();
         }
-      }
-      this.pos = mark;
-      if (this.apply(this.r1) case var expr?) {
-        if (this.f4() case _?) {
-          if (this.matchPattern(_string.$5) case _?) {
-            if (this.f5() case _?) {
-              if (this.apply(this.r2) case var term?) {
-                return expr - term;
-              }
-            }
-          }
-        }
-      }
-      this.pos = mark;
-      if (this.apply(this.r2) case var $?) {
-        return $;
       }
     }
-  }
-
-  /// `global::term`
-  num? r2() {
-    if (this.pos case var mark) {
-      if (this.apply(this.r2) case var term?) {
-        if (this.f6() case _?) {
-          if (this.matchPattern(_string.$6) case _?) {
-            if (this.f7() case _?) {
-              if (this.apply(this.r3) case var negative?) {
-                return term * negative;
-              }
-            }
-          }
-        }
-      }
-      this.pos = mark;
-      if (this.apply(this.r2) case var term?) {
-        if (this.f8() case _?) {
-          if (this.matchPattern(_string.$7) case _?) {
-            if (this.f9() case _?) {
-              if (this.apply(this.r3) case var negative?) {
-                return term / negative;
-              }
-            }
-          }
-        }
-      }
-      this.pos = mark;
-      if (this.apply(this.r2) case var term?) {
-        if (this.fa() case _?) {
-          if (this.matchPattern(_string.$8) case _?) {
-            if (this.fb() case _?) {
-              if (this.apply(this.r3) case var negative?) {
-                return term % negative;
-              }
-            }
-          }
-        }
-      }
-      this.pos = mark;
-      if (this.apply(this.r2) case var term?) {
-        if (this.fc() case _?) {
-          if (this.matchPattern(_string.$9) case _?) {
-            if (this.fd() case _?) {
-              if (this.apply(this.r3) case var negative?) {
-                return term ~/ negative;
-              }
-            }
-          }
-        }
-      }
-      this.pos = mark;
-      if (this.apply(this.r3) case var $?) {
-        return $;
-      }
-    }
-  }
-
-  /// `global::negative`
-  num? r3() {
-    if (this.pos case var mark) {
-      if (this.matchPattern(_string.$5) case _?) {
-        if (this.fe() case _?) {
-          if (this.apply(this.r3) case var negative?) {
-            return -negative;
-          }
-        }
-      }
-      this.pos = mark;
-      if (this.apply(this.r4) case var $?) {
-        return $;
-      }
-    }
-  }
-
-  /// `global::factor`
-  num? r4() {
-    if (this.pos case var mark) {
-      if (this.f1() case var primary?) {
-        if (this.ff() case _?) {
-          if (this.matchPattern(_string.$10) case _?) {
-            if (this.fg() case _?) {
-              if (this.apply(this.r4) case var factor?) {
-                return math.pow(primary, factor);
-              }
-            }
-          }
-        }
-      }
-      this.pos = mark;
-      if (this.f1() case var $?) {
-        return $;
-      }
-    }
-  }
+  };
 
   static final _regexp = (
     RegExp("\\d"),
-    RegExp("\\s*"),
+    RegExp("\\s"),
   );
   static const _string = (
-    ")",
-    "(",
-    ".",
     "+",
     "-",
     "*",
@@ -600,5 +512,8 @@ final class MathParser extends _PegParser<num> {
     "%",
     "~/",
     "^",
+    ")",
+    "(",
+    ".",
   );
 }

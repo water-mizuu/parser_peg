@@ -2525,7 +2525,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
 
   /// `global::document`
   ParserGenerator? r0() {
-    if (this.pos case _ when this.pos <= 0) {
+    if (this.pos <= 0) {
       if (this.apply(this.r1) case var preamble) {
         if (this.apply(this.r2) case var _0?) {
           if ([_0] case (var statements && var _loop2)) {
@@ -2542,7 +2542,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
               }
             }
             if (this.f1j() case _) {
-              if (this.pos case _ when this.pos >= this.buffer.length) {
+              if (this.pos >= this.buffer.length) {
                 return ParserGenerator.fromParsed(preamble: preamble, statements: statements);
               }
             }

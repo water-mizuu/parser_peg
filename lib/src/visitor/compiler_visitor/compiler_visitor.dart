@@ -314,7 +314,11 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
           .indent(3);
       StringBuffer loopBuffer = StringBuffer();
       loopBuffer.writeln("if ([$variableName] case ${withNames.varNames}) {");
-      loopBuffer.writeln("  while (${node.max == null ? "true" : "$containerName.length < ${node.max}"}) {");
+      if (node.max == null) {
+        loopBuffer.writeln("      for (;;) {");
+      } else {
+        loopBuffer.writeln("      while ($containerName.length < ${node.max}) {");
+      }
       loopBuffer.writeln("    if (this.pos case var mark) {");
       loopBuffer.writeln(loopBody);
       loopBuffer.writeln("      this.pos = mark;");
@@ -366,7 +370,11 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
         "case ${withNames.varNames}) {",
       );
       loopBuffer.writeln("    if ($containerName.isNotEmpty) {");
-      loopBuffer.writeln("      while (${node.max == null ? "true" : "$containerName.length < ${node.max}"}) {");
+      if (node.max == null) {
+        loopBuffer.writeln("      for (;;) {");
+      } else {
+        loopBuffer.writeln("      while ($containerName.length < ${node.max}) {");
+      }
       loopBuffer.writeln("        if (this.pos case var mark) {");
       loopBuffer.writeln(loopBody);
       loopBuffer.writeln("          this.pos = mark;");
@@ -913,14 +921,24 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required bool reported,
     required String declarationName,
   }) {
-    List<String> buffer = <String>[
-      "if (this.pos case ${withNames.varNames} when this.pos <= 0) {",
-      if (inner != null) //
-        inner.indent()
-      else
-        "return ${withNames.singleName};".indent(),
-      "}",
-    ];
+    List<String> buffer = switch (withNames.varNames) {
+      "_" => <String>[
+          "if (this.pos <= 0) {",
+          if (inner != null) //
+            inner.indent()
+          else
+            "return ${withNames.singleName};".indent(),
+          "}",
+        ],
+      String names => <String>[
+          "if (this.pos case $names when this.pos <= 0) {",
+          if (inner != null) //
+            inner.indent()
+          else
+            "return ${withNames.singleName};".indent(),
+          "}",
+        ],
+    };
 
     return buffer.join("\n");
   }
@@ -934,14 +952,24 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required bool reported,
     required String declarationName,
   }) {
-    List<String> buffer = <String>[
-      "if (this.pos case ${withNames.varNames} when this.pos >= this.buffer.length) {",
-      if (inner != null) //
-        inner.indent()
-      else
-        "return ${withNames.singleName};".indent(),
-      "}",
-    ];
+    List<String> buffer = switch (withNames.varNames) {
+      "_" => [
+          "if (this.pos >= this.buffer.length) {",
+          if (inner != null) //
+            inner.indent()
+          else
+            "return ${withNames.singleName};".indent(),
+          "}",
+        ],
+      String names => <String>[
+          "if (this.pos case $names when this.pos >= this.buffer.length) {",
+          if (inner != null) //
+            inner.indent()
+          else
+            "return ${withNames.singleName};".indent(),
+          "}",
+        ],
+    };
 
     return buffer.join("\n");
   }
@@ -957,13 +985,24 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
   }) {
     List<String> buffer = <String>[
       "if (pos < buffer.length) {",
-      "  if (buffer[pos] case ${withNames.varNames}) {",
-      "    pos++;",
-      if (inner != null) //
-        inner.indent(2)
-      else
-        "    return ${withNames.singleName};",
-      "  }",
+      ...switch (withNames.varNames) {
+        "_" => [
+            "  pos++;",
+            if (inner != null) //
+              inner.indent()
+            else
+              "  return ${withNames.singleName};",
+          ],
+        String names => [
+            "  if (buffer[pos] case $names) {",
+            "    pos++;",
+            if (inner != null) //
+              inner.indent(2)
+            else
+              "    return ${withNames.singleName};",
+            "  }",
+          ]
+      },
       "}",
     ];
     return buffer.join("\n");
