@@ -31,16 +31,6 @@ Statement statement =
   | rule
   ;
 
-@fragment {
-  String namespaceReference = (identifier ("::" | !".." ".") !mac @0)* { $.join("::") };
-  String namespacedRaw = namespaceReference literal.raw { $0.isEmpty ? $1 : "${$0}::${$1}" };
-  String namespacedIdentifier = namespaceReference identifier { $0.isEmpty ? $1 : "${$0}::${$1}" };
-
-  String name = namespacedRaw | namespacedIdentifier;
-
-  Node body = `=` :choice `;` { choice };
-}
-
 /// A namespace is a block of statements which can apply a tag and/or be encapsulated
 ///   under a name.
 Statement namespace =
@@ -111,9 +101,21 @@ Statement inline =
     }
   ;
 
+/// Shared code between declarations.
+@fragment {
+  String namespaceReference = (identifier ("::" | !".." ".") !mac @0)* { $.join("::") };
+  String namespacedRaw = namespaceReference literal.raw { $0.isEmpty ? $1 : "${$0}::${$1}" };
+  String namespacedIdentifier = namespaceReference identifier { $0.isEmpty ? $1 : "${$0}::${$1}" };
+
+  String name = namespacedRaw | namespacedIdentifier;
+
+  Node body = (`=` | `<-` | `->`) :choice `;` { choice };
+}
+
 /// A choice parser is a parser that tries to match one of the options.
 /// Despite the syntax, the parser is ordered choice.
-Node choice = `|`? options:`|`..acted { options.length == 1 ? options.single : ChoiceNode(options) };
+Node choice =
+  | `|`? options:`|`..acted+ { options.length == 1 ? options.single : ChoiceNode(options) };
 
 /// A parser with a bound action.
 Node acted =
@@ -144,13 +146,21 @@ Node acted =
 
 /// A parser that parses a sequence of parsers.
 ///   By default, a sequence parser returns a [Record] of the results of the parsers.
+/// By specifying which item to keep, the specific item can be returned.
 Node sequence =
-  /// By specifying which item to keep, the specific item can be returned.
-  | body:_..dropped+ `@` :number { body.length == 1 ? body.single : SequenceNode(body, choose: number) }
-  | _..dropped+ { $.length == 1 ? $.single : SequenceNode($, choose: null) }
-  ;
+  | body:_..dropped+ chosen:(`@` ~> number)? { body.length == 1 ? body.single : SequenceNode(body, choose: chosen) };
 
+/// A parser that is prefixed or suffixed by another parser.
 Node dropped =
+  /// The "surround operator".
+  ///   (left) ~> (body) <~ (right)
+  | left:special `~>` body:labeled `<~` right:special { SequenceNode([left, body, right], choose: 1) }
+  /// The "suffix operator".
+  ///   (body) <~ (right)
+  | body:dropped    `<~` dropped:special { SequenceNode([body, dropped], choose: 1) }
+  /// The "prefix operator".
+  ///   (body) <~ (right)
+  | dropped:special `~>` body:dropped { SequenceNode([dropped, body], choose: 1) }
   | labeled
   ;
 
@@ -183,19 +193,22 @@ Node labeled =
 
 Node special =
   /// Parsers with a specific count.
-  | min:number `..` max:number? :macro { CountedNode(min, max, macro) }
-  | :number :macro                     { CountedNode(number, number, macro) }
+  | min:number `..` max:number? body:atom { CountedNode(min, max, body) }
+  | :number body:atom                     { CountedNode(number, number, body) }
   /// Pegen style separators.
-  | sep:callLike `..` expr:callLike `+`? { PlusSeparatedNode(sep, expr, isTrailingAllowed: false) }
-  | sep:callLike `..` expr:callLike `*`  { StarSeparatedNode(sep, expr, isTrailingAllowed: false) }
+  | sep:callLike `..` expr:callLike `+` { PlusSeparatedNode(sep, expr, isTrailingAllowed: false) }
+  | sep:callLike `..` expr:callLike `*` { StarSeparatedNode(sep, expr, isTrailingAllowed: false) }
   | postfix
   ;
 
 /// A parser that is quantified.
 ///   Can be nested, but shouldn't be used in practice.
 Node postfix =
+  /// An optional parser, representing a parser that can be repeated zero or one times.
   | postfix `?` @0 { OptionalNode($) }
+  /// Kleene-star, representing a parser that can be repeated zero or more times.
   | postfix `*` @0 { StarNode($) }
+  /// Kleene-plus, representing a parser that can be repeated one or more times.
   | postfix `+` @0 { PlusNode($) }
   | prefix
   ;
@@ -203,8 +216,11 @@ Node postfix =
 /// A parser that is prefixed.
 ///   Usually with disambiguators such as `and-predicate` and `not-predicate`.
 Node prefix =
+  /// A parser that is only matched if the following parser fails.
   | `~` prefix @1 { SequenceNode([NotPredicateNode($), const AnyCharacterNode()], choose: 1) }
+  /// A parser that only returns a boolean, succeeding when the parser succeeds.
   | `&` prefix @1 { AndPredicateNode($) }
+  /// A parser that only returns a boolean, succeeding when the parser fails.
   | `!` prefix @1 { NotPredicateNode($) }
   | callLike
   ;
@@ -214,67 +230,59 @@ Node prefix =
 Node callLike =
   /// Flattens a parser result.
   ///   a.flat!()
-  | target:callLike DOT mac.flat `(`  `)` {
+  | target:callLike `.` mac.flat `(`  `)` {
       InlineActionNode(target, "this.buffer.substring(from, to)", areIndicesProvided: true)
     }
   /// Expects a number of results.
   ///  a.range!(2, 4)
+  | target:callLike `.` mac.range `(` min:number `,` max:number `)` { CountedNode(min, max, target) }
   ///  a.range!(2)
+  | target:callLike `.` mac.range `(` :number `)`                   { CountedNode(number, number, target) }
   ///  a.range! 2
-  | target:callLike DOT mac.range `(` min:number `,` max:number `)` { CountedNode(min, max, target) }
-  | target:callLike DOT mac.range `(` :number `)`                   { CountedNode(number, number, target) }
-  | target:callLike DOT mac.range  _  :number  _                    { CountedNode(number, number, target) }
+  | target:callLike `.` mac.range  _  :number  _                    { CountedNode(number, number, target) }
   /// Separates a parser by a separator.
+  ///
   ///  a.sep! b
-  | sep:callLike DOT mac.sep `(` body:choice `)` `+` `?` { PlusSeparatedNode(sep, body, isTrailingAllowed: true)  }
-  | sep:callLike DOT mac.sep `(` body:choice `)` `*` `?` { StarSeparatedNode(sep, body, isTrailingAllowed: true)  }
-  | sep:callLike DOT mac.sep `(` body:choice `)` `+`     { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | sep:callLike DOT mac.sep `(` body:choice `)` `*`     { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | sep:callLike DOT mac.sep `(` body:choice `)`         { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | sep:callLike DOT mac.sep  _  body:macro   _          { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | macro
-  ;
-
-
-/// Parsers that look like macro invocations.
-/// Must be delimited.
-Node macro =
-  /// Macro flat.
-  /// flat!{ expr }
-  | mac.flat `{` body:choice `}` {
-      InlineActionNode(body, "this.buffer.substring(from, to)", areIndicesProvided: true)
-    }
-  /// Macro ranges.
-  /// range!(2, 4) { expr }
-  /// range!(2, .) { expr }
-  /// range!(2) { expr }
-  | mac.range `(` min:number `,` max:number `)` `{` body:choice `}` { CountedNode(min, max, body)       }
-  | mac.range `(` min:number `,` `.` `)` `{` body:choice `}`        { CountedNode(min, null, body)      }
-  | mac.range `(` :number `)` `{` body:choice `}`                   { CountedNode(number, number, body) }
-  /// Macro style separators.
-  /// sep!{"," => expr}
-  | mac.sep `(` `+` `?` `)` `{` sep:macro `=>` body:macro `}` { PlusSeparatedNode(sep, body, isTrailingAllowed: true) }
-  | mac.sep `(` `*` `?` `)` `{` sep:macro `=>` body:macro `}` { StarSeparatedNode(sep, body, isTrailingAllowed: true) }
-  | mac.sep `(` `+` `)` `{` sep:macro `=>` body:macro `}`    { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | mac.sep `(` `*` `)` `{` sep:macro `=>` body:macro `}`    { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | mac.sep `{` sep:macro `=>` body:macro `}`                { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:callLike `.` mac.sep `(` body:choice `)` `+` `?` { PlusSeparatedNode(sep, body, isTrailingAllowed: true)  }
+  | sep:callLike `.` mac.sep `(` body:choice `)` `*` `?` { StarSeparatedNode(sep, body, isTrailingAllowed: true)  }
+  | sep:callLike `.` mac.sep `(` body:choice `)` `+`     { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:callLike `.` mac.sep `(` body:choice `)` `*`     { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:callLike `.` mac.sep `(` body:choice `)`         { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:callLike `.` mac.sep  _  body:atom   _          { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
   | atom
   ;
+
 
 /// A parser that can be qualified as a group.
 ///   These are usually parsers that are delimited.
 Node atom =
   /// Basic atomic parsers.
-  | `(` choice `)` @1
+  | `(` ~> choice <~ `)`
   /// Special syntax for character classes.
-  | (CARET   | kw.start)     { const StartOfInputNode() }
-  | (DOLLAR  | kw.end)       { const EndOfInputNode() }
-  | (DOT     | kw.any)       { const AnyCharacterNode() }
-  | (EPSILON | kw.epsilon)   { const EpsilonNode() }
+  | (`^` | kw.start)     { const StartOfInputNode() }
+  | (`$` | kw.end)       { const EndOfInputNode() }
+  | (`.` | kw.any)       { const AnyCharacterNode() }
+  | (`ε` | kw.epsilon)   { const EpsilonNode() }
   /// TODO: Add regex backslash symbols.
-  | regexEscape.backslash { const StringLiteralNode(r"\") }
-  | regexEscape.digit     { SimpleRegExpEscapeNode.digit }
-  | regexEscape.space     { SimpleRegExpEscapeNode.whitespace }
+  | regexEscape.backslash  { const StringLiteralNode(r"\") }
+
+  /// Basics
+  | regexEscape.digit      { SimpleRegExpEscapeNode.digit }
+  | regexEscape.word       { SimpleRegExpEscapeNode.word }
+  | regexEscape.whitespace { SimpleRegExpEscapeNode.whitespace }
+
+  /// Inverses
+  | regexEscape.notDigit      { SimpleRegExpEscapeNode.notDigit }
+  | regexEscape.notWord       { SimpleRegExpEscapeNode.notWord }
+  | regexEscape.notWhitespace { SimpleRegExpEscapeNode.notWhitespace }
+
+  /// Spaces
+  | regexEscape.tab            { SimpleRegExpEscapeNode.tab }
+  | regexEscape.newline        { SimpleRegExpEscapeNode.newline }
+  | regexEscape.carriageReturn { SimpleRegExpEscapeNode.carriageReturn }
+  | regexEscape.formFeed       { SimpleRegExpEscapeNode.formFeed }
+  | regexEscape.verticalTab    { SimpleRegExpEscapeNode.verticalTab }
+
   /// Basic literals.
   | literal.range
   | literal.regexp { RegExpNode($) }
@@ -326,9 +334,9 @@ code {
 
     @inline Set<(int, int)> escape =
       | " " { {(32, 32)} } // " "
-      | \\ r"d" { {(48, 57)} } // 0-9
-      | \\ r"w" { {(64 + 1, 64 + 26), (96 + 1, 96 + 26)} } // a-z, A-Z
-      | \\ r"s" { {(9, 13), (32, 32)} } // \t, \n, \r, \f, \v, space
+      | regexEscape.digit { {(48, 57)} } // 0-9
+      | regexEscape.word { {(64 + 1, 64 + 26), (96 + 1, 96 + 26)} } // a-z, A-Z
+      | regexEscape.whitespace { {(9, 13), (32, 32)} } // \t, \n, \r, \f, \v, space
       | regexEscape.newline { {(10, 10)} }
       | regexEscape.carriageReturn { {(13, 13)} }
       | regexEscape.tab { {(9, 9)} }
@@ -345,7 +353,7 @@ dart {
   literal {
     /// Since string literals in [Dart] can be put adjacent, we need to parse while
     ///   there are still string literals.
-    String string = _..flat!{ string.body }+ { $.join() };
+    String string = _..string.body.flat!()+ { $.join(" ") };
     String identifier = global.identifier.flat!();
 
     string {
@@ -373,9 +381,9 @@ dart {
 
 /// Rules related to types declarations.
 type {
-  String main        = _ raw _ @1 | nonNullable;
+  String main        = _ ~> raw <~ _ | nonNullable;
   String nullable    = _ :nonNullable _ `?`? { $3 == null ? "$nonNullable" : "$nonNullable?" };
-  String nonNullable = _ (generic | record | base) _ @1;
+  String nonNullable = _ ~> (generic | record | base) <~ _;
 
   /// A record type.
   ///   The fields can be positional or named.
@@ -395,7 +403,7 @@ type {
   @inline {
     String generic   = :base `<` :arguments `>` { "$base<$arguments>" };
     String arguments = `,`..nullable+   { $.join(", ") };
-    String base      = DOT..identifier+ { $.join(".") };
+    String base      = `.`..identifier+ { $.join(".") };
   }
 
   @fragment fields {
@@ -443,65 +451,67 @@ type {
     String sep   = _ "sep!"   _ @1;
   }
 
-  regexEscape {
-    String backslash       = _ (\\ r"\").flat!() _ @1;
-    String digit           = _ (\\ r"d").flat!() _ @1;
-    String word            = _ (\\ r"w").flat!() _ @1;
-    String space           = _ (\\ r"s").flat!() _ @1;
-    String newline         = _ (\\ r"n").flat!() _ @1;
-    String carriageReturn  = _ (\\ r"r").flat!() _ @1;
-    String tab             = _ (\\ r"t").flat!() _ @1;
-    String formFeed        = _ (\\ r"f").flat!() _ @1;
-    String verticalTab     = _ (\\ r"v").flat!() _ @1;
-    String null            = _ (\\ r"0").flat!() _ @1;
-    String control         = _ (\\ r"c").flat!() _ @1;
-    String hex             = _ (\\ r"x").flat!() _ @1;
-    String unicode         = _ (\\ r"u").flat!() _ @1;
-    String unicodeExtended = _ (\\ r"U").flat!() _ @1;
-    String literal         = _ (\\ r".").flat!() _ @1;
+  @inline regexEscape {
+    String backslash       = _ ~> (\\ r"\").flat!() <~ _;
+
+    String digit           = _ ~> (\\ r"d").flat!() <~ _;
+    String word            = _ ~> (\\ r"w").flat!() <~ _;
+    String whitespace      = _ ~> (\\ r"s").flat!() <~ _;
+
+    String notDigit        = _ ~> (\\ r"d").flat!() <~ _;
+    String notWord         = _ ~> (\\ r"w").flat!() <~ _;
+    String notWhitespace   = _ ~> (\\ r"s").flat!() <~ _;
+
+    String newline         = _ ~> (\\ r"n").flat!() <~ _;
+    String carriageReturn  = _ ~> (\\ r"r").flat!() <~ _;
+    String tab             = _ ~> (\\ r"t").flat!() <~ _;
+    String formFeed        = _ ~> (\\ r"f").flat!() <~ _;
+    String verticalTab     = _ ~> (\\ r"v").flat!() <~ _;
+    String null            = _ ~> (\\ r"0").flat!() <~ _;
+    String control         = _ ~> (\\ r"c").flat!() <~ _;
+    String hex             = _ ~> (\\ r"x").flat!() <~ _;
+    String unicode         = _ ~> (\\ r"u").flat!() <~ _;
+    String unicodeExtended = _ ~> (\\ r"U").flat!() <~ _;
+    String literal         = _ ~> (\\ r".").flat!() <~ _;
   }
 
   /// Literal tokens
-  String `..`  = _ ".." _ @1;
-  String `::`  = _ "::" _ @1;
-  String `%%`  = _ "%%" _ @1;
-  String `=>`  = _ "=>" _ @1;
-  String `->`  = _ "->" _ @1;
+  String `..`  = _ ~> ".." <~ _;
+  String `::`  = _ ~> "::" <~ _;
+  String `%%`  = _ ~> "%%" <~ _;
+  String `=>`  = _ ~> "=>" <~ _;
+  String `<-`  = _ ~> "<-" <~ _;
+  String `->`  = _ ~> "->" <~ _;
+  String `~>`  = _ ~> "~>" <~ _;
+  String `<~`  = _ ~> "<~" <~ _;
 
-  String `%`   = _ "%"  _ @1;
-  String `@`   = _ "@"  _ @1;
-  String `<`   = _ "<"  _ @1;
-  String `>`   = _ ">"  _ @1;
-  String `]`   = _ "]"  _ @1;
-  String `[`   = _ "["  _ @1;
-  String `}`   = _ "}"  _ @1;
-  String `{`   = _ "{"  _ @1;
-  String `)`   = _ ")"  _ @1;
-  String `(`   = _ "("  _ @1;
-  String `;`   = _ ";"  _ @1;
-  String `=`   = _ "="  _ @1;
-  String `?`   = _ "?"  _ @1;
-  String `!`   = _ "!"  _ @1;
-  String `~`   = _ "~"  _ @1;
-  String `&`   = _ "&"  _ @1;
-  String `*`   = _ "*"  _ @1;
-  String `+`   = _ "+"  _ @1;
-  String `,`   = _ ","  _ @1;
-  String `:`   = _ ":"  _ @1;
-  String `|`   = _ "|"  _ @1;
-  String `/`   = _ "/"  _ @1;
+  String `%`   = _ ~> "%" <~ _;
+  String `@`   = _ ~> "@" <~ _;
+  String `<`   = _ ~> "<" <~ _;
+  String `>`   = _ ~> ">" <~ _;
+  String `]`   = _ ~> "]" <~ _;
+  String `[`   = _ ~> "[" <~ _;
+  String `}`   = _ ~> "}" <~ _;
+  String `{`   = _ ~> "{" <~ _;
+  String `)`   = _ ~> ")" <~ _;
+  String `(`   = _ ~> "(" <~ _;
+  String `;`   = _ ~> ";" <~ _;
+  String `=`   = _ ~> "=" <~ _;
+  String `?`   = _ ~> "?" <~ _;
+  String `!`   = _ ~> "!" <~ _;
+  String `~`   = _ ~> "~" <~ _;
+  String `&`   = _ ~> "&" <~ _;
+  String `*`   = _ ~> "*" <~ _;
+  String `+`   = _ ~> "+" <~ _;
+  String `,`   = _ ~> "," <~ _;
+  String `:`   = _ ~> ":" <~ _;
+  String `|`   = _ ~> "|" <~ _;
+  String `/`   = _ ~> "/" <~ _;
 
-  String `.` = _ "."  _ @1;
-  String `ε` = _ "ε"  _ @1;
-  String `^` = _ "^"  _ @1;
-  String `$` = _ "$"  _ @1;
-
-  @inline {
-    DOT = `.`;
-    EPSILON = `ε`;
-    CARET = `^`;
-    DOLLAR = `$`;
-  }
+  String `.` = _ ~> "." <~ _;
+  String `ε` = _ ~> "ε" <~ _;
+  String `^` = _ ~> "^" <~ _;
+  String `$` = _ ~> "$" <~ _;
 
   /// Layout parser allows comments (like this) and space between parsers.
   /// Regular Expression monster:

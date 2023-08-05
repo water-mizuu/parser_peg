@@ -226,7 +226,7 @@ enum SimpleRegExpEscapeNode implements RegExpEscapeNode {
 
   /// Spaces
   tab(r"\t"),
-  newLine(r"\n"),
+  newline(r"\n"),
   carriageReturn(r"\r"),
   formFeed(r"\f"),
   verticalTab(r"\v"),
