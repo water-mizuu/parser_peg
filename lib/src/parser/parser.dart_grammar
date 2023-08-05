@@ -183,8 +183,8 @@ Node labeled =
 
 Node special =
   /// Parsers with a specific count.
-  | min:number `..` max:number? :atom { CountedNode(min, max, atom) }
-  | :number :atom                     { CountedNode(number, number, atom) }
+  | min:number `..` max:number? :macro { CountedNode(min, max, macro) }
+  | :number :macro                     { CountedNode(number, number, macro) }
   /// Pegen style separators.
   | sep:callLike `..` expr:callLike `+`? { PlusSeparatedNode(sep, expr, isTrailingAllowed: false) }
   | sep:callLike `..` expr:callLike `*`  { StarSeparatedNode(sep, expr, isTrailingAllowed: false) }
@@ -223,27 +223,47 @@ Node callLike =
   ///  a.range! 2
   | target:callLike DOT mac.range `(` min:number `,` max:number `)` { CountedNode(min, max, target) }
   | target:callLike DOT mac.range `(` :number `)`                   { CountedNode(number, number, target) }
-  | target:callLike DOT mac.range   _ :number _                     { CountedNode(number, number, target) }
+  | target:callLike DOT mac.range  _  :number  _                    { CountedNode(number, number, target) }
   /// Separates a parser by a separator.
   ///  a.sep! b
   | sep:callLike DOT mac.sep `(` body:choice `)` `+` `?` { PlusSeparatedNode(sep, body, isTrailingAllowed: true)  }
-  | sep:callLike DOT mac.sep `(` body:choice `)` `+`     { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
   | sep:callLike DOT mac.sep `(` body:choice `)` `*` `?` { StarSeparatedNode(sep, body, isTrailingAllowed: true)  }
+  | sep:callLike DOT mac.sep `(` body:choice `)` `+`     { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
   | sep:callLike DOT mac.sep `(` body:choice `)` `*`     { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
   | sep:callLike DOT mac.sep `(` body:choice `)`         { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | sep:callLike DOT mac.sep _ body:atom _               { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:callLike DOT mac.sep  _ body:macro    _          { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | macro
+  ;
+
+
+/// Parsers that look like macro invocations.
+/// Must be delimited.
+Node macro =
+  /// Macro flat.
+  /// flat!{ expr }
+  | mac.flat `{` body:choice `}` {
+      InlineActionNode(body, "this.buffer.substring(from, to)", areIndicesProvided: true)
+    }
+  /// Macro ranges.
+  /// range!(2, 4) { expr }
+  /// range!(2, .) { expr }
+  /// range!(2) { expr }
+  | mac.range `(` min:number `,` max:number `)` `{` body:choice `}` { CountedNode(min, max, body)       }
+  | mac.range `(` min:number `,` `.` `)` `{` body:choice `}`        { CountedNode(min, null, body)      }
+  | mac.range `(` :number `)` `{` body:choice `}`                   { CountedNode(number, number, body) }
+  /// Macro style separators.
+  /// sep!{"," => expr}
+  | mac.sep `(` `+` `?` `)` `{` sep:macro `=>` body:macro `}` { PlusSeparatedNode(sep, body, isTrailingAllowed: true) }
+  | mac.sep `(` `*` `?` `)` `{` sep:macro `=>` body:macro `}` { StarSeparatedNode(sep, body, isTrailingAllowed: true) }
+  | mac.sep `(` `+` `)` `{` sep:macro `=>` body:macro `}`    { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | mac.sep `(` `*` `)` `{` sep:macro `=>` body:macro `}`    { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | mac.sep `{` sep:macro `=>` body:macro `}`                { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
   | atom
   ;
 
 /// A parser that can be qualified as a group.
 ///   These are usually parsers that are delimited.
 Node atom =
-  /// "Macro" style separators.
-  | mac.sep `(` `+` `?` `)` `{` sep:atom _ body:atom `}` { PlusSeparatedNode(sep, body, isTrailingAllowed: true) }
-  | mac.sep `(` `*` `?` `)` `{` sep:atom _ body:atom `}` { StarSeparatedNode(sep, body, isTrailingAllowed: true) }
-  | mac.sep `(` `+` `)` `{` sep:atom _ body:atom `}`     { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | mac.sep `(` `*` `)` `{` sep:atom _ body:atom `}`     { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | mac.sep `{` sep:atom _ body:atom `}`                 { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
   /// Basic atomic parsers.
   | `(` choice `)` @1
   /// Special syntax for character classes.
@@ -329,18 +349,18 @@ dart {
     String identifier = global.identifier.flat!();
 
     string {
-      Object main =
+      @inline main = (
         /// Raw string literals
-        | "r" '"""' ~'"""'* '"""'
-        | "r" "'''" ~"'''"* "'''"
-        | "r" '"'   ~'"'* '"'
-        | "r" "'"   ~"'"* "'"
+        | "r" '"""' ~'"""'* '"""' { () }
+        | "r" "'''" ~"'''"* "'''" { () }
+        | "r" '"'   ~'"'*   '"'   { () }
+        | "r" "'"   ~"'"*   "'"   { () }
         /// Escaped string literals
-        | '"""' (\\ . @1 | &"$" interpolation | ~'"""')* '"""'
-        | "'''" (\\ . @1 | &"$" interpolation | ~"'''")* "'''"
-        | '"'   (\\ . @1 | &"$" interpolation | ~'"'  )* '"'
-        | "'"   (\\ . @1 | &"$" interpolation | ~"'"  )* "'"
-        ;
+        | '"""' (\\ . @1 | &"$" interpolation | ~'"""')* '"""' { () }
+        | "'''" (\\ . @1 | &"$" interpolation | ~"'''")* "'''" { () }
+        | '"'   (\\ . @1 | &"$" interpolation | ~'"'  )* '"'   { () }
+        | "'"   (\\ . @1 | &"$" interpolation | ~"'"  )* "'"   { () }
+      )*;
 
       Object interpolation =
         | r"$" "{" balanced "}"
@@ -446,6 +466,7 @@ type {
   String `::`  = _ "::" _ @1;
   String `%%`  = _ "%%" _ @1;
   String `=>`  = _ "=>" _ @1;
+  String `->`  = _ "->" _ @1;
 
   String `%`   = _ "%"  _ @1;
   String `@`   = _ "@"  _ @1;
@@ -470,11 +491,23 @@ type {
   String `|`   = _ "|"  _ @1;
   String `/`   = _ "/"  _ @1;
 
-  String DOT     = _ "."  _ @1;
-  String EPSILON = _ "ε"  _ @1;
-  String CARET   = _ "^"  _ @1;
-  String DOLLAR  = _ "$"  _ @1;
+  String `.` = _ "."  _ @1;
+  String `ε` = _ "ε"  _ @1;
+  String `^` = _ "^"  _ @1;
+  String `$` = _ "$"  _ @1;
+
+  @inline {
+    DOT = `.`;
+    EPSILON = `ε`;
+    CARET = `^`;
+    DOLLAR = `$`;
+  }
 
   /// Layout parser allows comments (like this) and space between parsers.
-  String _ "whitespace" = /(?:(?:\s)|(?:\/{2}.*(?:(?:\r?\n)|(?:$))))*/ { "" };
+  /// Regular Expression monster:
+  ///   Split into three parts.
+  ///   1. `(?:\s)` - Matches any whitespace character.
+  ///   2. `(?:\/{2}.*(?:(?:\r?\n)|(?:$)))` - Matches a single line comment.
+  ///   3. `(?:\/\*(?:(?!\*\/).)*\*\/)` - Matches a multi-line comment.
+  String _ = /(?:(?:\s)|(?:\/{2}.*(?:(?:\r?\n)|(?:$)))|(?:\/\*(?:(?!\*\/).)*\*\/))*/ { "" };
 }
