@@ -59,10 +59,10 @@ Statement rule =
   | kw.decorator.rule? :name :body {
       DeclarationStatement(null, name, body, tag: $0 == null ? null : Tag.rule)
     }
-  | kw.decorator.rule? type:(type.main) :name :body {
+  | kw.decorator.rule? :type :name :body {
       DeclarationStatement(type, name, body, tag: $0 == null ? null : Tag.rule)
     }
-  | kw.decorator.rule? :name `:` type:(type.main) :body {
+  | kw.decorator.rule? :name `:` :type :body {
       DeclarationStatement(type, name, body, tag: $0 == null ? null : Tag.rule)
     }
   ;
@@ -76,10 +76,10 @@ Statement fragment =
   | kw.decorator.fragment :name :body {
       DeclarationStatement(null, name, body, tag: Tag.fragment)
     }
-  | kw.decorator.fragment type:(type.main) :name :body {
+  | kw.decorator.fragment :type :name :body {
       DeclarationStatement(type, name, body, tag: Tag.fragment)
     }
-  | kw.decorator.fragment :name `:` type:(type.main) :body {
+  | kw.decorator.fragment :name `:` :type :body {
       DeclarationStatement(type, name, body, tag: Tag.fragment)
     }
   ;
@@ -93,16 +93,19 @@ Statement inline =
   | kw.decorator.inline :name :body {
       DeclarationStatement(null, name, body, tag: Tag.inline)
     }
-  | kw.decorator.inline type:(type.main) :name :body {
+  | kw.decorator.inline :type :name :body {
       DeclarationStatement(type, name, body, tag: Tag.inline)
     }
-  | kw.decorator.inline :name `:` type:(type.main) :body {
+  | kw.decorator.inline :name `:` :type :body {
       DeclarationStatement(type, name, body, tag: Tag.inline)
     }
   ;
 
 /// Shared code between declarations.
 @fragment {
+  /// Rules related to types declarations.
+  String type = _ ~> raw <~ _ | dart.literal.type.main;
+
   String namespaceReference = (identifier ("::" | !".." ".") !mac @0)* { $.join("::") };
   String namespacedRaw = namespaceReference literal.raw { $0.isEmpty ? $1 : "${$0}::${$1}" };
   String namespacedIdentifier = namespaceReference identifier { $0.isEmpty ? $1 : "${$0}::${$1}" };
@@ -114,19 +117,10 @@ Statement inline =
 
 /// A choice parser is a parser that tries to match one of the options.
 /// Despite the syntax, the parser is ordered choice.
-Node choice =
-  | `|`? options:`|`..acted+ { options.length == 1 ? options.single : ChoiceNode(options) };
+Node choice = `|`? options:`|`..acted+ { options.length == 1 ? options.single : ChoiceNode(options) };
 
 /// A parser with a bound action.
 Node acted =
-  /// An empty inline action means that the parser will only return the recognized substring.
-  | :sequence `{` `}` {
-      InlineActionNode(
-        sequence,
-        "this.buffer.substring(from, to)",
-        areIndicesProvided: true,
-      )
-    }
   | :sequence `{` _ :code.curly _ `}` {
       InlineActionNode(
         sequence,
@@ -157,7 +151,7 @@ Node dropped =
   | left:special `~>` body:labeled `<~` right:special { SequenceNode([left, body, right], choose: 1) }
   /// The "suffix operator".
   ///   (body) <~ (right)
-  | body:dropped    `<~` dropped:special { SequenceNode([body, dropped], choose: 1) }
+  | body:dropped `<~` dropped:special { SequenceNode([body, dropped], choose: 1) }
   /// The "prefix operator".
   ///   (body) <~ (right)
   | dropped:special `~>` body:dropped { SequenceNode([dropped, body], choose: 1) }
@@ -187,7 +181,6 @@ Node labeled =
       (var ref, [..., var name]) => NamedNode(name, ReferenceNode(ref)),
       _ => null,
     } }
-  /// Fallback
   | special
   ;
 
@@ -245,10 +238,10 @@ Node callLike =
   ///  a.sep! b
   | sep:callLike `.` mac.sep `(` body:choice `)` `+` `?` { PlusSeparatedNode(sep, body, isTrailingAllowed: true)  }
   | sep:callLike `.` mac.sep `(` body:choice `)` `*` `?` { StarSeparatedNode(sep, body, isTrailingAllowed: true)  }
-  | sep:callLike `.` mac.sep `(` body:choice `)` `+`     { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | sep:callLike `.` mac.sep `(` body:choice `)` `*`     { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | sep:callLike `.` mac.sep `(` body:choice `)`         { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
-  | sep:callLike `.` mac.sep  _  body:atom   _          { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:callLike `.` mac.sep `(` body:choice `)` `+` { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:callLike `.` mac.sep `(` body:choice `)` `*` { StarSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:callLike `.` mac.sep `(` body:choice `)` { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
+  | sep:callLike `.` mac.sep  _  body:atom   _ { PlusSeparatedNode(sep, body, isTrailingAllowed: false) }
   | atom
   ;
 
@@ -376,44 +369,42 @@ dart {
         ;
       Object balanced = code:("{" balanced "}" @1 | ~("{" | "}"))*;
     }
-  }
-}
 
-/// Rules related to types declarations.
-type {
-  String main        = _ ~> raw <~ _ | nonNullable;
-  String nullable    = _ :nonNullable _ `?`? { $3 == null ? "$nonNullable" : "$nonNullable?" };
-  String nonNullable = _ ~> (generic | record | base) <~ _;
+    type {
+      String main = _ ~> nullable <~ _;
+      String nullable = :nonNullable `?`? { $1 == null ? "$nonNullable" : "$nonNullable?" };
+      String nonNullable = generic | record | base;
 
-  /// A record type.
-  ///   The fields can be positional or named.
-  ///   The fields are special by commas.
-  String record =
-    | `(` (`{` fields.named `}` @1)? `)` {
-        "(" + ($1 == null ? "" : "{" + $1 + "}") + ")"
+      /// A record type.
+      ///   The fields can be positional or named.
+      ///   The fields are special by commas.
+      String record =
+        | `(` (`{` fields.named `}` @1)? `)` {
+            "(" + ($1 == null ? "" : "{" + $1 + "}") + ")"
+          }
+        | `(` field.positional `,` (`{` fields.named `}` @1)? `)` {
+            "(" + $1 + ", " + ($3 == null ? "" : "{" + $3 + "}") + ")"
+          }
+        | `(` fields.positional (`,` `{` fields.named `}` @2)? `)` {
+            "(" + $1 + ($2 == null ? "" : ", {" + $2 + "}") + ")"
+          }
+        ;
+
+      @inline {
+        String generic   = :base `<` :arguments `>` { "$base<$arguments>" };
+        String arguments = `,`..nullable+   { $.join(", ") };
+        String base      = `.`..identifier+ { $.join(".") };
       }
-    | `(` field.positional `,` (`{` fields.named `}` @1)? `)` {
-        "(" + $1 + ", " + ($3 == null ? "" : "{" + $3 + "}") + ")"
+
+      @fragment fields {
+        String positional = `,`..field.positional+ { $.join(", ") };
+        String named      = `,`..field.named+      { $.join(", ") };
       }
-    | `(` fields.positional (`,` `{` fields.named `}` @2)? `)` {
-        "(" + $1 + ($2 == null ? "" : ", {" + $2 + "}") + ")"
-      }
-    ;
 
-  @inline {
-    String generic   = :base `<` :arguments `>` { "$base<$arguments>" };
-    String arguments = `,`..nullable+   { $.join(", ") };
-    String base      = `.`..identifier+ { $.join(".") };
-  }
-
-  @fragment fields {
-    String positional = `,`..field.positional+ { $.join(", ") };
-    String named      = `,`..field.named+      { $.join(", ") };
-  }
-
-  @inline field {
-    String positional = nullable _ identifier? { "${$0} ${$2 ?? ""}".trimRight() };
-    String named      = nullable _ identifier  { "${$0} ${$2}" };
+      @inline field {
+        String positional = nullable _ identifier? { "${$0} ${$2 ?? ""}".trimRight() };
+        String named      = nullable _ identifier  { "${$0} ${$2}" };
+      }}
   }
 }
 
@@ -485,28 +476,28 @@ type {
   String `~>`  = _ ~> "~>" <~ _;
   String `<~`  = _ ~> "<~" <~ _;
 
-  String `%`   = _ ~> "%" <~ _;
-  String `@`   = _ ~> "@" <~ _;
-  String `<`   = _ ~> "<" <~ _;
-  String `>`   = _ ~> ">" <~ _;
-  String `]`   = _ ~> "]" <~ _;
-  String `[`   = _ ~> "[" <~ _;
-  String `}`   = _ ~> "}" <~ _;
-  String `{`   = _ ~> "{" <~ _;
-  String `)`   = _ ~> ")" <~ _;
-  String `(`   = _ ~> "(" <~ _;
-  String `;`   = _ ~> ";" <~ _;
-  String `=`   = _ ~> "=" <~ _;
-  String `?`   = _ ~> "?" <~ _;
-  String `!`   = _ ~> "!" <~ _;
-  String `~`   = _ ~> "~" <~ _;
-  String `&`   = _ ~> "&" <~ _;
-  String `*`   = _ ~> "*" <~ _;
-  String `+`   = _ ~> "+" <~ _;
-  String `,`   = _ ~> "," <~ _;
-  String `:`   = _ ~> ":" <~ _;
-  String `|`   = _ ~> "|" <~ _;
-  String `/`   = _ ~> "/" <~ _;
+  String `%` = _ ~> "%" <~ _;
+  String `@` = _ ~> "@" <~ _;
+  String `<` = _ ~> "<" <~ _;
+  String `>` = _ ~> ">" <~ _;
+  String `]` = _ ~> "]" <~ _;
+  String `[` = _ ~> "[" <~ _;
+  String `}` = _ ~> "}" <~ _;
+  String `{` = _ ~> "{" <~ _;
+  String `)` = _ ~> ")" <~ _;
+  String `(` = _ ~> "(" <~ _;
+  String `;` = _ ~> ";" <~ _;
+  String `=` = _ ~> "=" <~ _;
+  String `?` = _ ~> "?" <~ _;
+  String `!` = _ ~> "!" <~ _;
+  String `~` = _ ~> "~" <~ _;
+  String `&` = _ ~> "&" <~ _;
+  String `*` = _ ~> "*" <~ _;
+  String `+` = _ ~> "+" <~ _;
+  String `,` = _ ~> "," <~ _;
+  String `:` = _ ~> ":" <~ _;
+  String `|` = _ ~> "|" <~ _;
+  String `/` = _ ~> "/" <~ _;
 
   String `.` = _ ~> "." <~ _;
   String `ε` = _ ~> "ε" <~ _;
