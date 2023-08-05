@@ -104,7 +104,7 @@ Statement inline =
 /// Shared code between declarations.
 @fragment {
   /// Rules related to types declarations.
-  String type = _ ~> raw <~ _ | dart.literal.type.main;
+  String type = _ ~> raw <~ _ | dart.type.main;
 
   String namespaceReference = (identifier ("::" | !".." ".") !mac @0)* { $.join("::") };
   String namespacedRaw = namespaceReference literal.raw { $0.isEmpty ? $1 : "${$0}::${$1}" };
@@ -252,11 +252,11 @@ Node atom =
   /// Basic atomic parsers.
   | `(` ~> choice <~ `)`
   /// Special syntax for character classes.
-  | (`^` | kw.start)     { const StartOfInputNode() }
-  | (`$` | kw.end)       { const EndOfInputNode() }
-  | (`.` | kw.any)       { const AnyCharacterNode() }
-  | (`ε` | kw.epsilon)   { const EpsilonNode() }
-  /// TODO: Add regex backslash symbols.
+  | `^` { const StartOfInputNode() }
+  | `$` { const EndOfInputNode() }
+  | `.` { const AnyCharacterNode() }
+  | `ε` { const EpsilonNode() }
+  /// Regular Expression Literals
   | regexEscape.backslash  { const StringLiteralNode(r"\") }
 
   /// Basics
@@ -299,24 +299,24 @@ code {
 }
 
 @fragment literal {
-  String regexp = "/" ((\\ . @1 { r"\" + $ } | ~"/")+ { $.join() } ) "/" @1;
-  String string = _ string.main _ @1;
+  String regexp = "/" ~> ((\\ ~> . { r"\" + $ } | ~"/")+ { $.join() }) <~ "/";
+  String string = _ ~> string.main <~ _;
   string {
     @inline String main =
       /// Raw string literals
-      | 'r"""' ~'"""'* '"""' @1 { $.join() }
-      | "r'''" ~"'''"* "'''" @1 { $.join() }
-      | 'r"'   ~'"'*   '"'   @1 { $.join() }
-      | "r'"   ~"'"*   "'"   @1 { $.join() }
+      | 'r"""' ~> ~'"""'* <~ '"""' { $.join() }
+      | "r'''" ~> ~"'''"* <~ "'''" { $.join() }
+      | 'r"'   ~> ~'"'*   <~ '"'   { $.join() }
+      | "r'"   ~> ~"'"*   <~ "'"   { $.join() }
       /// Escaped string literals
-      | '"""' (\\ . @1 | ~'"""')* '"""' @1 { $.join() }
-      | "'''" (\\ . @1 | ~"'''")* "'''" @1 { $.join() }
-      | '"'   (\\ . @1 | ~'"'  )* '"'   @1 { $.join() }
-      | "'"   (\\ . @1 | ~"'"  )* "'"   @1 { $.join() }
+      | '"""' ~> (\\ ~> . | ~'"""')* <~ '"""' { $.join() }
+      | "'''" ~> (\\ ~> . | ~"'''")* <~ "'''" { $.join() }
+      | '"'   ~> (\\ ~> . | ~'"'  )* <~ '"'   { $.join() }
+      | "'"   ~> (\\ ~> . | ~"'"  )* <~ "'"   { $.join() }
       ;
   }
 
-  Node range =  _ range.main _ @1;
+  Node range =  _ ~> range.main <~ _;
   range {
     @inline Node main = _ "[" elements:_..element+ "]" _ { RangeNode(elements.reduce((a, b) => a.union(b))) };
     Set<(int, int)> element =
@@ -335,10 +335,10 @@ code {
       | regexEscape.tab { {(9, 9)} }
       | regexEscape.backslash { {(92, 92)} }
       ;
-    String atom = \\ . @1 | ~"]";
+    String atom = \\ ~> . | ~"]";
   }
 
-  String raw = "`" ~"`"* "`"  @1 { $.join() };
+  String raw = "`" ~> ~"`"* <~ "`" { $.join() };
 }
 
 /// Rules related to [Dart] expressions.
@@ -369,42 +369,43 @@ dart {
         ;
       Object balanced = code:("{" balanced "}" @1 | ~("{" | "}"))*;
     }
+  }
 
-    type {
-      String main = _ ~> nullable <~ _;
-      String nullable = :nonNullable `?`? { $1 == null ? "$nonNullable" : "$nonNullable?" };
-      String nonNullable = generic | record | base;
+  type {
+    String main = _ ~> nullable <~ _;
+    String nullable = :nonNullable `?`? { $1 == null ? "$nonNullable" : "$nonNullable?" };
+    String nonNullable = generic | record | base;
 
-      /// A record type.
-      ///   The fields can be positional or named.
-      ///   The fields are special by commas.
-      String record =
-        | `(` (`{` fields.named `}` @1)? `)` {
-            "(" + ($1 == null ? "" : "{" + $1 + "}") + ")"
-          }
-        | `(` field.positional `,` (`{` fields.named `}` @1)? `)` {
-            "(" + $1 + ", " + ($3 == null ? "" : "{" + $3 + "}") + ")"
-          }
-        | `(` fields.positional (`,` `{` fields.named `}` @2)? `)` {
-            "(" + $1 + ($2 == null ? "" : ", {" + $2 + "}") + ")"
-          }
-        ;
+    /// A record type.
+    ///   The fields can be positional or named.
+    ///   The fields are special by commas.
+    String record =
+      | `(` (`{` fields.named `}` @1)? `)` {
+          "(" + ($1 == null ? "" : "{" + $1 + "}") + ")"
+        }
+      | `(` field.positional `,` (`{` fields.named `}` @1)? `)` {
+          "(" + $1 + ", " + ($3 == null ? "" : "{" + $3 + "}") + ")"
+        }
+      | `(` fields.positional (`,` `{` fields.named `}` @2)? `)` {
+          "(" + $1 + ($2 == null ? "" : ", {" + $2 + "}") + ")"
+        }
+      ;
 
-      @inline {
-        String generic   = :base `<` :arguments `>` { "$base<$arguments>" };
-        String arguments = `,`..nullable+   { $.join(", ") };
-        String base      = `.`..identifier+ { $.join(".") };
-      }
+    @inline {
+      String generic   = :base `<` :arguments `>` { "$base<$arguments>" };
+      String arguments = `,`..nullable+   { $.join(", ") };
+      String base      = `.`..identifier+ { $.join(".") };
+    }
 
-      @fragment fields {
-        String positional = `,`..field.positional+ { $.join(", ") };
-        String named      = `,`..field.named+      { $.join(", ") };
-      }
+    @fragment fields {
+      String positional = `,`..field.positional+ { $.join(", ") };
+      String named      = `,`..field.named+      { $.join(", ") };
+    }
 
-      @inline field {
-        String positional = nullable _ identifier? { "${$0} ${$2 ?? ""}".trimRight() };
-        String named      = nullable _ identifier  { "${$0} ${$2}" };
-      }}
+    @inline field {
+      String positional = nullable _ identifier? { "${$0} ${$2 ?? ""}".trimRight() };
+      String named      = nullable _ identifier  { "${$0} ${$2}" };
+    }
   }
 }
 

@@ -263,6 +263,7 @@ final class ParserGenerator {
         DeclarationStatement.predefined("end", EndOfInputNode(), type: "int"),
         DeclarationStatement.predefined("whitespace", RegExpNode(r"\s")),
         DeclarationStatement.predefined("digit", RegExpNode(r"\d")),
+        DeclarationStatement.predefined("hex", RegExpNode("[0-9A-Fa-f]")),
         DeclarationStatement.predefined("alpha", RegExpNode("[a-zA-Z]")),
         NamespaceStatement(
           "alpha",
