@@ -8,7 +8,7 @@ import "package:parser_peg/src/visitor/node_visitor.dart";
 
 String encode(Object object) => jsonEncode(object).replaceAll(r"$", r"\$");
 
-class CompilerVisitor implements CompilerNodeVisitor<String, String> {
+class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
   CompilerVisitor({
     required this.isNullable,
     required this.fixName,
@@ -927,7 +927,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
           if (inner != null) //
             inner.indent()
           else
-            "return ${withNames.singleName};".indent(),
+            "return this.pos;".indent(),
           "}",
         ],
       String names => <String>[
@@ -958,7 +958,7 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
           if (inner != null) //
             inner.indent()
           else
-            "return ${withNames.singleName};".indent(),
+            "return this.pos;".indent(),
           "}",
         ],
       String names => <String>[
@@ -984,18 +984,18 @@ class CompilerVisitor implements CompilerNodeVisitor<String, String> {
     required String declarationName,
   }) {
     List<String> buffer = <String>[
-      "if (pos < buffer.length) {",
+      "if (this.pos < this.buffer.length) {",
       ...switch (withNames.varNames) {
         "_" => [
-            "  pos++;",
+            "  this.pos++;",
             if (inner != null) //
               inner.indent()
             else
-              "  return ${withNames.singleName};",
+              "  return this.buffer[this.pos - 1];",
           ],
         String names => [
-            "  if (buffer[pos] case $names) {",
-            "    pos++;",
+            "  if (this.buffer[this.pos] case $names) {",
+            "    this.pos++;",
             if (inner != null) //
               inner.indent(2)
             else

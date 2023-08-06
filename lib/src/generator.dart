@@ -4,7 +4,8 @@ import "dart:io";
 
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
-import "package:parser_peg/src/visitor/compiler_visitor/compiler_visitor.dart";
+import "package:parser_peg/src/visitor/compiler_visitor/cst_visitor.dart";
+import "package:parser_peg/src/visitor/compiler_visitor/generator_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/can_inline_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/inline_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/referenced_visitor.dart";
@@ -130,7 +131,15 @@ final class ParserGenerator {
     }
 
     /// Simple guard against fully inline declarations.
-    if (rules.isEmpty && fragments.isEmpty) {
+    if (rules.isNotEmpty) {
+      var (String key, (String? type, Node _)) = rules.pairs.first;
+
+      fragments["ROOT"] = (type, ReferenceNode(key));
+    } else if (fragments.isNotEmpty) {
+      var (String key, (String? type, Node _)) = fragments.pairs.first;
+
+      fragments["ROOT"] = (type, FragmentNode(key));
+    } else {
       if (inline.isEmpty) {
         throw Exception("There are no declarations!");
       }
@@ -139,14 +148,77 @@ final class ParserGenerator {
       var (String key, (String? type, Node _)) = inline.pairs.first;
 
       fragments["ROOT"] = (type, FragmentNode(key));
-    } else if (rules.isNotEmpty) {
-      var (String key, (String? type, Node _)) = rules.pairs.first;
+    }
 
-      fragments["ROOT"] = (type, ReferenceNode(key));
-    } else if (fragments.isNotEmpty) {
-      var (String key, (String? type, Node _)) = fragments.pairs.first;
+    /// We determine two things.
+    ///   1. Which `fragment` rule can be inlined with the following condition:
+    ///     - It is only called once. (It is an exclusive fragment.)
+    ///   2. Which declarations can be removed with the following condition:
+    ///     - It is not referenced anywhere.
+    ///
+    /// Subsequently, we inline the fragments that can be inlined,
+    ///   and remove the declarations that can be removed.
+    ///
+    /// NOTE: This does not break the correctness of the grammar, since
+    ///   recursive fragments can't be inlined as determined by the next visitor.
+    if (const ReferencedVisitor() case ReferencedVisitor visitor) {
+      Map<String, int> rulesRefCount = <String, int>{for (String rule in rules.keys) rule: 0};
+      Map<String, int> fragmentRefCount = <String, int>{for (String fragment in fragments.keys) fragment: 0};
+      Map<String, int> inlineRefCount = <String, int>{for (String inline in inline.keys) inline: 0};
 
-      fragments["ROOT"] = (type, FragmentNode(key));
+      Iterable<(String, (String?, Node))> declarations = fragments.pairs //
+          .followedBy(rules.pairs)
+          .followedBy(inline.pairs);
+      Map<String, int> refCount = <String, int>{
+        for (String name in declarations.map(((String, (String?, Node)) e) => e.$1)) name: 0,
+      };
+
+      for (var (String _, (String? _, Node node)) in declarations) {
+        for (var (Tag tag, String name) in node.acceptSimpleVisitor(visitor)) {
+          if (tag case Tag.fragment) {
+            refCount[name] = (refCount[name] ?? inlineRefCount[name])! + 1;
+          }
+
+          if (tag == Tag.rule) {
+            rulesRefCount[name] = (rulesRefCount[name] ?? 0) + 1;
+            continue;
+          }
+
+          assert(tag == Tag.fragment, "There must not be any inline tags.");
+          if ((fragmentRefCount[name] == null) ^ (inlineRefCount[name] == null)) {
+            if (fragmentRefCount[name] case int count) {
+              fragmentRefCount[name] = count + 1;
+            } else if (inlineRefCount[name] case int count) {
+              inlineRefCount[name] = count + 1;
+            }
+          }
+        }
+      }
+
+      for (var (String name, int count) in refCount.pairs) {
+        if (count == 1) {
+          if (fragments[name] case (String? type, Node node)) {
+            inline[name] = (type, node);
+            fragments.remove(name);
+          }
+        }
+      }
+
+      for (var (String name, int count) in rulesRefCount.pairs) {
+        if (count == 0) {
+          rules.remove(name);
+        }
+      }
+      for (var (String name, int count) in fragmentRefCount.pairs) {
+        if (count == 0) {
+          fragments.remove(name);
+        }
+      }
+      for (var (String name, int count) in inlineRefCount.pairs) {
+        if (count == 0) {
+          inline.remove(name);
+        }
+      }
     }
 
     /// We determine the inline-declared rules that can *actually* be inlined.
@@ -180,33 +252,6 @@ final class ParserGenerator {
           fragments[name] = (type, resolvedNode);
         }
       } while (runLoop);
-    }
-
-    /// We determine the rules we can optimize out.
-    if (const ReferencedVisitor() case ReferencedVisitor visitor) {
-      Set<String> referencedFragments = <String>{"ROOT"};
-      Set<String> referencedRules = <String>{};
-
-      for (var (String _, (String? _, Node node)) in rules.pairs.followedBy(fragments.pairs)) {
-        Iterable<(Tag, String)> res = visitor.referencedDeclarations(node);
-
-        for (var (Tag tag, String name) in res) {
-          switch (tag) {
-            case Tag.rule:
-              referencedRules.add(name);
-            case Tag.fragment:
-              referencedFragments.add(name);
-            case Tag.inline:
-              throw UnsupportedError("Found a non-inlined inline node.");
-          }
-        }
-      }
-
-      Set<String> unreferencedRules = rules.keys.toSet().difference(referencedRules);
-      Set<String> unreferencedFragments = fragments.keys.toSet().difference(referencedFragments);
-
-      unreferencedRules.forEach(rules.remove);
-      unreferencedFragments.forEach(fragments.remove);
     }
 
     /// We simplify the rules to prepare for codegen.
@@ -254,6 +299,20 @@ final class ParserGenerator {
   }
 
   static const List<Statement> predefined = <Statement>[
+    /// std {
+    ///   any = .;
+    ///   epsilon = ε;
+    ///   start = ^;
+    ///   end = $;
+    ///   whitespace = /\s/;
+    ///   digit = /\d/;
+    ///   hex = /[0-9A-Fa-f]/;
+    ///   alpha = /[a-zA-Z]/;
+    ///   alpha {
+    ///     lower = /[a-z]/;
+    ///     upper = /[A-Z]/;
+    ///   }
+    /// }
     NamespaceStatement(
       "std",
       <Statement>[
@@ -264,6 +323,7 @@ final class ParserGenerator {
         DeclarationStatement.predefined("whitespace", RegExpNode(r"\s")),
         DeclarationStatement.predefined("digit", RegExpNode(r"\d")),
         DeclarationStatement.predefined("hex", RegExpNode("[0-9A-Fa-f]")),
+        DeclarationStatement.predefined("alpha", RegExpNode("[a-zA-Z]")),
         DeclarationStatement.predefined("alpha", RegExpNode("[a-zA-Z]")),
         NamespaceStatement(
           "alpha",
@@ -372,6 +432,150 @@ final class ParserGenerator {
           inner.writeln("};");
         } else {
           inner.writeln("$type${isNullable(node, ruleName) ? "" : "?"} $ruleName() {");
+          inner.writeln(body);
+          inner.writeln("}");
+        }
+
+        fullBuffer.writeln(inner.toString().indent());
+      }
+
+      fullBuffer.writeln();
+
+      if (compilerVisitor.regexps.isNotEmpty) {
+        fullBuffer.writeln("static final _regexp = (".indent());
+        for (String regExp in compilerVisitor.regexps) {
+          fullBuffer.writeln("RegExp(${encode(regExp)}),".indent(2));
+        }
+        fullBuffer.writeln(");".indent());
+      }
+
+      if (compilerVisitor.tries.isNotEmpty) {
+        fullBuffer.writeln("static final _trie = (".indent());
+        for (List<String> options in compilerVisitor.tries) {
+          fullBuffer.writeln("Trie.from(${encode(options)}),".indent(2));
+        }
+        fullBuffer.writeln(");".indent());
+      }
+
+      if (compilerVisitor.strings.isNotEmpty) {
+        fullBuffer.writeln("static const _string = (".indent());
+        for (String string in compilerVisitor.strings) {
+          fullBuffer.writeln("${encode(string)},".indent(2));
+        }
+        fullBuffer.writeln(");".indent());
+      }
+
+      if (compilerVisitor.ranges.isNotEmpty) {
+        fullBuffer.writeln("static const _range = (".indent());
+        for (Set<(int, int)> ranges in compilerVisitor.ranges) {
+          fullBuffer.write("    { ");
+          for (var (int i, (int low, int high)) in ranges.indexed) {
+            fullBuffer.write("($low, $high)");
+
+            if (i < ranges.length - 1) {
+              fullBuffer.write(", ");
+            }
+          }
+          fullBuffer.writeln(" },");
+        }
+        fullBuffer.writeln(");".indent());
+      }
+
+      fullBuffer.writeln("}");
+
+      if (compilerVisitor.tries.isNotEmpty) {
+        fullBuffer.writeln(trieCode);
+      }
+    }
+
+    return fullBuffer.toString();
+  }
+
+  String compileCst(String parserName, {String? start, String? type}) {
+    String parserTypeString = "Object";
+    String parserStartRule = start ?? fixName(rules.keys.firstOrNull ?? fragments.keys.first);
+    StringBuffer fullBuffer = StringBuffer();
+
+    fullBuffer.writeln("// ignore_for_file: ${ignores.join(", ")}");
+    fullBuffer.writeln();
+
+    fullBuffer.writeln("// imports");
+    fullBuffer.writeln(importCode);
+    if (preamble case String preamble?) {
+      fullBuffer.writeln("// PREAMBLE");
+      fullBuffer.writeln(preamble.unindent());
+    }
+    fullBuffer.writeln("// base.dart");
+    fullBuffer.writeln(baseCode);
+    fullBuffer.writeln();
+
+    fullBuffer.writeln("// GENERATED CODE");
+
+    fullBuffer.writeln("final class $parserName extends _PegParser<$parserTypeString> {");
+    fullBuffer.writeln("  $parserName();");
+    fullBuffer.writeln();
+    fullBuffer.writeln("  @override");
+    fullBuffer.writeln("  get start => $parserStartRule;");
+    fullBuffer.writeln();
+
+    if (CstCompilerVisitor(isNullable: isNullable, fixName: fixName) case CstCompilerVisitor compilerVisitor) {
+      for (var (String rawName, (String? type, Node node)) in fragments.pairs) {
+        compilerVisitor.ruleId = 0;
+
+        StringBuffer inner = StringBuffer();
+        String displayName = reverseRedirects[rawName]!;
+        String fragmentName = fixName(rawName);
+        String body = node
+            .acceptCompilerVisitor(
+              compilerVisitor,
+              isNullAllowed: isNullable(node, displayName),
+              withNames: null,
+              inner: null,
+              reported: true,
+              declarationName: displayName,
+            )
+            .indent();
+
+        inner.writeln();
+        inner.writeln("/// `$displayName`");
+        if (type == null) {
+          inner.writeln("late final $fragmentName = () {");
+          inner.writeln(body);
+          inner.writeln("};");
+        } else {
+          inner.writeln("$Object${isNullable(node, fragmentName) ? "" : "?"} $fragmentName() {");
+          inner.writeln(body);
+          inner.writeln("}");
+        }
+
+        fullBuffer.writeln(inner.toString().indent());
+      }
+
+      for (var (String rawName, (String? type, Node node)) in rules.pairs) {
+        compilerVisitor.ruleId = 0;
+
+        StringBuffer inner = StringBuffer();
+        String displayName = reverseRedirects[rawName]!;
+        String ruleName = fixName(rawName);
+        String body = node
+            .acceptCompilerVisitor(
+              compilerVisitor,
+              isNullAllowed: isNullable(node, ruleName),
+              withNames: null,
+              inner: null,
+              reported: true,
+              declarationName: displayName,
+            )
+            .indent();
+
+        inner.writeln();
+        inner.writeln("/// `$displayName`");
+        if (type == null) {
+          inner.writeln("late final $ruleName = () {");
+          inner.writeln(body);
+          inner.writeln("};");
+        } else {
+          inner.writeln("$Object${isNullable(node, ruleName) ? "" : "?"} $ruleName() {");
           inner.writeln(body);
           inner.writeln("}");
         }

@@ -262,13 +262,13 @@ extension<R extends Object> on _PegParser<R> {
 }
 
 class Trie {
-  Trie() : _innerMap = HashMap<_Key<String>, Object?>();
+  Trie() : _innerMap = HashMap<_Key<String>, Object>();
   factory Trie.from(Iterable<String> strings) => strings.fold(Trie(), (Trie t, String s) => t..add(s));
   const Trie.complete(this._innerMap);
 
   static final Symbol _safeGuard = Symbol(math.Random.secure().nextInt(32).toString());
 
-  final HashMap<_Key<String>, Object?> _innerMap;
+  final HashMap<_Key<String>, Object> _innerMap;
 
   bool add(String value) {
     _set(value.split(""), true);
@@ -277,7 +277,7 @@ class Trie {
   }
 
   Trie? derive(String key) => switch (_innerMap[(key, null)]) {
-        HashMap<_Key<String>, Object?> value => Trie.complete(value),
+        HashMap<_Key<String>, Object> value => Trie.complete(value),
         _ => null,
       };
 
@@ -310,10 +310,10 @@ class Trie {
     return (index, max);
   }
 
-  HashMap<_Key<String>, Object?> _derived(List<String> keys) {
-    HashMap<_Key<String>, Object?> map = _innerMap;
+  HashMap<_Key<String>, Object> _derived(List<String> keys) {
+    HashMap<_Key<String>, Object> map = _innerMap;
     for (int i = 0; i < keys.length; ++i) {
-      map = map.putIfAbsent((keys[i], null), HashMap<_Key<String>, Object?>.new)! as HashMap<_Key<String>, Object?>;
+      map = map.putIfAbsent((keys[i], null), HashMap<_Key<String>, Object>.new) as HashMap<_Key<String>, Object>;
     }
 
     return map;
@@ -321,7 +321,7 @@ class Trie {
 
   bool _set(List<String> keys, bool value) => _derived(keys)[(null, _safeGuard)] = value;
 
-  Iterable<List<String>> _keys(HashMap<_Key<String>, Object?> map) sync* {
+  Iterable<List<String>> _keys(HashMap<_Key<String>, Object> map) sync* {
     if (map.containsKey((null, _safeGuard))) {
       yield <String>[];
     }
@@ -331,7 +331,7 @@ class Trie {
       ///  Get the derivative of the map.
 
       switch (map[(keys, null)]) {
-        case HashMap<_Key<String>, Object?> derivative:
+        case HashMap<_Key<String>, Object> derivative:
           yield* _keys(derivative).map((List<String> rest) => <String>[keys, ...rest]);
         case null:
           yield <String>[keys];

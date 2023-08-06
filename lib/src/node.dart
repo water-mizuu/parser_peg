@@ -6,7 +6,7 @@ sealed class Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor);
   O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth);
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -33,7 +33,7 @@ class EpsilonNode implements AtomicNode {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -66,7 +66,7 @@ class TriePatternNode implements AtomicNode {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -99,7 +99,7 @@ class StringLiteralNode implements AtomicNode {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -131,7 +131,7 @@ class RangeNode implements AtomicNode {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -163,7 +163,7 @@ class RegExpNode implements AtomicNode {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -190,7 +190,7 @@ abstract interface class RegExpEscapeNode implements AtomicNode {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -241,7 +241,7 @@ enum SimpleRegExpEscapeNode implements RegExpEscapeNode {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -281,7 +281,7 @@ class SequenceNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -312,7 +312,7 @@ class ChoiceNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -344,7 +344,7 @@ class CountedNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -380,7 +380,7 @@ class PlusSeparatedNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -416,7 +416,7 @@ class StarSeparatedNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -451,7 +451,7 @@ class PlusNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -483,7 +483,7 @@ class StarNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -516,7 +516,7 @@ class AndPredicateNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -549,7 +549,7 @@ class NotPredicateNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -581,7 +581,7 @@ class OptionalNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -613,7 +613,7 @@ class ReferenceNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -645,7 +645,7 @@ class FragmentNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -678,7 +678,7 @@ class NamedNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -712,7 +712,7 @@ class ActionNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -747,7 +747,7 @@ class InlineActionNode implements Node {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -781,7 +781,7 @@ class StartOfInputNode implements SpecialSymbolNode {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -812,7 +812,7 @@ class EndOfInputNode implements SpecialSymbolNode {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,
@@ -844,7 +844,7 @@ class AnyCharacterNode implements SpecialSymbolNode {
 
   @override
   O acceptCompilerVisitor<O, I>(
-    CompilerNodeVisitor<O, I> visitor, {
+    CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
     required Set<String>? withNames,
     required I? inner,

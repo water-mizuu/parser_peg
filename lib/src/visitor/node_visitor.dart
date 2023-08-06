@@ -54,7 +54,7 @@ abstract class SimplifierNodeVisitor<O> {
   O visitAnyCharacterNode(AnyCharacterNode node, int depth);
 }
 
-abstract class CompilerNodeVisitor<O, I> {
+abstract class CodeGeneratorNodeVisitor<O, I> {
   O visitEpsilonNode(
     EpsilonNode node, {
     required bool isNullAllowed,

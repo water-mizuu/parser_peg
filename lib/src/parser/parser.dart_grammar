@@ -26,9 +26,7 @@ String preamble = `{` _ code:code.curly _ `}` { code };
 ///  A rule is a declaration, that supports left recursion & memoization.
 Statement statement =
   | namespace
-  | fragment
-  | inline
-  | rule
+  | declaration
   ;
 
 /// A namespace is a block of statements which can apply a tag and/or be encapsulated
@@ -49,56 +47,15 @@ Statement namespace =
   ;
 
 
-/// A rule is a declaration that supports left recursion & memoization.
-/// It can be explicitly stated with a `@rule` keyword, but it is not necessary.
-/// It can, however, be useful if it is used inside a `@fragment` tagged namespace.
-Statement rule =
-  | kw.decorator.rule? kw.var :name :body {
-      DeclarationStatement(null, name, body, tag: $0 == null ? null : Tag.rule)
-    }
-  | kw.decorator.rule? :name :body {
-      DeclarationStatement(null, name, body, tag: $0 == null ? null : Tag.rule)
-    }
-  | kw.decorator.rule? :type :name :body {
-      DeclarationStatement(type, name, body, tag: $0 == null ? null : Tag.rule)
-    }
-  | kw.decorator.rule? :name `:` :type :body {
-      DeclarationStatement(type, name, body, tag: $0 == null ? null : Tag.rule)
-    }
-  ;
-
-/// A fragment is a declaration that is called directly, meaning not supporting left recursion / memoization.
-/// It can be explicitly stated with a `@fragment` keyword.
-Statement fragment =
-  | kw.decorator.fragment kw.var :name :body {
-      DeclarationStatement(null, name, body, tag: Tag.fragment)
-    }
-  | kw.decorator.fragment :name :body {
-      DeclarationStatement(null, name, body, tag: Tag.fragment)
-    }
-  | kw.decorator.fragment :type :name :body {
-      DeclarationStatement(type, name, body, tag: Tag.fragment)
-    }
-  | kw.decorator.fragment :name `:` :type :body {
-      DeclarationStatement(type, name, body, tag: Tag.fragment)
-    }
-  ;
-
-/// An inline is a declaration that is inlined in the grammar when possible.
-/// It can be explicitly stated with a `@inline` keyword.
-Statement inline =
-  | kw.decorator.inline kw.var :name :body {
-      DeclarationStatement(null, name, body, tag: Tag.inline)
-    }
-  | kw.decorator.inline :name :body {
-      DeclarationStatement(null, name, body, tag: Tag.inline)
-    }
-  | kw.decorator.inline :type :name :body {
-      DeclarationStatement(type, name, body, tag: Tag.inline)
-    }
-  | kw.decorator.inline :name `:` :type :body {
-      DeclarationStatement(type, name, body, tag: Tag.inline)
-    }
+/// A declaration is a statement that can be referenced by other declarations.
+///   Formally, it is a non-terminal.
+Statement declaration =
+  /// `var`-prefixed declaration
+  | :kw.decorator? kw.var? :name :body { DeclarationStatement(null, name, body, tag: decorator) }
+  /// A C-style declaration with <type> <name> = <body>;
+  | :kw.decorator? :type :name :body { DeclarationStatement(type, name, body, tag: decorator) }
+  /// A modern-style declaration with <name>: <type> = <body>;
+  | :kw.decorator? kw.var? :name `:` :type :body { DeclarationStatement(type, name, body, tag: decorator) }
   ;
 
 /// Shared code between declarations.
@@ -150,11 +107,11 @@ Node dropped =
   ///   (left) ~> (body) <~ (right)
   | left:special `~>` body:labeled `<~` right:special { SequenceNode([left, body, right], choose: 1) }
   /// The "suffix operator".
-  ///   (body) <~ (right)
-  | body:dropped `<~` dropped:special { SequenceNode([body, dropped], choose: 1) }
+  ///   (captured) <~ (dropped)
+  | captured:dropped `<~` dropped:special { SequenceNode([captured, dropped], choose: 1) }
   /// The "prefix operator".
-  ///   (body) <~ (right)
-  | dropped:special `~>` body:dropped { SequenceNode([dropped, body], choose: 1) }
+  ///   (dropped) ~> (captured)
+  | dropped:special `~>` captured:dropped { SequenceNode([dropped, captured], choose: 1) }
   | labeled
   ;
 
@@ -189,6 +146,10 @@ Node special =
   | min:number `..` max:number? body:atom { CountedNode(min, max, body) }
   | :number body:atom                     { CountedNode(number, number, body) }
   /// Pegen style separators.
+  ///   Difference here, is that we can use `+` or `*` as quantifiers.
+  ///   `*`, like a normal kleene-star, means zero or more.
+  ///   `+`, like a normal kleene-plus, means one or more.
+  ///   So technically, _.."a"* is equivalent to "a"*.
   | sep:callLike `..` expr:callLike `+` { PlusSeparatedNode(sep, expr, isTrailingAllowed: false) }
   | sep:callLike `..` expr:callLike `*` { StarSeparatedNode(sep, expr, isTrailingAllowed: false) }
   | postfix
@@ -357,13 +318,13 @@ dart {
         | "r" '"'   ~'"'*   '"'   { () }
         | "r" "'"   ~"'"*   "'"   { () }
         /// Escaped string literals
-        | '"""' (\\ . @1 | &"$" string.interpolation | ~'"""')* '"""' { () }
-        | "'''" (\\ . @1 | &"$" string.interpolation | ~"'''")* "'''" { () }
-        | '"'   (\\ . @1 | &"$" string.interpolation | ~'"'  )* '"'   { () }
-        | "'"   (\\ . @1 | &"$" string.interpolation | ~"'"  )* "'"   { () }
+        | '"""' (\\ . @1 | &"$" interpolation | ~'"""')* '"""' { () }
+        | "'''" (\\ . @1 | &"$" interpolation | ~"'''")* "'''" { () }
+        | '"'   (\\ . @1 | &"$" interpolation | ~'"'  )* '"'   { () }
+        | "'"   (\\ . @1 | &"$" interpolation | ~"'"  )* "'"   { () }
         ;
 
-      Object interpolation =
+      @inline interpolation =
         | r"$" "{" balanced "}"
         | r"$" identifier
         ;
@@ -393,18 +354,18 @@ dart {
 
     @inline {
       String generic   = :base `<` :arguments `>` { "$base<$arguments>" };
-      String arguments = `,`..nullable+   { $.join(", ") };
+      String arguments = `,`..nullable+ { $.join(", ") };
       String base      = `.`..identifier+ { $.join(".") };
     }
 
     @fragment fields {
       String positional = `,`..field.positional+ { $.join(", ") };
-      String named      = `,`..field.named+      { $.join(", ") };
+      String named      = `,`..field.named+ { $.join(", ") };
     }
 
     @inline field {
       String positional = nullable _ identifier? { "${$0} ${$2 ?? ""}".trimRight() };
-      String named      = nullable _ identifier  { "${$0} ${$2}" };
+      String named      = nullable _ identifier { "${$0} ${$2}" };
     }
   }
 }
@@ -417,10 +378,11 @@ dart {
   int number = \d+ { int.parse($.join()) };
 
   kw {
+    Tag decorator = decorator.rule | decorator.fragment | decorator.inline;
     decorator {
-      String rule      = _ "@rule" _        @1;
-      String fragment  = _ "@fragment" _    @1;
-      String inline    = _ "@inline" _      @1;
+      Tag rule      = _ "@rule" _        @1 {Tag.rule};
+      Tag fragment  = _ "@fragment" _    @1 {Tag.fragment};
+      Tag inline    = _ "@inline" _      @1 {Tag.inline};
     }
 
     String start     = _ "startOfInput" _ @1;
@@ -506,10 +468,15 @@ dart {
   String `$` = _ ~> "$" <~ _;
 
   /// Layout parser allows comments (like this) and space between parsers.
-  /// Regular Expression monster:
+  /// Regular Expression monster below:
   ///   Split into three parts.
   ///   1. `(?:\s)` - Matches any whitespace character.
   ///   2. `(?:\/{2}.*(?:(?:\r?\n)|(?:$)))` - Matches a single line comment.
   ///   3. `(?:\/\*(?:(?!\*\/).)*\*\/)` - Matches a multi-line comment.
-  String _ = /(?:(?:\s)|(?:\/{2}.*(?:(?:\r?\n)|(?:$)))|(?:\/\*(?:(?!\*\/).)*\*\/))*/ { "" };
+  String _ = (whitespace | comment.singleLine | comment.multiLine)*  { "" };
+  @rule String whitespace = /\s+/;
+  @rule comment {
+    String singleLine = /\/{2}(?:(?!(?:(?:\r?\n)|(?:$))).)*(?:(?:\r?\n)|(?:$))/;
+    String multiLine = /(?:\/\*(?:(?!\*\/).)*\*\/)/;
+  }
 }
