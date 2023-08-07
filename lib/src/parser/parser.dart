@@ -3520,7 +3520,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
   static final _regexp = (
     RegExp("\\d"),
     RegExp("\\s+"),
-    RegExp("\\/{2}(?:(?!(?:(?:\\r?\\n)|(?:\$))).)*(?:(?:\\r?\\n)|(?:\$))"),
+    RegExp("\\/{2}(?:(?!(?:(?:\\r?\\n)|(?:\$))).)*(?=(?:\\r?\\n)|(?:\$))"),
     RegExp("(?:\\/\\*(?:(?!\\*\\/).)*\\*\\/)"),
   );
   static final _trie = (

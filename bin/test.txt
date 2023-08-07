@@ -671,9 +671,12 @@
   │     ├─fragment54
   │     │ └─global::whitespace
   │     │   └─"\n\n"
+  │     ├─fragment54
+  │     │ └─global::comment::singleLine
+  │     │   └─"/// A grammar file contains an optional preamble and statements."
   │     └─fragment54
-  │       └─global::comment::singleLine
-  │         └─"/// A grammar file contains an optional preamble and statements.\n"
+  │       └─global::whitespace
+  │         └─"\n"
   ├─┬─
   │ ├─global::statement
   │ │ └─global::declaration
@@ -1093,9 +1096,12 @@
   │ │         ├─fragment54
   │ │         │ └─global::whitespace
   │ │         │   └─"\n\n\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"/// The preamble is simple."
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"/// The preamble is simple.\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -1295,16 +1301,28 @@
   │ │         │   └─"\n\n"
   │ │         ├─fragment54
   │ │         │ └─global::comment::singleLine
-  │ │         │   └─"/// A statement can either be a namespace, a fragment or a rule.\n"
+  │ │         │   └─"/// A statement can either be a namespace, a fragment or a rule."
+  │ │         ├─fragment54
+  │ │         │ └─global::whitespace
+  │ │         │   └─"\n"
   │ │         ├─fragment54
   │ │         │ └─global::comment::singleLine
-  │ │         │   └─"///  A namespace is a collection of statements.\n"
+  │ │         │   └─"///  A namespace is a collection of statements."
+  │ │         ├─fragment54
+  │ │         │ └─global::whitespace
+  │ │         │   └─"\n"
   │ │         ├─fragment54
   │ │         │ └─global::comment::singleLine
-  │ │         │   └─"///  A fragment is a declaration that is faster, but doesn't support left recursion / memoization.\n"
+  │ │         │   └─"///  A fragment is a declaration that is faster, but doesn't support left recursion / memoization."
+  │ │         ├─fragment54
+  │ │         │ └─global::whitespace
+  │ │         │   └─"\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"///  A rule is a declaration, that supports left recursion & memoization."
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"///  A rule is a declaration, that supports left recursion & memoization.\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -1429,10 +1447,16 @@
   │ │         │   └─"\n\n"
   │ │         ├─fragment54
   │ │         │ └─global::comment::singleLine
-  │ │         │   └─"/// A namespace is a block of statements which can apply a tag and/or be encapsulated\n"
+  │ │         │   └─"/// A namespace is a block of statements which can apply a tag and/or be encapsulated"
+  │ │         ├─fragment54
+  │ │         │ └─global::whitespace
+  │ │         │   └─"\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"///   under a name."
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"///   under a name.\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -2938,10 +2962,16 @@
   │ │         │   └─"\n\n\n"
   │ │         ├─fragment54
   │ │         │ └─global::comment::singleLine
-  │ │         │   └─"/// A declaration is a statement that can be referenced by other declarations.\n"
+  │ │         │   └─"/// A declaration is a statement that can be referenced by other declarations."
+  │ │         ├─fragment54
+  │ │         │ └─global::whitespace
+  │ │         │   └─"\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"///   Formally, it is a non-terminal."
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"///   Formally, it is a non-terminal.\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -2993,10 +3023,10 @@
   │ │     │   │   └─"\n  "
   │ │     │   ├─fragment54
   │ │     │   │ └─global::comment::singleLine
-  │ │     │   │   └─"/// `var`-prefixed declaration\n"
+  │ │     │   │   └─"/// `var`-prefixed declaration"
   │ │     │   └─fragment54
   │ │     │     └─global::whitespace
-  │ │     │       └─"  "
+  │ │     │       └─"\n  "
   │ │     ├─global::choice
   │ │     │ ├─global::|
   │ │     │ │ ├─global::_
@@ -3287,10 +3317,10 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// A C-style declaration with <type> <name> = <body>;\n"
+  │ │     │   │     │   └─"/// A C-style declaration with <type> <name> = <body>;"
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -3561,10 +3591,10 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// A modern-style declaration with <name>: <type> = <body>;\n"
+  │ │     │   │     │   └─"/// A modern-style declaration with <name>: <type> = <body>;"
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -3893,9 +3923,12 @@
   │ │         ├─fragment54
   │ │         │ └─global::whitespace
   │ │         │   └─"\n\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"/// Shared code between declarations."
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"/// Shared code between declarations.\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::namespace
@@ -3916,10 +3949,10 @@
   │ │   │   │   └─"\n  "
   │ │   │   ├─fragment54
   │ │   │   │ └─global::comment::singleLine
-  │ │   │   │   └─"/// Rules related to types declarations.\n"
+  │ │   │   │   └─"/// Rules related to types declarations."
   │ │   │   └─fragment54
   │ │   │     └─global::whitespace
-  │ │   │       └─"  "
+  │ │   │       └─"\n  "
   │ │   ├─┬─
   │ │   │ ├─global::statement
   │ │   │ │ └─global::declaration
@@ -5213,10 +5246,16 @@
   │ │       │   └─"\n\n"
   │ │       ├─fragment54
   │ │       │ └─global::comment::singleLine
-  │ │       │   └─"/// A choice parser is a parser that tries to match one of the options.\n"
+  │ │       │   └─"/// A choice parser is a parser that tries to match one of the options."
+  │ │       ├─fragment54
+  │ │       │ └─global::whitespace
+  │ │       │   └─"\n"
+  │ │       ├─fragment54
+  │ │       │ └─global::comment::singleLine
+  │ │       │   └─"/// Despite the syntax, the parser is ordered choice."
   │ │       └─fragment54
-  │ │         └─global::comment::singleLine
-  │ │           └─"/// Despite the syntax, the parser is ordered choice.\n"
+  │ │         └─global::whitespace
+  │ │           └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -5535,9 +5574,12 @@
   │ │         ├─fragment54
   │ │         │ └─global::whitespace
   │ │         │   └─"\n\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"/// A parser with a bound action."
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"/// A parser with a bound action.\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -6920,13 +6962,22 @@
   │ │         │   └─"\n\n"
   │ │         ├─fragment54
   │ │         │ └─global::comment::singleLine
-  │ │         │   └─"/// A parser that parses a sequence of parsers.\n"
+  │ │         │   └─"/// A parser that parses a sequence of parsers."
+  │ │         ├─fragment54
+  │ │         │ └─global::whitespace
+  │ │         │   └─"\n"
   │ │         ├─fragment54
   │ │         │ └─global::comment::singleLine
-  │ │         │   └─"///   By default, a sequence parser returns a [Record] of the results of the parsers.\n"
+  │ │         │   └─"///   By default, a sequence parser returns a [Record] of the results of the parsers."
+  │ │         ├─fragment54
+  │ │         │ └─global::whitespace
+  │ │         │   └─"\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"/// By specifying which item to keep, the specific item can be returned."
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"/// By specifying which item to keep, the specific item can be returned.\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -7335,9 +7386,12 @@
   │ │         ├─fragment54
   │ │         │ └─global::whitespace
   │ │         │   └─"\n\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"/// A parser that is prefixed or suffixed by another parser."
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"/// A parser that is prefixed or suffixed by another parser.\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -7380,16 +7434,16 @@
   │ │     │   │   └─"\n  "
   │ │     │   ├─fragment54
   │ │     │   │ └─global::comment::singleLine
-  │ │     │   │   └─"/// The \"surround operator\".\n"
+  │ │     │   │   └─"/// The \"surround operator\"."
   │ │     │   ├─fragment54
   │ │     │   │ └─global::whitespace
-  │ │     │   │   └─"  "
+  │ │     │   │   └─"\n  "
   │ │     │   ├─fragment54
   │ │     │   │ └─global::comment::singleLine
-  │ │     │   │   └─"///   (left) ~> (body) <~ (right)\n"
+  │ │     │   │   └─"///   (left) ~> (body) <~ (right)"
   │ │     │   └─fragment54
   │ │     │     └─global::whitespace
-  │ │     │       └─"  "
+  │ │     │       └─"\n  "
   │ │     ├─global::choice
   │ │     │ ├─global::|
   │ │     │ │ ├─global::_
@@ -7694,16 +7748,16 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// The \"suffix operator\".\n"
+  │ │     │   │     │   └─"/// The \"suffix operator\"."
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::whitespace
-  │ │     │   │     │   └─"  "
+  │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"///   (captured) <~ (dropped)\n"
+  │ │     │   │     │   └─"///   (captured) <~ (dropped)"
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -7958,16 +8012,16 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// The \"prefix operator\".\n"
+  │ │     │   │     │   └─"/// The \"prefix operator\"."
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::whitespace
-  │ │     │   │     │   └─"  "
+  │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"///   (dropped) ~> (captured)\n"
+  │ │     │   │     │   └─"///   (dropped) ~> (captured)"
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -8257,9 +8311,12 @@
   │ │         ├─fragment54
   │ │         │ └─global::whitespace
   │ │         │   └─"\n\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"/// A parser that adds the label to the declaration of the value."
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"/// A parser that adds the label to the declaration of the value.\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -8302,16 +8359,16 @@
   │ │     │   │   └─"\n  "
   │ │     │   ├─fragment54
   │ │     │   │ └─global::comment::singleLine
-  │ │     │   │   └─"/// The default label. You can label any expression by adding a colon and an identifier.\n"
+  │ │     │   │   └─"/// The default label. You can label any expression by adding a colon and an identifier."
   │ │     │   ├─fragment54
   │ │     │   │ └─global::whitespace
-  │ │     │   │   └─"  "
+  │ │     │   │   └─"\n  "
   │ │     │   ├─fragment54
   │ │     │   │ └─global::comment::singleLine
-  │ │     │   │   └─"/// The label must not have a space before the colon.\n"
+  │ │     │   │   └─"/// The label must not have a space before the colon."
   │ │     │   └─fragment54
   │ │     │     └─global::whitespace
-  │ │     │       └─"  "
+  │ │     │       └─"\n  "
   │ │     ├─global::choice
   │ │     │ ├─global::|
   │ │     │ │ ├─global::_
@@ -8510,10 +8567,10 @@
   │ │     │   │     │   └─"\n\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// Special cases, where the name can be inferred from the context.\n"
+  │ │     │   │     │   └─"/// Special cases, where the name can be inferred from the context."
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -10635,10 +10692,10 @@
   │ │     │   │   └─"\n  "
   │ │     │   ├─fragment54
   │ │     │   │ └─global::comment::singleLine
-  │ │     │   │   └─"/// Parsers with a specific count.\n"
+  │ │     │   │   └─"/// Parsers with a specific count."
   │ │     │   └─fragment54
   │ │     │     └─global::whitespace
-  │ │     │       └─"  "
+  │ │     │       └─"\n  "
   │ │     ├─global::choice
   │ │     │ ├─global::|
   │ │     │ │ ├─global::_
@@ -11038,34 +11095,34 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// Pegen style separators.\n"
+  │ │     │   │     │   └─"/// Pegen style separators."
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::whitespace
-  │ │     │   │     │   └─"  "
+  │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"///   Difference here, is that we can use `+` or `*` as quantifiers.\n"
+  │ │     │   │     │   └─"///   Difference here, is that we can use `+` or `*` as quantifiers."
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::whitespace
-  │ │     │   │     │   └─"  "
+  │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"///   `*`, like a normal kleene-star, means zero or more.\n"
+  │ │     │   │     │   └─"///   `*`, like a normal kleene-star, means zero or more."
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::whitespace
-  │ │     │   │     │   └─"  "
+  │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"///   `+`, like a normal kleene-plus, means one or more.\n"
+  │ │     │   │     │   └─"///   `+`, like a normal kleene-plus, means one or more."
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::whitespace
-  │ │     │   │     │   └─"  "
+  │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"///   So technically, _..\"a\"* is equivalent to \"a\"*.\n"
+  │ │     │   │     │   └─"///   So technically, _..\"a\"* is equivalent to \"a\"*."
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -11697,10 +11754,16 @@
   │ │         │   └─"\n\n"
   │ │         ├─fragment54
   │ │         │ └─global::comment::singleLine
-  │ │         │   └─"/// A parser that is quantified.\n"
+  │ │         │   └─"/// A parser that is quantified."
+  │ │         ├─fragment54
+  │ │         │ └─global::whitespace
+  │ │         │   └─"\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"///   Can be nested, but shouldn't be used in practice."
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"///   Can be nested, but shouldn't be used in practice.\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -11743,10 +11806,10 @@
   │ │     │   │   └─"\n  "
   │ │     │   ├─fragment54
   │ │     │   │ └─global::comment::singleLine
-  │ │     │   │   └─"/// An optional parser, representing a parser that can be repeated zero or one times.\n"
+  │ │     │   │   └─"/// An optional parser, representing a parser that can be repeated zero or one times."
   │ │     │   └─fragment54
   │ │     │     └─global::whitespace
-  │ │     │       └─"  "
+  │ │     │       └─"\n  "
   │ │     ├─global::choice
   │ │     │ ├─global::|
   │ │     │ │ ├─global::_
@@ -11879,10 +11942,10 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// Kleene-star, representing a parser that can be repeated zero or more times.\n"
+  │ │     │   │     │   └─"/// Kleene-star, representing a parser that can be repeated zero or more times."
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -12001,10 +12064,10 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// Kleene-plus, representing a parser that can be repeated one or more times.\n"
+  │ │     │   │     │   └─"/// Kleene-plus, representing a parser that can be repeated one or more times."
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -12159,10 +12222,16 @@
   │ │         │   └─"\n\n"
   │ │         ├─fragment54
   │ │         │ └─global::comment::singleLine
-  │ │         │   └─"/// A parser that is prefixed.\n"
+  │ │         │   └─"/// A parser that is prefixed."
+  │ │         ├─fragment54
+  │ │         │ └─global::whitespace
+  │ │         │   └─"\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"///   Usually with disambiguators such as `and-predicate` and `not-predicate`."
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"///   Usually with disambiguators such as `and-predicate` and `not-predicate`.\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -12204,10 +12273,10 @@
   │ │     │   │   └─"\n  "
   │ │     │   ├─fragment54
   │ │     │   │ └─global::comment::singleLine
-  │ │     │   │   └─"/// A parser that is only matched if the following parser fails.\n"
+  │ │     │   │   └─"/// A parser that is only matched if the following parser fails."
   │ │     │   └─fragment54
   │ │     │     └─global::whitespace
-  │ │     │       └─"  "
+  │ │     │       └─"\n  "
   │ │     ├─global::choice
   │ │     │ ├─global::|
   │ │     │ │ ├─global::_
@@ -12510,10 +12579,10 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// A parser that only returns a boolean, succeeding when the parser succeeds.\n"
+  │ │     │   │     │   └─"/// A parser that only returns a boolean, succeeding when the parser succeeds."
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -12655,10 +12724,10 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// A parser that only returns a boolean, succeeding when the parser fails.\n"
+  │ │     │   │     │   └─"/// A parser that only returns a boolean, succeeding when the parser fails."
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -12838,10 +12907,16 @@
   │ │         │   └─"\n\n"
   │ │         ├─fragment54
   │ │         │ └─global::comment::singleLine
-  │ │         │   └─"/// \"Call\"-like because they technically look like a call, but this is special syntax.\n"
+  │ │         │   └─"/// \"Call\"-like because they technically look like a call, but this is special syntax."
+  │ │         ├─fragment54
+  │ │         │ └─global::whitespace
+  │ │         │   └─"\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"///   (Calls don't exist.)"
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"///   (Calls don't exist.)\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -12885,16 +12960,16 @@
   │ │     │   │   └─"\n  "
   │ │     │   ├─fragment54
   │ │     │   │ └─global::comment::singleLine
-  │ │     │   │   └─"/// Flattens a parser result.\n"
+  │ │     │   │   └─"/// Flattens a parser result."
   │ │     │   ├─fragment54
   │ │     │   │ └─global::whitespace
-  │ │     │   │   └─"  "
+  │ │     │   │   └─"\n  "
   │ │     │   ├─fragment54
   │ │     │   │ └─global::comment::singleLine
-  │ │     │   │   └─"///   a.flat!()\n"
+  │ │     │   │   └─"///   a.flat!()"
   │ │     │   └─fragment54
   │ │     │     └─global::whitespace
-  │ │     │       └─"  "
+  │ │     │       └─"\n  "
   │ │     ├─global::choice
   │ │     │ ├─global::|
   │ │     │ │ ├─global::_
@@ -13319,16 +13394,16 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// Expects a number of results.\n"
+  │ │     │   │     │   └─"/// Expects a number of results."
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::whitespace
-  │ │     │   │     │   └─"  "
+  │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"///  a.range!(2, 4)\n"
+  │ │     │   │     │   └─"///  a.range!(2, 4)"
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -13649,10 +13724,10 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"///  a.range!(2)\n"
+  │ │     │   │     │   └─"///  a.range!(2)"
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -13930,10 +14005,10 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"///  a.range! 2\n"
+  │ │     │   │     │   └─"///  a.range! 2"
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -14205,22 +14280,22 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// Separates a parser by a separator.\n"
+  │ │     │   │     │   └─"/// Separates a parser by a separator."
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::whitespace
-  │ │     │   │     │   └─"  "
+  │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"///\n"
+  │ │     │   │     │   └─"///"
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::whitespace
-  │ │     │   │     │   └─"  "
+  │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"///  a.sep! b\n"
+  │ │     │   │     │   └─"///  a.sep! b"
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -16409,10 +16484,16 @@
   │ │         │   └─"\n\n\n"
   │ │         ├─fragment54
   │ │         │ └─global::comment::singleLine
-  │ │         │   └─"/// A parser that can be qualified as a group.\n"
+  │ │         │   └─"/// A parser that can be qualified as a group."
+  │ │         ├─fragment54
+  │ │         │ └─global::whitespace
+  │ │         │   └─"\n"
+  │ │         ├─fragment54
+  │ │         │ └─global::comment::singleLine
+  │ │         │   └─"///   These are usually parsers that are delimited."
   │ │         └─fragment54
-  │ │           └─global::comment::singleLine
-  │ │             └─"///   These are usually parsers that are delimited.\n"
+  │ │           └─global::whitespace
+  │ │             └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::declaration
@@ -16452,10 +16533,10 @@
   │ │     │   │   └─"\n  "
   │ │     │   ├─fragment54
   │ │     │   │ └─global::comment::singleLine
-  │ │     │   │   └─"/// Basic atomic parsers.\n"
+  │ │     │   │   └─"/// Basic atomic parsers."
   │ │     │   └─fragment54
   │ │     │     └─global::whitespace
-  │ │     │       └─"  "
+  │ │     │       └─"\n  "
   │ │     ├─global::choice
   │ │     │ ├─global::|
   │ │     │ │ ├─global::_
@@ -16996,10 +17077,10 @@
   │ │     │   │     │   └─"\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// Regular Expression Literals\n"
+  │ │     │   │     │   └─"/// Regular Expression Literals"
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -17159,10 +17240,10 @@
   │ │     │   │     │   └─"\n\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// Basics\n"
+  │ │     │   │     │   └─"/// Basics"
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -17634,10 +17715,10 @@
   │ │     │   │     │   └─"\n\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// Inverses\n"
+  │ │     │   │     │   └─"/// Inverses"
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -18145,10 +18226,10 @@
   │ │     │   │     │   └─"\n\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// Spaces\n"
+  │ │     │   │     │   └─"/// Spaces"
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -18978,10 +19059,10 @@
   │ │     │   │     │   └─"\n\n  "
   │ │     │   │     ├─fragment54
   │ │     │   │     │ └─global::comment::singleLine
-  │ │     │   │     │   └─"/// Basic literals.\n"
+  │ │     │   │     │   └─"/// Basic literals."
   │ │     │   │     └─fragment54
   │ │     │   │       └─global::whitespace
-  │ │     │   │         └─"  "
+  │ │     │   │         └─"\n  "
   │ │     │   ├─global::|
   │ │     │   │ ├─global::_
   │ │     │   │ ├─"|"
@@ -20589,10 +20670,10 @@
   │ │   │ │   │       │   │   └─"\n      "
   │ │   │ │   │       │   ├─fragment54
   │ │   │ │   │       │   │ └─global::comment::singleLine
-  │ │   │ │   │       │   │   └─"/// Raw string literals\n"
+  │ │   │ │   │       │   │   └─"/// Raw string literals"
   │ │   │ │   │       │   └─fragment54
   │ │   │ │   │       │     └─global::whitespace
-  │ │   │ │   │       │       └─"      "
+  │ │   │ │   │       │       └─"\n      "
   │ │   │ │   │       ├─global::choice
   │ │   │ │   │       │ ├─global::|
   │ │   │ │   │       │ │ ├─global::_
@@ -21177,10 +21258,10 @@
   │ │   │ │   │       │   │     │   └─"\n      "
   │ │   │ │   │       │   │     ├─fragment54
   │ │   │ │   │       │   │     │ └─global::comment::singleLine
-  │ │   │ │   │       │   │     │   └─"/// Escaped string literals\n"
+  │ │   │ │   │       │   │     │   └─"/// Escaped string literals"
   │ │   │ │   │       │   │     └─fragment54
   │ │   │ │   │       │   │       └─global::whitespace
-  │ │   │ │   │       │   │         └─"      "
+  │ │   │ │   │       │   │         └─"\n      "
   │ │   │ │   │       │   ├─global::|
   │ │   │ │   │       │   │ ├─global::_
   │ │   │ │   │       │   │ ├─"|"
@@ -23199,10 +23280,10 @@
   │ │   │ │   │ │     │   │     │   └─" "
   │ │   │ │   │ │     │   │     ├─fragment54
   │ │   │ │   │ │     │   │     │ └─global::comment::singleLine
-  │ │   │ │   │ │     │   │     │   └─"// \" \"\n"
+  │ │   │ │   │ │     │   │     │   └─"// \" \""
   │ │   │ │   │ │     │   │     └─fragment54
   │ │   │ │   │ │     │   │       └─global::whitespace
-  │ │   │ │   │ │     │   │         └─"      "
+  │ │   │ │   │ │     │   │         └─"\n      "
   │ │   │ │   │ │     │   ├─global::|
   │ │   │ │   │ │     │   │ ├─global::_
   │ │   │ │   │ │     │   │ ├─"|"
@@ -23300,10 +23381,10 @@
   │ │   │ │   │ │     │   │     │   └─" "
   │ │   │ │   │ │     │   │     ├─fragment54
   │ │   │ │   │ │     │   │     │ └─global::comment::singleLine
-  │ │   │ │   │ │     │   │     │   └─"// 0-9\n"
+  │ │   │ │   │ │     │   │     │   └─"// 0-9"
   │ │   │ │   │ │     │   │     └─fragment54
   │ │   │ │   │ │     │   │       └─global::whitespace
-  │ │   │ │   │ │     │   │         └─"      "
+  │ │   │ │   │ │     │   │         └─"\n      "
   │ │   │ │   │ │     │   ├─global::|
   │ │   │ │   │ │     │   │ ├─global::_
   │ │   │ │   │ │     │   │ ├─"|"
@@ -23484,10 +23565,10 @@
   │ │   │ │   │ │     │   │     │   └─" "
   │ │   │ │   │ │     │   │     ├─fragment54
   │ │   │ │   │ │     │   │     │ └─global::comment::singleLine
-  │ │   │ │   │ │     │   │     │   └─"// a-z, A-Z\n"
+  │ │   │ │   │ │     │   │     │   └─"// a-z, A-Z"
   │ │   │ │   │ │     │   │     └─fragment54
   │ │   │ │   │ │     │   │       └─global::whitespace
-  │ │   │ │   │ │     │   │         └─"      "
+  │ │   │ │   │ │     │   │         └─"\n      "
   │ │   │ │   │ │     │   ├─global::|
   │ │   │ │   │ │     │   │ ├─global::_
   │ │   │ │   │ │     │   │ ├─"|"
@@ -23617,10 +23698,10 @@
   │ │   │ │   │ │     │   │     │   └─" "
   │ │   │ │   │ │     │   │     ├─fragment54
   │ │   │ │   │ │     │   │     │ └─global::comment::singleLine
-  │ │   │ │   │ │     │   │     │   └─"// \\t, \\n, \\r, \\f, \\v, space\n"
+  │ │   │ │   │ │     │   │     │   └─"// \\t, \\n, \\r, \\f, \\v, space"
   │ │   │ │   │ │     │   │     └─fragment54
   │ │   │ │   │ │     │   │       └─global::whitespace
-  │ │   │ │   │ │     │   │         └─"      "
+  │ │   │ │   │ │     │   │         └─"\n      "
   │ │   │ │   │ │     │   ├─global::|
   │ │   │ │   │ │     │   │ ├─global::_
   │ │   │ │   │ │     │   │ ├─"|"
@@ -24320,9 +24401,12 @@
   │ │       ├─fragment54
   │ │       │ └─global::whitespace
   │ │       │   └─"\n\n"
+  │ │       ├─fragment54
+  │ │       │ └─global::comment::singleLine
+  │ │       │   └─"/// Rules related to [Dart] expressions."
   │ │       └─fragment54
-  │ │         └─global::comment::singleLine
-  │ │           └─"/// Rules related to [Dart] expressions.\n"
+  │ │         └─global::whitespace
+  │ │           └─"\n"
   │ ├─global::_
   │ ├─global::statement
   │ │ └─global::namespace
@@ -24366,16 +24450,16 @@
   │ │   │ │   │   │   └─"\n    "
   │ │   │ │   │   ├─fragment54
   │ │   │ │   │   │ └─global::comment::singleLine
-  │ │   │ │   │   │   └─"/// Since string literals in [Dart] can be put adjacent, we need to parse while\n"
+  │ │   │ │   │   │   └─"/// Since string literals in [Dart] can be put adjacent, we need to parse while"
   │ │   │ │   │   ├─fragment54
   │ │   │ │   │   │ └─global::whitespace
-  │ │   │ │   │   │   └─"    "
+  │ │   │ │   │   │   └─"\n    "
   │ │   │ │   │   ├─fragment54
   │ │   │ │   │   │ └─global::comment::singleLine
-  │ │   │ │   │   │   └─"///   there are still string literals.\n"
+  │ │   │ │   │   │   └─"///   there are still string literals."
   │ │   │ │   │   └─fragment54
   │ │   │ │   │     └─global::whitespace
-  │ │   │ │   │       └─"    "
+  │ │   │ │   │       └─"\n    "
   │ │   │ │   ├─┬─
   │ │   │ │   │ ├─global::statement
   │ │   │ │   │ │ └─global::declaration
@@ -24712,10 +24796,10 @@
   │ │   │ │   │     │ │     │   │   └─"\n        "
   │ │   │ │   │     │ │     │   ├─fragment54
   │ │   │ │   │     │ │     │   │ └─global::comment::singleLine
-  │ │   │ │   │     │ │     │   │   └─"/// Raw string literals\n"
+  │ │   │ │   │     │ │     │   │   └─"/// Raw string literals"
   │ │   │ │   │     │ │     │   └─fragment54
   │ │   │ │   │     │ │     │     └─global::whitespace
-  │ │   │ │   │     │ │     │       └─"        "
+  │ │   │ │   │     │ │     │       └─"\n        "
   │ │   │ │   │     │ │     ├─global::choice
   │ │   │ │   │     │ │     │ ├─global::|
   │ │   │ │   │     │ │     │ │ ├─global::_
@@ -25264,10 +25348,10 @@
   │ │   │ │   │     │ │     │   │     │   └─"\n        "
   │ │   │ │   │     │ │     │   │     ├─fragment54
   │ │   │ │   │     │ │     │   │     │ └─global::comment::singleLine
-  │ │   │ │   │     │ │     │   │     │   └─"/// Escaped string literals\n"
+  │ │   │ │   │     │ │     │   │     │   └─"/// Escaped string literals"
   │ │   │ │   │     │ │     │   │     └─fragment54
   │ │   │ │   │     │ │     │   │       └─global::whitespace
-  │ │   │ │   │     │ │     │   │         └─"        "
+  │ │   │ │   │     │ │     │   │         └─"\n        "
   │ │   │ │   │     │ │     │   ├─global::|
   │ │   │ │   │     │ │     │   │ ├─global::_
   │ │   │ │   │     │ │     │   │ ├─"|"
@@ -27229,22 +27313,22 @@
   │ │   │     │ │         │   └─"\n\n    "
   │ │   │     │ │         ├─fragment54
   │ │   │     │ │         │ └─global::comment::singleLine
-  │ │   │     │ │         │   └─"/// A record type.\n"
+  │ │   │     │ │         │   └─"/// A record type."
   │ │   │     │ │         ├─fragment54
   │ │   │     │ │         │ └─global::whitespace
-  │ │   │     │ │         │   └─"    "
+  │ │   │     │ │         │   └─"\n    "
   │ │   │     │ │         ├─fragment54
   │ │   │     │ │         │ └─global::comment::singleLine
-  │ │   │     │ │         │   └─"///   The fields can be positional or named.\n"
+  │ │   │     │ │         │   └─"///   The fields can be positional or named."
   │ │   │     │ │         ├─fragment54
   │ │   │     │ │         │ └─global::whitespace
-  │ │   │     │ │         │   └─"    "
+  │ │   │     │ │         │   └─"\n    "
   │ │   │     │ │         ├─fragment54
   │ │   │     │ │         │ └─global::comment::singleLine
-  │ │   │     │ │         │   └─"///   The fields are special by commas.\n"
+  │ │   │     │ │         │   └─"///   The fields are special by commas."
   │ │   │     │ │         └─fragment54
   │ │   │     │ │           └─global::whitespace
-  │ │   │     │ │             └─"    "
+  │ │   │     │ │             └─"\n    "
   │ │   │     │ ├─global::_
   │ │   │     │ ├─global::statement
   │ │   │     │ │ └─global::declaration
@@ -29835,10 +29919,16 @@
   │ │       │   └─"\n\n"
   │ │       ├─fragment54
   │ │       │ └─global::comment::singleLine
-  │ │       │   └─"/// Tokens used in the grammar.\n"
+  │ │       │   └─"/// Tokens used in the grammar."
+  │ │       ├─fragment54
+  │ │       │ └─global::whitespace
+  │ │       │   └─"\n"
+  │ │       ├─fragment54
+  │ │       │ └─global::comment::singleLine
+  │ │       │   └─"///   Since they are not recursive, they are not defined as rules."
   │ │       └─fragment54
-  │ │         └─global::comment::singleLine
-  │ │           └─"///   Since they are not recursive, they are not defined as rules.\n"
+  │ │         └─global::whitespace
+  │ │           └─"\n"
   │ ├─global::_
   │ └─global::statement
   │   └─global::namespace
@@ -32105,10 +32195,10 @@
   │     │ │         │   └─"\n  "
   │     │ │         ├─fragment54
   │     │ │         │ └─global::comment::singleLine
-  │     │ │         │   └─"/// Tokens used in \"macro-like\" rules.\n"
+  │     │ │         │   └─"/// Tokens used in \"macro-like\" rules."
   │     │ │         └─fragment54
   │     │ │           └─global::whitespace
-  │     │ │             └─"  "
+  │     │ │             └─"\n  "
   │     │ ├─global::_
   │     │ ├─global::statement
   │     │ │ └─global::namespace
@@ -35606,10 +35696,10 @@
   │     │ │       │   └─"\n\n  "
   │     │ │       ├─fragment54
   │     │ │       │ └─global::comment::singleLine
-  │     │ │       │   └─"/// Literal tokens\n"
+  │     │ │       │   └─"/// Literal tokens"
   │     │ │       └─fragment54
   │     │ │         └─global::whitespace
-  │     │ │           └─"  "
+  │     │ │           └─"\n  "
   │     │ ├─global::_
   │     │ ├─global::statement
   │     │ │ └─global::declaration
@@ -39434,40 +39524,40 @@
   │     │ │         │   └─"\n\n  "
   │     │ │         ├─fragment54
   │     │ │         │ └─global::comment::singleLine
-  │     │ │         │   └─"/// Layout parser allows comments (like this) and space between parsers.\n"
+  │     │ │         │   └─"/// Layout parser allows comments (like this) and space between parsers."
   │     │ │         ├─fragment54
   │     │ │         │ └─global::whitespace
-  │     │ │         │   └─"  "
+  │     │ │         │   └─"\n  "
   │     │ │         ├─fragment54
   │     │ │         │ └─global::comment::singleLine
-  │     │ │         │   └─"/// Regular Expression monster below:\n"
+  │     │ │         │   └─"/// Regular Expression monster below:"
   │     │ │         ├─fragment54
   │     │ │         │ └─global::whitespace
-  │     │ │         │   └─"  "
+  │     │ │         │   └─"\n  "
   │     │ │         ├─fragment54
   │     │ │         │ └─global::comment::singleLine
-  │     │ │         │   └─"///   Split into three parts.\n"
+  │     │ │         │   └─"///   Split into three parts."
   │     │ │         ├─fragment54
   │     │ │         │ └─global::whitespace
-  │     │ │         │   └─"  "
+  │     │ │         │   └─"\n  "
   │     │ │         ├─fragment54
   │     │ │         │ └─global::comment::singleLine
-  │     │ │         │   └─"///   1. `(?:\\s)` - Matches any whitespace character.\n"
+  │     │ │         │   └─"///   1. `(?:\\s)` - Matches any whitespace character."
   │     │ │         ├─fragment54
   │     │ │         │ └─global::whitespace
-  │     │ │         │   └─"  "
+  │     │ │         │   └─"\n  "
   │     │ │         ├─fragment54
   │     │ │         │ └─global::comment::singleLine
-  │     │ │         │   └─"///   2. `(?:\\/{2}.*(?:(?:\\r?\\n)|(?:$)))` - Matches a single line comment.\n"
+  │     │ │         │   └─"///   2. `(?:\\/{2}.*(?:(?:\\r?\\n)|(?:$)))` - Matches a single line comment."
   │     │ │         ├─fragment54
   │     │ │         │ └─global::whitespace
-  │     │ │         │   └─"  "
+  │     │ │         │   └─"\n  "
   │     │ │         ├─fragment54
   │     │ │         │ └─global::comment::singleLine
-  │     │ │         │   └─"///   3. `(?:\\/\\*(?:(?!\\*\\/).)*\\*\\/)` - Matches a multi-line comment.\n"
+  │     │ │         │   └─"///   3. `(?:\\/\\*(?:(?!\\*\\/).)*\\*\\/)` - Matches a multi-line comment."
   │     │ │         └─fragment54
   │     │ │           └─global::whitespace
-  │     │ │             └─"  "
+  │     │ │             └─"\n  "
   │     │ ├─global::_
   │     │ ├─global::statement
   │     │ │ └─global::declaration
@@ -39960,7 +40050,7 @@
   │     │     │ │     │       │               │ │ └─"?"
   │     │     │ │     │       │               │ ├─fragment27
   │     │     │ │     │       │               │ │ ├─null
-  │     │     │ │     │       │               │ │ └─":"
+  │     │     │ │     │       │               │ │ └─"="
   │     │     │ │     │       │               │ ├─fragment27
   │     │     │ │     │       │               │ │ ├─null
   │     │     │ │     │       │               │ │ └─"("

@@ -476,7 +476,7 @@ dart {
   String _ = (whitespace | comment.singleLine | comment.multiLine)*  { "" };
   @rule String whitespace = /\s+/;
   @rule comment {
-    String singleLine = /\/{2}(?:(?!(?:(?:\r?\n)|(?:$))).)*(?:(?:\r?\n)|(?:$))/;
+    String singleLine = /\/{2}(?:(?!(?:(?:\r?\n)|(?:$))).)*(?=(?:\r?\n)|(?:$))/;
     String multiLine = /(?:\/\*(?:(?!\*\/).)*\*\/)/;
   }
 }
