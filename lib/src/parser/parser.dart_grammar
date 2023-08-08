@@ -1,5 +1,4 @@
 {
-
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
@@ -8,14 +7,12 @@ final _regexps = (
   from: RegExp(r"\bfrom\b"),
   to: RegExp(r"\bto\b"),
 );
-
 }
 
 /// A grammar file contains an optional preamble and statements.
 ParserGenerator document = ^ :preamble? statements:_..statement+ _? $ {
   ParserGenerator.fromParsed(preamble: preamble, statements: statements)
 };
-
 
 /// The preamble is simple.
 String preamble = `{` _ code:code.curly _ `}` { code };
@@ -78,6 +75,13 @@ Node choice = `|`? options:`|`..acted+ { options.length == 1 ? options.single : 
 
 /// A parser with a bound action.
 Node acted =
+  | :sequence `=>` _ :literal.raw _ {
+    InlineActionNode(
+      sequence,
+      raw.trimRight(),
+      areIndicesProvided: raw.contains(_regexps.from) && raw.contains(_regexps.to),
+    )
+  }
   | :sequence `{` _ :code.curly _ `}` {
       InlineActionNode(
         sequence,
@@ -191,9 +195,9 @@ Node callLike =
   ///  a.range!(2, 4)
   | target:callLike `.` mac.range `(` min:number `,` max:number `)` { CountedNode(min, max, target) }
   ///  a.range!(2)
-  | target:callLike `.` mac.range `(` :number `)`                   { CountedNode(number, number, target) }
+  | target:callLike `.` mac.range `(` :number `)` { CountedNode(number, number, target) }
   ///  a.range! 2
-  | target:callLike `.` mac.range  _  :number  _                    { CountedNode(number, number, target) }
+  | target:callLike `.` mac.range  _  :number  _ { CountedNode(number, number, target) }
   /// Separates a parser by a separator.
   ///
   ///  a.sep! b
@@ -221,39 +225,39 @@ Node atom =
   | regexEscape.backslash  { const StringLiteralNode(r"\") }
 
   /// Basics
-  | regexEscape.digit      { SimpleRegExpEscapeNode.digit }
-  | regexEscape.word       { SimpleRegExpEscapeNode.word }
+  | regexEscape.digit { SimpleRegExpEscapeNode.digit }
+  | regexEscape.word { SimpleRegExpEscapeNode.word }
   | regexEscape.whitespace { SimpleRegExpEscapeNode.whitespace }
 
   /// Inverses
-  | regexEscape.notDigit      { SimpleRegExpEscapeNode.notDigit }
-  | regexEscape.notWord       { SimpleRegExpEscapeNode.notWord }
+  | regexEscape.notDigit { SimpleRegExpEscapeNode.notDigit }
+  | regexEscape.notWord { SimpleRegExpEscapeNode.notWord }
   | regexEscape.notWhitespace { SimpleRegExpEscapeNode.notWhitespace }
 
   /// Spaces
-  | regexEscape.tab            { SimpleRegExpEscapeNode.tab }
-  | regexEscape.newline        { SimpleRegExpEscapeNode.newline }
+  | regexEscape.tab { SimpleRegExpEscapeNode.tab }
+  | regexEscape.newline { SimpleRegExpEscapeNode.newline }
   | regexEscape.carriageReturn { SimpleRegExpEscapeNode.carriageReturn }
-  | regexEscape.formFeed       { SimpleRegExpEscapeNode.formFeed }
-  | regexEscape.verticalTab    { SimpleRegExpEscapeNode.verticalTab }
+  | regexEscape.formFeed { SimpleRegExpEscapeNode.formFeed }
+  | regexEscape.verticalTab { SimpleRegExpEscapeNode.verticalTab }
 
   /// Basic literals.
   | literal.range
   | literal.regexp { RegExpNode($) }
   | literal.string { StringLiteralNode($) }
-  | name           { ReferenceNode($) }
+  | name { ReferenceNode($) }
   ;
 
 code {
   String curly =
-    | "`" ~"`"* "`" @1 { $.join() }
+    | "`" ~> ~"`"* <~ "`" { $.join() }
     | curly.balanced
     ;
 
   curly {
     String balanced = code:(
         | dart.literal.string
-        | "{" balanced "}" @1 {"{" + $ + "}"}
+        | "{" ~> balanced <~ "}" {"{" + $ + "}"}
         | ~("{" | "}")
       )* { code.join() };
   }
@@ -282,8 +286,8 @@ code {
     @inline Node main = _ "[" elements:_..element+ "]" _ { RangeNode(elements.reduce((a, b) => a.union(b))) };
     Set<(int, int)> element =
       | escape
-      | l:atom "-" r:atom { {(l.codeUnitAt(0), r.codeUnitAt(0))} }
-      | atom              { {($.codeUnitAt(0), $.codeUnitAt(0))} }
+      | l:atom "-" r:atom { `{(l.codeUnitAt(0), r.codeUnitAt(0))}` }
+      | atom              {`{($.codeUnitAt(0), $.codeUnitAt(0))}`}
       ;
 
     @inline Set<(int, int)> escape =
@@ -341,10 +345,10 @@ dart {
     ///   The fields can be positional or named.
     ///   The fields are special by commas.
     String record =
-      | `(` (`{` fields.named `}` @1)? `)` {
+      | `(` (`{` ~> fields.named <~ `}`)? `)` {
           "(" + ($1 == null ? "" : "{" + $1 + "}") + ")"
         }
-      | `(` field.positional `,` (`{` fields.named `}` @1)? `)` {
+      | `(` field.positional `,` (`{` ~> fields.named <~ `}`)? `)` {
           "(" + $1 + ", " + ($3 == null ? "" : "{" + $3 + "}") + ")"
         }
       | `(` fields.positional (`,` `{` fields.named `}` @2)? `)` {
@@ -374,7 +378,7 @@ dart {
 ///   Since they are not recursive, they are not defined as rules.
 @fragment {
   String identifier = [a-zA-Z_$][a-zA-Z0-9_$]* { $0 + $1.join() };
-  String raw = "`" ~"`"* "`" @1 { $.join() };
+  String raw = "`" ~> ~"`"* <~ "`"{ $.join() };
   int number = \d+ { int.parse($.join()) };
 
   kw {
@@ -474,8 +478,8 @@ dart {
   ///   2. `(?:\/{2}.*(?:(?:\r?\n)|(?:$)))` - Matches a single line comment.
   ///   3. `(?:\/\*(?:(?!\*\/).)*\*\/)` - Matches a multi-line comment.
   String _ = (whitespace | comment.singleLine | comment.multiLine)*  { "" };
-  @rule String whitespace = /\s+/;
-  @rule comment {
+  String whitespace = /\s+/;
+  comment {
     String singleLine = /\/{2}(?:(?!(?:(?:\r?\n)|(?:$))).)*(?=(?:\r?\n)|(?:$))/;
     String multiLine = /(?:\/\*(?:(?!\*\/).)*\*\/)/;
   }

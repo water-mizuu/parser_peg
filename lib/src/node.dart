@@ -4,7 +4,7 @@ import "package:parser_peg/src/visitor/node_visitor.dart";
 
 sealed class Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor);
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters);
   O acceptCompilerVisitor<O, I>(
     CodeGeneratorNodeVisitor<O, I> visitor, {
     required bool isNullAllowed,
@@ -29,7 +29,8 @@ class EpsilonNode implements AtomicNode {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitEpsilonNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitEpsilonNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitEpsilonNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -61,8 +62,8 @@ class TriePatternNode implements AtomicNode {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitTriePatternNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) =>
-      visitor.visitTriePatternNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitTriePatternNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -94,8 +95,8 @@ class StringLiteralNode implements AtomicNode {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitStringLiteralNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) =>
-      visitor.visitStringLiteralNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitStringLiteralNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -127,7 +128,8 @@ class RangeNode implements AtomicNode {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitRangeNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitRangeNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitRangeNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -159,7 +161,8 @@ class RegExpNode implements AtomicNode {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitRegExpNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitRegExpNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitRegExpNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -207,8 +210,8 @@ abstract interface class RegExpEscapeNode implements AtomicNode {
       );
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) =>
-      visitor.visitRegExpEscapeNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitRegExpEscapeNode(this, parameters);
 
   @override
   Iterable<Node> get children => <Node>[];
@@ -258,8 +261,8 @@ enum SimpleRegExpEscapeNode implements RegExpEscapeNode {
       );
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) =>
-      visitor.visitRegExpEscapeNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitRegExpEscapeNode(this, parameters);
 
   @override
   Iterable<Node> get children => <Node>[];
@@ -277,7 +280,8 @@ class SequenceNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitSequenceNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitSequenceNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitSequenceNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -308,7 +312,8 @@ class ChoiceNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitChoiceNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitChoiceNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitChoiceNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -340,7 +345,8 @@ class CountedNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitCountedNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitCountedNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitCountedNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -375,8 +381,8 @@ class PlusSeparatedNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitPlusSeparatedNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) =>
-      visitor.visitPlusSeparatedNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitPlusSeparatedNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -411,8 +417,8 @@ class StarSeparatedNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitStarSeparatedNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) =>
-      visitor.visitStarSeparatedNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitStarSeparatedNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -447,7 +453,8 @@ class PlusNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitPlusNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitPlusNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitPlusNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -479,7 +486,8 @@ class StarNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitStarNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitStarNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitStarNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -511,8 +519,8 @@ class AndPredicateNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitAndPredicateNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) =>
-      visitor.visitAndPredicateNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitAndPredicateNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -544,8 +552,8 @@ class NotPredicateNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitNotPredicateNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) =>
-      visitor.visitNotPredicateNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitNotPredicateNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -577,7 +585,8 @@ class OptionalNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitOptionalNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitOptionalNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitOptionalNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -609,7 +618,8 @@ class ReferenceNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitReferenceNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitReferenceNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitReferenceNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -641,7 +651,8 @@ class FragmentNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitFragmentNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitFragmentNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitFragmentNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -674,7 +685,8 @@ class NamedNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitNamedNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitNamedNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitNamedNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -708,7 +720,8 @@ class ActionNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitActionNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitActionNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitActionNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -742,8 +755,8 @@ class InlineActionNode implements Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitInlineActionNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) =>
-      visitor.visitInlineActionNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitInlineActionNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -776,8 +789,8 @@ class StartOfInputNode implements SpecialSymbolNode {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitStartOfInputNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) =>
-      visitor.visitStartOfInputNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitStartOfInputNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -808,7 +821,8 @@ class EndOfInputNode implements SpecialSymbolNode {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitEndOfInputNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) => visitor.visitEndOfInputNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitEndOfInputNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(
@@ -839,8 +853,8 @@ class AnyCharacterNode implements SpecialSymbolNode {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitAnyCharacterNode(this);
 
   @override
-  O acceptSimplifierVisitor<O>(SimplifierNodeVisitor<O> visitor, int depth) =>
-      visitor.visitAnyCharacterNode(this, depth);
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitAnyCharacterNode(this, parameters);
 
   @override
   O acceptCompilerVisitor<O, I>(

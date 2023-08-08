@@ -298,7 +298,7 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
     required String declarationName,
   }) {
     String variableName = "_${ruleId++}";
-    String containerName = "_loop${++ruleId}";
+    String containerName = "_loop${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
     if (node.min > 0) {
@@ -413,7 +413,7 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
     required String declarationName,
   }) {
     String variableName = "_${ruleId++}";
-    String containerName = "_loop${++ruleId}";
+    String containerName = "_loop${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
     String trailingBody = node.separator
@@ -484,7 +484,7 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
     required String declarationName,
   }) {
     String variableName = "_${ruleId++}";
-    String containerName = "_loop${++ruleId}";
+    String containerName = "_loop${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
     String loopBody = node.separator
@@ -573,7 +573,7 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
     required String declarationName,
   }) {
     String variableName = "_${ruleId++}";
-    String containerName = "_loop${++ruleId}";
+    String containerName = "_loop${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
     String loopBody = node.child
@@ -622,7 +622,7 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
     required String declarationName,
   }) {
     String variableName = "_${ruleId++}";
-    String containerName = "_loop${++ruleId}";
+    String containerName = "_loop${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
     String loopBody = node.child

@@ -27,31 +27,31 @@ abstract class SimpleNodeVisitor<O> {
   O visitAnyCharacterNode(AnyCharacterNode node);
 }
 
-abstract class SimplifierNodeVisitor<O> {
-  O visitEpsilonNode(EpsilonNode node, int depth);
-  O visitTriePatternNode(TriePatternNode node, int depth);
-  O visitStringLiteralNode(StringLiteralNode node, int depth);
-  O visitRangeNode(RangeNode node, int depth);
-  O visitRegExpNode(RegExpNode node, int depth);
-  O visitRegExpEscapeNode(RegExpEscapeNode node, int depth);
-  O visitSequenceNode(SequenceNode node, int depth);
-  O visitChoiceNode(ChoiceNode node, int depth);
-  O visitCountedNode(CountedNode node, int depth);
-  O visitPlusSeparatedNode(PlusSeparatedNode node, int depth);
-  O visitStarSeparatedNode(StarSeparatedNode node, int depth);
-  O visitPlusNode(PlusNode node, int depth);
-  O visitStarNode(StarNode node, int depth);
-  O visitAndPredicateNode(AndPredicateNode node, int depth);
-  O visitNotPredicateNode(NotPredicateNode node, int depth);
-  O visitOptionalNode(OptionalNode node, int depth);
-  O visitReferenceNode(ReferenceNode node, int depth);
-  O visitFragmentNode(FragmentNode node, int depth);
-  O visitNamedNode(NamedNode node, int depth);
-  O visitActionNode(ActionNode node, int depth);
-  O visitInlineActionNode(InlineActionNode node, int depth);
-  O visitStartOfInputNode(StartOfInputNode node, int depth);
-  O visitEndOfInputNode(EndOfInputNode node, int depth);
-  O visitAnyCharacterNode(AnyCharacterNode node, int depth);
+abstract class ParametrizedNodeVisitor<O, I> {
+  O visitEpsilonNode(EpsilonNode node, I parameters);
+  O visitTriePatternNode(TriePatternNode node, I parameters);
+  O visitStringLiteralNode(StringLiteralNode node, I parameters);
+  O visitRangeNode(RangeNode node, I parameters);
+  O visitRegExpNode(RegExpNode node, I parameters);
+  O visitRegExpEscapeNode(RegExpEscapeNode node, I parameters);
+  O visitSequenceNode(SequenceNode node, I parameters);
+  O visitChoiceNode(ChoiceNode node, I parameters);
+  O visitCountedNode(CountedNode node, I parameters);
+  O visitPlusSeparatedNode(PlusSeparatedNode node, I parameters);
+  O visitStarSeparatedNode(StarSeparatedNode node, I parameters);
+  O visitPlusNode(PlusNode node, I parameters);
+  O visitStarNode(StarNode node, I parameters);
+  O visitAndPredicateNode(AndPredicateNode node, I parameters);
+  O visitNotPredicateNode(NotPredicateNode node, I parameters);
+  O visitOptionalNode(OptionalNode node, I parameters);
+  O visitReferenceNode(ReferenceNode node, I parameters);
+  O visitFragmentNode(FragmentNode node, I parameters);
+  O visitNamedNode(NamedNode node, I parameters);
+  O visitActionNode(ActionNode node, I parameters);
+  O visitInlineActionNode(InlineActionNode node, I parameters);
+  O visitStartOfInputNode(StartOfInputNode node, I parameters);
+  O visitEndOfInputNode(EndOfInputNode node, I parameters);
+  O visitAnyCharacterNode(AnyCharacterNode node, I parameters);
 }
 
 abstract class CodeGeneratorNodeVisitor<O, I> {

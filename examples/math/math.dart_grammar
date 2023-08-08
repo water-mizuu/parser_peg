@@ -10,14 +10,12 @@ num expr =
   | term;
 
 num term =
-  | :term _ "*" _ :negative  { term * negative }
-  | :term _ "/" _ :negative  { term / negative }
-  | :term _ "%" _ :negative  { term % negative }
-  | :term _ "~/" _ :negative { term ~/ negative }
-  | negative;
-
-num negative =
-  | "-" _ :negative { -negative }
+  | "-" _ :term            { -term }
+  | :term _ :factor        { term * factor }
+  | :term _ "*" _ :factor  { term * factor }
+  | :term _ "/" _ :factor  { term / factor }
+  | :term _ "%" _ :factor  { term % factor }
+  | :term _ "~/" _ :factor { term ~/ factor }
   | factor;
 
 num factor =

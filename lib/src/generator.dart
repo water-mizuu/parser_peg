@@ -6,12 +6,12 @@ import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
 import "package:parser_peg/src/visitor/compiler_visitor/cst_visitor.dart";
 import "package:parser_peg/src/visitor/compiler_visitor/generator_visitor.dart";
+import "package:parser_peg/src/visitor/parametrized_visitor/simplify_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/can_inline_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/inline_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/referenced_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/rename_visitors.dart";
 import "package:parser_peg/src/visitor/simple_visitor/resolve_references_visitor.dart";
-import "package:parser_peg/src/visitor/simplifier_visitor/simplify_visitor.dart";
 
 typedef DeclarationEntry = MapEntry<(String?, String), Node>;
 
@@ -255,7 +255,7 @@ final class ParserGenerator {
     }
 
     /// We simplify the rules to prepare for codegen.
-    if (SimplifyVisitor() case SimplifyVisitor visitor) {
+    if (ParametrizedSimplifyVisitor() case ParametrizedSimplifyVisitor visitor) {
       for (var (String name, (String? type, Node node)) in rules.pairs) {
         rules[name] = (type, visitor.simplify(node));
       }

@@ -1,7 +1,7 @@
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
-class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
+class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> {
   Node createFragment(Node node) {
     String name = "fragment${fragmentId++}";
     addedFragments[name] = (null, node);
@@ -14,7 +14,7 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
   /// A unique identifier for each fragment.
   int fragmentId = 0;
 
-  Node simplify(Node node) => node.acceptSimplifierVisitor(this, 0);
+  Node simplify(Node node) => node.acceptParametrizedVisitor(this, 0);
 
   @override
   Node visitEpsilonNode(EpsilonNode node, int depth) {
@@ -53,7 +53,7 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
         SequenceNode(
           <Node>[
             for (Node child in node.children) //
-              child.acceptSimplifierVisitor(this, 1),
+              child.acceptParametrizedVisitor(this, 1),
           ],
           choose: node.choose,
         ),
@@ -62,7 +62,7 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
       return SequenceNode(
         <Node>[
           for (Node child in node.children) //
-            child.acceptSimplifierVisitor(this, depth + 1),
+            child.acceptParametrizedVisitor(this, depth + 1),
         ],
         choose: node.choose,
       );
@@ -75,11 +75,11 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
     if (stringNodes.length < 2) {
       if (depth > 0) {
         return createFragment(
-          ChoiceNode(<Node>[for (Node child in node.children) child.acceptSimplifierVisitor(this, 0)]),
+          ChoiceNode(<Node>[for (Node child in node.children) child.acceptParametrizedVisitor(this, 0)]),
         );
       } else {
         return ChoiceNode(
-          <Node>[for (Node child in node.children) child.acceptSimplifierVisitor(this, depth)],
+          <Node>[for (Node child in node.children) child.acceptParametrizedVisitor(this, depth)],
         );
       }
     } else {
@@ -91,9 +91,9 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
           .toList();
 
       if (notStrings.isEmpty) {
-        return TriePatternNode(strings).acceptSimplifierVisitor(this, depth);
+        return TriePatternNode(strings).acceptParametrizedVisitor(this, depth);
       } else {
-        return ChoiceNode(<Node>[...notStrings, TriePatternNode(strings)]).acceptSimplifierVisitor(this, depth);
+        return ChoiceNode(<Node>[...notStrings, TriePatternNode(strings)]).acceptParametrizedVisitor(this, depth);
       }
     }
   }
@@ -103,15 +103,15 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
     return CountedNode(
       node.min,
       node.max,
-      node.child.acceptSimplifierVisitor(this, depth + 1),
+      node.child.acceptParametrizedVisitor(this, depth + 1),
     );
   }
 
   @override
   Node visitPlusSeparatedNode(PlusSeparatedNode node, int depth) {
     return PlusSeparatedNode(
-      node.separator.acceptSimplifierVisitor(this, depth + 1),
-      node.child.acceptSimplifierVisitor(this, depth + 1),
+      node.separator.acceptParametrizedVisitor(this, depth + 1),
+      node.child.acceptParametrizedVisitor(this, depth + 1),
       isTrailingAllowed: node.isTrailingAllowed,
     );
   }
@@ -119,35 +119,35 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
   @override
   Node visitStarSeparatedNode(StarSeparatedNode node, int depth) {
     return StarSeparatedNode(
-      node.separator.acceptSimplifierVisitor(this, depth + 1),
-      node.child.acceptSimplifierVisitor(this, depth + 1),
+      node.separator.acceptParametrizedVisitor(this, depth + 1),
+      node.child.acceptParametrizedVisitor(this, depth + 1),
       isTrailingAllowed: node.isTrailingAllowed,
     );
   }
 
   @override
   Node visitPlusNode(PlusNode node, int depth) {
-    return PlusNode(node.child.acceptSimplifierVisitor(this, depth + 1));
+    return PlusNode(node.child.acceptParametrizedVisitor(this, depth + 1));
   }
 
   @override
   Node visitStarNode(StarNode node, int depth) {
-    return StarNode(node.child.acceptSimplifierVisitor(this, depth + 1));
+    return StarNode(node.child.acceptParametrizedVisitor(this, depth + 1));
   }
 
   @override
   Node visitAndPredicateNode(AndPredicateNode node, int depth) {
-    return AndPredicateNode(node.child.acceptSimplifierVisitor(this, depth));
+    return AndPredicateNode(node.child.acceptParametrizedVisitor(this, depth));
   }
 
   @override
   Node visitNotPredicateNode(NotPredicateNode node, int depth) {
-    return NotPredicateNode(node.child.acceptSimplifierVisitor(this, depth));
+    return NotPredicateNode(node.child.acceptParametrizedVisitor(this, depth));
   }
 
   @override
   Node visitOptionalNode(OptionalNode node, int depth) {
-    return OptionalNode(node.child.acceptSimplifierVisitor(this, depth));
+    return OptionalNode(node.child.acceptParametrizedVisitor(this, depth));
   }
 
   @override
@@ -162,7 +162,7 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
 
   @override
   Node visitNamedNode(NamedNode node, int depth) {
-    return NamedNode(node.name, node.child.acceptSimplifierVisitor(this, depth));
+    return NamedNode(node.name, node.child.acceptParametrizedVisitor(this, depth));
   }
 
   @override
@@ -170,14 +170,14 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
     if (depth > 0) {
       return createFragment(
         ActionNode(
-          node.child.acceptSimplifierVisitor(this, 0),
+          node.child.acceptParametrizedVisitor(this, 0),
           node.action,
           areIndicesProvided: node.areIndicesProvided,
         ),
       );
     } else {
       return ActionNode(
-        node.child.acceptSimplifierVisitor(this, depth),
+        node.child.acceptParametrizedVisitor(this, depth),
         node.action,
         areIndicesProvided: node.areIndicesProvided,
       );
@@ -189,14 +189,14 @@ class SimplifyVisitor implements SimplifierNodeVisitor<Node> {
     if (depth > 0) {
       return createFragment(
         InlineActionNode(
-          node.child.acceptSimplifierVisitor(this, 0),
+          node.child.acceptParametrizedVisitor(this, 0),
           node.action,
           areIndicesProvided: node.areIndicesProvided,
         ),
       );
     } else {
       return InlineActionNode(
-        node.child.acceptSimplifierVisitor(this, depth),
+        node.child.acceptParametrizedVisitor(this, depth),
         node.action,
         areIndicesProvided: node.areIndicesProvided,
       );

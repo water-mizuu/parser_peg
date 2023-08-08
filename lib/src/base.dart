@@ -171,8 +171,11 @@ abstract base class _PegParser<R extends Object> {
 
   void reset() {
     this.pos = 0;
-    this._memo.clear();
+    this.failures.clear();
+    this._heads.clear();
     this._lrStack.clear();
+    this._memo.clear();
+    this._patternMemo.clear();
   }
 
   static (int column, int row) _columnRow(String buffer, int pos) {
