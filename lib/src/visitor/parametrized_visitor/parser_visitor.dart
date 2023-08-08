@@ -6,10 +6,18 @@ import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
+typedef Parameters = ({
+  bool isNullAllowed,
+  Set<String>? withNames,
+  String? inner,
+  bool reported,
+  String declarationName,
+});
+
 String encode(Object object) => jsonEncode(object).replaceAll(r"$", r"\$");
 
-class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
-  CompilerVisitor({
+class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> {
+  ParserCompilerVisitor({
     required this.isNullable,
     required this.fixName,
   });
@@ -37,13 +45,11 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitEpsilonNode(
-    EpsilonNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    EpsilonNode node,
+    Parameters parameters,
+  ) {
+    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, declarationName: String _) =
+        parameters;
     List<String> buffer = <String>[
       "if ('' case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
       if (inner != null) //
@@ -58,13 +64,11 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitTriePatternNode(
-    TriePatternNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    TriePatternNode node,
+    Parameters parameters,
+  ) {
+    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, declarationName: String _) =
+        parameters;
     String key = jsonEncode(node.options);
     int id = switch (trieIds[key]) {
       int id => id,
@@ -85,13 +89,11 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitStringLiteralNode(
-    StringLiteralNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    StringLiteralNode node,
+    Parameters parameters,
+  ) {
+    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, declarationName: String _) =
+        parameters;
     String key = node.literal;
     int id = switch (stringIds[key]) {
       int id => id,
@@ -111,13 +113,11 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitRangeNode(
-    RangeNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    RangeNode node,
+    Parameters parameters,
+  ) {
+    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, declarationName: String _) =
+        parameters;
     String key = node.ranges //
         .map(
           ((int, int) v) => switch (v) {
@@ -144,13 +144,11 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitRegExpNode(
-    RegExpNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    RegExpNode node,
+    Parameters parameters,
+  ) {
+    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, declarationName: String _) =
+        parameters;
     String key = node.value;
     int id = switch (regexpIds[key]) {
       int id => id,
@@ -170,13 +168,11 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitRegExpEscapeNode(
-    RegExpEscapeNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    RegExpEscapeNode node,
+    Parameters parameters,
+  ) {
+    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, declarationName: String _) =
+        parameters;
     String pattern = node.pattern;
     int id = switch (regexpIds[pattern]) {
       int id => id,
@@ -196,13 +192,11 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitSequenceNode(
-    SequenceNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    SequenceNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
+        parameters;
     List<String> names = <String>[
       if (inner == null) ...[
         if (node.choose == null)
@@ -240,13 +234,15 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
       (String inner, (int, Node) pair) {
         var (int index, Node node) = pair;
 
-        return node.acceptCompilerVisitor(
+        return node.acceptParametrizedVisitor(
           this,
-          withNames: <String>{names[index]},
-          inner: inner,
-          isNullAllowed: isNullable.call(node, declarationName),
-          reported: reported,
-          declarationName: declarationName,
+          (
+            withNames: <String>{names[index]},
+            inner: inner,
+            isNullAllowed: isNullable.call(node, declarationName),
+            reported: reported,
+            declarationName: declarationName,
+          ),
         );
       },
     );
@@ -256,13 +252,11 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitChoiceNode(
-    ChoiceNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    ChoiceNode node,
+    Parameters parameters,
+  ) {
+    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
+        parameters;
     StringBuffer buffer = StringBuffer();
     StringBuffer innerBuffer = StringBuffer();
     for (var (int i, Node child) in node.children.indexed) {
@@ -270,13 +264,15 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
         innerBuffer.writeln("this.pos = mark;");
       }
       innerBuffer.writeln(
-        child.acceptCompilerVisitor(
+        child.acceptParametrizedVisitor(
           this,
-          isNullAllowed: isNullAllowed,
-          withNames: withNames,
-          inner: inner,
-          reported: reported,
-          declarationName: declarationName,
+          (
+            isNullAllowed: isNullAllowed,
+            withNames: withNames,
+            inner: inner,
+            reported: reported,
+            declarationName: declarationName,
+          ),
         ),
       );
     }
@@ -290,28 +286,26 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitCountedNode(
-    CountedNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    CountedNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
+        parameters;
     String variableName = "_${ruleId++}";
     String containerName = "_loop${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
     if (node.min > 0) {
-      String loopBody = node.child
-          .acceptCompilerVisitor(
-            this,
-            withNames: <String>{variableName},
-            inner: "$containerName.add($variableName);\ncontinue;",
-            isNullAllowed: isNullable(node.child, declarationName),
-            reported: reported,
-            declarationName: declarationName,
-          )
-          .indent(3);
+      String loopBody = node.child.acceptParametrizedVisitor(
+        this,
+        (
+          withNames: <String>{variableName},
+          inner: "$containerName.add($variableName);\ncontinue;",
+          isNullAllowed: isNullable(node.child, declarationName),
+          reported: reported,
+          declarationName: declarationName,
+        ),
+      ).indent(3);
       StringBuffer loopBuffer = StringBuffer();
       loopBuffer.writeln("if ([$variableName] case ${withNames.varNames}) {");
       if (node.max == null) {
@@ -342,25 +336,27 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
       }
       loopBuffer.writeln("}");
 
-      return node.child.acceptCompilerVisitor(
+      return node.child.acceptParametrizedVisitor(
         this,
-        withNames: <String>{variableName},
-        inner: loopBuffer.toString(),
-        isNullAllowed: isNullable(node.child, declarationName),
-        reported: reported,
-        declarationName: declarationName,
+        (
+          withNames: <String>{variableName},
+          inner: loopBuffer.toString(),
+          isNullAllowed: isNullable(node.child, declarationName),
+          reported: reported,
+          declarationName: declarationName,
+        ),
       );
     } else {
-      String loopBody = node.child
-          .acceptCompilerVisitor(
-            this,
-            withNames: <String>{variableName},
-            inner: "$containerName.add($variableName);\ncontinue;",
-            isNullAllowed: isNullable(node.child, declarationName),
-            reported: reported,
-            declarationName: declarationName,
-          )
-          .indent(5);
+      String loopBody = node.child.acceptParametrizedVisitor(
+        this,
+        (
+          withNames: <String>{variableName},
+          inner: "$containerName.add($variableName);\ncontinue;",
+          isNullAllowed: isNullable(node.child, declarationName),
+          reported: reported,
+          declarationName: declarationName,
+        ),
+      ).indent(5);
       String question = isNullable(node.child, declarationName) ? "" : "?";
       StringBuffer loopBuffer = StringBuffer();
       loopBuffer.writeln("if (this.pos case var mark) {");
@@ -392,57 +388,59 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
       loopBuffer.writeln("  }");
       loopBuffer.writeln("}");
 
-      return node.child.acceptCompilerVisitor(
+      return node.child.acceptParametrizedVisitor(
         this,
-        withNames: <String>{variableName},
-        isNullAllowed: true,
-        inner: loopBuffer.toString(),
-        reported: reported,
-        declarationName: declarationName,
+        (
+          withNames: <String>{variableName},
+          isNullAllowed: true,
+          inner: loopBuffer.toString(),
+          reported: reported,
+          declarationName: declarationName,
+        ),
       );
     }
   }
 
   @override
   String visitPlusSeparatedNode(
-    PlusSeparatedNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    PlusSeparatedNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
+        parameters;
     String variableName = "_${ruleId++}";
     String containerName = "_loop${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
-    String trailingBody = node.separator
-        .acceptCompilerVisitor(
+    String trailingBody = node.separator.acceptParametrizedVisitor(
+      this,
+      (
+        isNullAllowed: true,
+        withNames: <String>{"null"},
+        inner: "this.pos = mark;",
+        reported: reported,
+        declarationName: declarationName,
+      ),
+    ).indent(2);
+    String loopBody = node.separator.acceptParametrizedVisitor(
+      this,
+      (
+        isNullAllowed: isNullable(node.separator, declarationName),
+        withNames: <String>{"_"},
+        inner: node.child.acceptParametrizedVisitor(
           this,
-          isNullAllowed: true,
-          withNames: <String>{"null"},
-          inner: "this.pos = mark;",
-          reported: reported,
-          declarationName: declarationName,
-        )
-        .indent(2);
-    String loopBody = node.separator
-        .acceptCompilerVisitor(
-          this,
-          isNullAllowed: isNullable(node.separator, declarationName),
-          withNames: <String>{"_"},
-          inner: node.child.acceptCompilerVisitor(
-            this,
+          (
             withNames: <String>{variableName},
             inner: "$containerName.add($variableName);\ncontinue;",
             isNullAllowed: isNullable(node.child, declarationName),
             reported: reported,
             declarationName: declarationName,
           ),
-          reported: reported,
-          declarationName: declarationName,
-        )
-        .indent(3);
+        ),
+        reported: reported,
+        declarationName: declarationName,
+      ),
+    ).indent(3);
     StringBuffer loopBuffer = StringBuffer();
     loopBuffer.writeln("if ([$variableName] case ${withNames.varNames}) {");
     loopBuffer.writeln("  for (;;) {");
@@ -464,46 +462,48 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
     }
     loopBuffer.writeln("}");
 
-    return node.child.acceptCompilerVisitor(
+    return node.child.acceptParametrizedVisitor(
       this,
-      withNames: <String>{variableName},
-      inner: loopBuffer.toString(),
-      isNullAllowed: isNullable(node.child, declarationName),
-      reported: reported,
-      declarationName: declarationName,
+      (
+        withNames: <String>{variableName},
+        inner: loopBuffer.toString(),
+        isNullAllowed: isNullable(node.child, declarationName),
+        reported: reported,
+        declarationName: declarationName,
+      ),
     );
   }
 
   @override
   String visitStarSeparatedNode(
-    StarSeparatedNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    StarSeparatedNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
+        parameters;
     String variableName = "_${ruleId++}";
     String containerName = "_loop${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
-    String loopBody = node.separator
-        .acceptCompilerVisitor(
+    String loopBody = node.separator.acceptParametrizedVisitor(
+      this,
+      (
+        withNames: <String>{"_"},
+        inner: node.child.acceptParametrizedVisitor(
           this,
-          withNames: <String>{"_"},
-          inner: node.child.acceptCompilerVisitor(
-            this,
+          (
             withNames: <String>{variableName},
             inner: "$containerName.add($variableName);\ncontinue;",
             isNullAllowed: isNullable(node.child, declarationName),
             reported: reported,
             declarationName: declarationName,
           ),
-          isNullAllowed: isNullable(node.separator, declarationName),
-          reported: reported,
-          declarationName: declarationName,
-        )
-        .indent(5);
+        ),
+        isNullAllowed: isNullable(node.separator, declarationName),
+        reported: reported,
+        declarationName: declarationName,
+      ),
+    ).indent(5);
     String question = isNullable(node.child, declarationName) ? "" : "?";
     StringBuffer loopBuffer = StringBuffer();
     loopBuffer.writeln(
@@ -521,23 +521,23 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
     if (!isNullable(node, declarationName) && node.isTrailingAllowed) {
       loopBuffer.writeln("    if (this.pos case var mark) {");
       loopBuffer.writeln(
-        node.separator
-            .acceptCompilerVisitor(
-              this,
-              isNullAllowed: true,
-              withNames: <String>{"null"},
-              inner: "this.pos = mark;",
-              reported: reported,
-              declarationName: declarationName,
-            )
-            .indent(3),
+        node.separator.acceptParametrizedVisitor(
+          this,
+          (
+            isNullAllowed: true,
+            withNames: <String>{"null"},
+            inner: "this.pos = mark;",
+            reported: reported,
+            declarationName: declarationName,
+          ),
+        ).indent(3),
       );
       loopBuffer.writeln("    }");
     }
     loopBuffer.writeln("  } else {");
     loopBuffer.writeln("    this.pos = mark;");
     loopBuffer.writeln("  }");
-    if (inner case String inner?) {
+    if (inner case String inner) {
       loopBuffer.writeln(inner.indent());
     } else {
       loopBuffer.writeln("  return $containerName;");
@@ -547,16 +547,16 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
     StringBuffer fullBuffer = StringBuffer();
     fullBuffer.writeln("if (this.pos case var mark) {");
     fullBuffer.writeln(
-      node.child
-          .acceptCompilerVisitor(
-            this,
-            withNames: <String>{variableName},
-            isNullAllowed: true,
-            inner: loopBuffer.toString(),
-            reported: reported,
-            declarationName: declarationName,
-          )
-          .indent(),
+      node.child.acceptParametrizedVisitor(
+        this,
+        (
+          withNames: <String>{variableName},
+          isNullAllowed: true,
+          inner: loopBuffer.toString(),
+          reported: reported,
+          declarationName: declarationName,
+        ),
+      ).indent(),
     );
     fullBuffer.writeln("}");
 
@@ -565,27 +565,25 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitPlusNode(
-    PlusNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    PlusNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
+        parameters;
     String variableName = "_${ruleId++}";
     String containerName = "_loop${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
-    String loopBody = node.child
-        .acceptCompilerVisitor(
-          this,
-          withNames: <String>{variableName},
-          inner: "$containerName.add($variableName);\ncontinue;",
-          isNullAllowed: isNullable(node.child, declarationName),
-          reported: reported,
-          declarationName: declarationName,
-        )
-        .indent(3);
+    String loopBody = node.child.acceptParametrizedVisitor(
+      this,
+      (
+        withNames: <String>{variableName},
+        inner: "$containerName.add($variableName);\ncontinue;",
+        isNullAllowed: isNullable(node.child, declarationName),
+        reported: reported,
+        declarationName: declarationName,
+      ),
+    ).indent(3);
     StringBuffer loopBuffer = StringBuffer();
     loopBuffer.writeln("if ([$variableName] case ${withNames.varNames}) {");
     loopBuffer.writeln("  for (;;) {");
@@ -602,39 +600,39 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
     }
     loopBuffer.writeln("}");
 
-    return node.child.acceptCompilerVisitor(
+    return node.child.acceptParametrizedVisitor(
       this,
-      withNames: <String>{variableName},
-      inner: loopBuffer.toString(),
-      isNullAllowed: isNullable(node.child, declarationName),
-      reported: reported,
-      declarationName: declarationName,
+      (
+        withNames: <String>{variableName},
+        inner: loopBuffer.toString(),
+        isNullAllowed: isNullable(node.child, declarationName),
+        reported: reported,
+        declarationName: declarationName,
+      ),
     );
   }
 
   @override
   String visitStarNode(
-    StarNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    StarNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
+        parameters;
     String variableName = "_${ruleId++}";
     String containerName = "_loop${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
-    String loopBody = node.child
-        .acceptCompilerVisitor(
-          this,
-          withNames: <String>{variableName},
-          inner: "$containerName.add($variableName);\ncontinue;",
-          isNullAllowed: isNullable(node.child, declarationName),
-          reported: reported,
-          declarationName: declarationName,
-        )
-        .indent(4);
+    String loopBody = node.child.acceptParametrizedVisitor(
+      this,
+      (
+        withNames: <String>{variableName},
+        inner: "$containerName.add($variableName);\ncontinue;",
+        isNullAllowed: isNullable(node.child, declarationName),
+        reported: reported,
+        declarationName: declarationName,
+      ),
+    ).indent(4);
     String question = isNullable(node.child, declarationName) ? "" : "?";
     StringBuffer loopBuffer = StringBuffer();
     loopBuffer.writeln(
@@ -652,7 +650,7 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
     loopBuffer.writeln("  } else {");
     loopBuffer.writeln("    this.pos = mark;");
     loopBuffer.writeln("  }");
-    if (inner case String inner?) {
+    if (inner case String inner) {
       loopBuffer.writeln(inner.indent());
     } else {
       loopBuffer.writeln("  return $containerName;");
@@ -662,16 +660,16 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
     StringBuffer fullBuffer = StringBuffer();
     fullBuffer.writeln("if (this.pos case var mark) {");
     fullBuffer.writeln(
-      node.child
-          .acceptCompilerVisitor(
-            this,
-            withNames: <String>{variableName},
-            isNullAllowed: true,
-            inner: loopBuffer.toString(),
-            reported: reported,
-            declarationName: declarationName,
-          )
-          .indent(),
+      node.child.acceptParametrizedVisitor(
+        this,
+        (
+          withNames: <String>{variableName},
+          isNullAllowed: true,
+          inner: loopBuffer.toString(),
+          reported: reported,
+          declarationName: declarationName,
+        ),
+      ).indent(),
     );
     fullBuffer.writeln("}");
 
@@ -680,25 +678,23 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitAndPredicateNode(
-    AndPredicateNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    AndPredicateNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
+        parameters;
     List<String> buffer = <String>[
       "if (this.pos case var mark) {",
-      node.child
-          .acceptCompilerVisitor(
-            this,
-            withNames: withNames,
-            inner: "this.pos = mark;\n${inner ?? ""}",
-            isNullAllowed: isNullable(node.child, declarationName),
-            reported: reported,
-            declarationName: declarationName,
-          )
-          .indent(),
+      node.child.acceptParametrizedVisitor(
+        this,
+        (
+          withNames: withNames,
+          inner: "this.pos = mark;\n${inner ?? ""}",
+          isNullAllowed: isNullable(node.child, declarationName),
+          reported: reported,
+          declarationName: declarationName,
+        ),
+      ).indent(),
       "}",
     ];
 
@@ -707,27 +703,25 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitNotPredicateNode(
-    NotPredicateNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    NotPredicateNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
+        parameters;
     StringBuffer buffer = StringBuffer();
 
     buffer.writeln("if (this.pos case var mark) {");
     buffer.writeln(
-      node.child
-          .acceptCompilerVisitor(
-            this,
-            isNullAllowed: true,
-            withNames: <String>{...withNames ?? <String>{}, "null"},
-            inner: "this.pos = mark;\n${inner ?? "return null;"}",
-            reported: reported,
-            declarationName: declarationName,
-          )
-          .indent(),
+      node.child.acceptParametrizedVisitor(
+        this,
+        (
+          isNullAllowed: true,
+          withNames: <String>{...withNames ?? <String>{}, "null"},
+          inner: "this.pos = mark;\n${inner ?? "return null;"}",
+          reported: reported,
+          declarationName: declarationName,
+        ),
+      ).indent(),
     );
     buffer.writeln("}");
 
@@ -736,32 +730,30 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitOptionalNode(
-    OptionalNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
-    return node.child.acceptCompilerVisitor(
+    OptionalNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
+        parameters;
+    return node.child.acceptParametrizedVisitor(
       this,
-      withNames: withNames,
-      inner: inner,
-      isNullAllowed: true,
-      reported: reported,
-      declarationName: declarationName,
+      (
+        withNames: withNames,
+        inner: inner,
+        isNullAllowed: true,
+        reported: reported,
+        declarationName: declarationName,
+      ),
     );
   }
 
   @override
   String visitReferenceNode(
-    ReferenceNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    ReferenceNode node,
+    Parameters parameters,
+  ) {
+    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, :String declarationName) =
+        parameters;
     bool ruleIsNullable = isNullable(node, declarationName);
     String ruleName = fixName(node.ruleName);
 
@@ -779,13 +771,11 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitFragmentNode(
-    FragmentNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    FragmentNode node,
+    Parameters parameters,
+  ) {
+    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, declarationName: String _) =
+        parameters;
     String fragmentName = fixName(node.fragmentName);
 
     List<String> buffer = <String>[
@@ -802,32 +792,30 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitNamedNode(
-    NamedNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
-    return node.child.acceptCompilerVisitor(
+    NamedNode node,
+    Parameters parameters,
+  ) {
+    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
+        parameters;
+    return node.child.acceptParametrizedVisitor(
       this,
-      isNullAllowed: isNullAllowed,
-      withNames: <String>{...withNames ?? <String>{}, node.name},
-      inner: inner,
-      reported: reported,
-      declarationName: declarationName,
+      (
+        isNullAllowed: isNullAllowed,
+        withNames: <String>{...withNames ?? <String>{}, node.name},
+        inner: inner,
+        reported: reported,
+        declarationName: declarationName,
+      ),
     );
   }
 
   @override
   String visitActionNode(
-    ActionNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    ActionNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, inner: String? _, :bool reported, :String declarationName) =
+        parameters;
     if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
       (withNames ??= <String>{}).add(r"$");
     }
@@ -836,45 +824,45 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
       StringBuffer buffer = StringBuffer();
       buffer.writeln("if (this.pos case var from) {");
       buffer.writeln(
-        node.child
-            .acceptCompilerVisitor(
-              this,
-              withNames: withNames,
-              inner: (StringBuffer()
-                    ..writeln("if (this.pos case var to) {")
-                    ..writeln(node.action.indent())
-                    ..writeln("}"))
-                  .toString(),
-              isNullAllowed: isNullable(node.child, declarationName),
-              reported: reported,
-              declarationName: declarationName,
-            )
-            .indent(),
+        node.child.acceptParametrizedVisitor(
+          this,
+          (
+            withNames: withNames,
+            inner: (StringBuffer()
+                  ..writeln("if (this.pos case var to) {")
+                  ..writeln(node.action.indent())
+                  ..writeln("}"))
+                .toString(),
+            isNullAllowed: isNullable(node.child, declarationName),
+            reported: reported,
+            declarationName: declarationName,
+          ),
+        ).indent(),
       );
       buffer.writeln("}");
 
       return buffer.toString();
     } else {
-      return node.child.acceptCompilerVisitor(
+      return node.child.acceptParametrizedVisitor(
         this,
-        withNames: withNames,
-        inner: node.action,
-        isNullAllowed: isNullable(node.child, declarationName),
-        reported: reported,
-        declarationName: declarationName,
+        (
+          withNames: withNames,
+          inner: node.action,
+          isNullAllowed: isNullable(node.child, declarationName),
+          reported: reported,
+          declarationName: declarationName,
+        ),
       );
     }
   }
 
   @override
   String visitInlineActionNode(
-    InlineActionNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    InlineActionNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, inner: String? _, :bool reported, :String declarationName) =
+        parameters;
     if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
       (withNames ??= <String>{}).add(r"$");
     }
@@ -882,45 +870,45 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
       StringBuffer buffer = StringBuffer();
       buffer.writeln("if (this.pos case var from) {");
       buffer.writeln(
-        node.child
-            .acceptCompilerVisitor(
-              this,
-              withNames: withNames,
-              inner: (StringBuffer()
-                    ..writeln("if (this.pos case var to) {")
-                    ..writeln("  return ${node.action};")
-                    ..writeln("}"))
-                  .toString(),
-              isNullAllowed: isNullable(node.child, declarationName),
-              reported: reported,
-              declarationName: declarationName,
-            )
-            .indent(),
+        node.child.acceptParametrizedVisitor(
+          this,
+          (
+            withNames: withNames,
+            inner: (StringBuffer()
+                  ..writeln("if (this.pos case var to) {")
+                  ..writeln("  return ${node.action};")
+                  ..writeln("}"))
+                .toString(),
+            isNullAllowed: isNullable(node.child, declarationName),
+            reported: reported,
+            declarationName: declarationName,
+          ),
+        ).indent(),
       );
       buffer.writeln("}");
 
       return buffer.toString();
     } else {
-      return node.child.acceptCompilerVisitor(
+      return node.child.acceptParametrizedVisitor(
         this,
-        withNames: withNames,
-        inner: "return ${node.action};",
-        isNullAllowed: isNullable(node.child, declarationName),
-        reported: reported,
-        declarationName: declarationName,
+        (
+          withNames: withNames,
+          inner: "return ${node.action};",
+          isNullAllowed: isNullable(node.child, declarationName),
+          reported: reported,
+          declarationName: declarationName,
+        ),
       );
     }
   }
 
   @override
   String visitStartOfInputNode(
-    StartOfInputNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    StartOfInputNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, reported: bool _, declarationName: String _) =
+        parameters;
     List<String> buffer = switch (withNames.varNames) {
       "_" => <String>[
           "if (this.pos <= 0) {",
@@ -945,13 +933,11 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitEndOfInputNode(
-    EndOfInputNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    EndOfInputNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, reported: bool _, declarationName: String _) =
+        parameters;
     List<String> buffer = switch (withNames.varNames) {
       "_" => [
           "if (this.pos >= this.buffer.length) {",
@@ -976,13 +962,11 @@ class CompilerVisitor implements CodeGeneratorNodeVisitor<String, String> {
 
   @override
   String visitAnyCharacterNode(
-    AnyCharacterNode node, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required String? inner,
-    required bool reported,
-    required String declarationName,
-  }) {
+    AnyCharacterNode node,
+    Parameters parameters,
+  ) {
+    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, reported: bool _, declarationName: String _) =
+        parameters;
     List<String> buffer = <String>[
       "if (this.pos < this.buffer.length) {",
       ...switch (withNames.varNames) {

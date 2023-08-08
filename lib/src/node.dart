@@ -5,16 +5,6 @@ import "package:parser_peg/src/visitor/node_visitor.dart";
 sealed class Node {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor);
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters);
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  });
-
-  Iterable<Node> get children;
 }
 
 sealed class AtomicNode implements Node {}
@@ -23,32 +13,11 @@ class EpsilonNode implements AtomicNode {
   const EpsilonNode();
 
   @override
-  Iterable<Node> get children => <Node>[];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitEpsilonNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitEpsilonNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitEpsilonNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class TriePatternNode implements AtomicNode {
@@ -56,32 +25,11 @@ class TriePatternNode implements AtomicNode {
   final List<String> options;
 
   @override
-  Iterable<Node> get children => <Node>[];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitTriePatternNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitTriePatternNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitTriePatternNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class StringLiteralNode implements AtomicNode {
@@ -89,32 +37,11 @@ class StringLiteralNode implements AtomicNode {
   final String literal;
 
   @override
-  Iterable<Node> get children => <Node>[];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitStringLiteralNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitStringLiteralNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitStringLiteralNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class RangeNode implements AtomicNode {
@@ -122,32 +49,11 @@ class RangeNode implements AtomicNode {
   final Set<(int, int)> ranges;
 
   @override
-  Iterable<Node> get children => <Node>[];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitRangeNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitRangeNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitRangeNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class RegExpNode implements AtomicNode {
@@ -155,32 +61,11 @@ class RegExpNode implements AtomicNode {
   final String value;
 
   @override
-  Iterable<Node> get children => <Node>[];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitRegExpNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitRegExpNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitRegExpNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 abstract interface class RegExpEscapeNode implements AtomicNode {
@@ -192,29 +77,8 @@ abstract interface class RegExpEscapeNode implements AtomicNode {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitRegExpEscapeNode(this);
 
   @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitRegExpEscapeNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
-
-  @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitRegExpEscapeNode(this, parameters);
-
-  @override
-  Iterable<Node> get children => <Node>[];
 }
 
 enum SimpleRegExpEscapeNode implements RegExpEscapeNode {
@@ -243,37 +107,14 @@ enum SimpleRegExpEscapeNode implements RegExpEscapeNode {
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitRegExpEscapeNode(this);
 
   @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitRegExpEscapeNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
-
-  @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitRegExpEscapeNode(this, parameters);
-
-  @override
-  Iterable<Node> get children => <Node>[];
 }
 
 class SequenceNode implements Node {
   const SequenceNode(this.children, {required this.choose});
 
   final int? choose;
-
-  @override
   final List<Node> children;
 
   @override
@@ -282,30 +123,11 @@ class SequenceNode implements Node {
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitSequenceNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitSequenceNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class ChoiceNode implements Node {
   const ChoiceNode(this.children);
 
-  @override
   final List<Node> children;
 
   @override
@@ -314,24 +136,6 @@ class ChoiceNode implements Node {
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitChoiceNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitChoiceNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class CountedNode implements Node {
@@ -347,27 +151,6 @@ class CountedNode implements Node {
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitCountedNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitCountedNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
-
-  @override
-  Iterable<Node> get children => <Node>[child];
 }
 
 class PlusSeparatedNode implements Node {
@@ -383,27 +166,6 @@ class PlusSeparatedNode implements Node {
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitPlusSeparatedNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitPlusSeparatedNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
-
-  @override
-  Iterable<Node> get children => <Node>[separator, child];
 }
 
 class StarSeparatedNode implements Node {
@@ -419,27 +181,6 @@ class StarSeparatedNode implements Node {
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitStarSeparatedNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitStarSeparatedNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
-
-  @override
-  Iterable<Node> get children => <Node>[separator, child];
 }
 
 class PlusNode implements Node {
@@ -447,32 +188,11 @@ class PlusNode implements Node {
   final Node child;
 
   @override
-  Iterable<Node> get children => <Node>[child];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitPlusNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitPlusNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitPlusNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class StarNode implements Node {
@@ -480,32 +200,11 @@ class StarNode implements Node {
   final Node child;
 
   @override
-  Iterable<Node> get children => <Node>[child];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitStarNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitStarNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitStarNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class AndPredicateNode implements Node {
@@ -513,32 +212,11 @@ class AndPredicateNode implements Node {
   final Node child;
 
   @override
-  Iterable<Node> get children => <Node>[child];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitAndPredicateNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitAndPredicateNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitAndPredicateNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class NotPredicateNode implements Node {
@@ -546,32 +224,11 @@ class NotPredicateNode implements Node {
   final Node child;
 
   @override
-  Iterable<Node> get children => <Node>[child];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitNotPredicateNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitNotPredicateNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitNotPredicateNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class OptionalNode implements Node {
@@ -579,32 +236,11 @@ class OptionalNode implements Node {
   final Node child;
 
   @override
-  Iterable<Node> get children => <Node>[child];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitOptionalNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitOptionalNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitOptionalNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class ReferenceNode implements Node {
@@ -612,32 +248,11 @@ class ReferenceNode implements Node {
   final String ruleName;
 
   @override
-  Iterable<Node> get children => <Node>[];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitReferenceNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitReferenceNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitReferenceNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class FragmentNode implements Node {
@@ -645,32 +260,11 @@ class FragmentNode implements Node {
   final String fragmentName;
 
   @override
-  Iterable<Node> get children => <Node>[];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitFragmentNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitFragmentNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitFragmentNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class NamedNode implements Node {
@@ -679,32 +273,11 @@ class NamedNode implements Node {
   final String name;
 
   @override
-  Iterable<Node> get children => <Node>[child];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitNamedNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitNamedNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitNamedNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class ActionNode implements Node {
@@ -714,32 +287,11 @@ class ActionNode implements Node {
   final bool areIndicesProvided;
 
   @override
-  Iterable<Node> get children => <Node>[child];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitActionNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitActionNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitActionNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class InlineActionNode implements Node {
@@ -749,32 +301,11 @@ class InlineActionNode implements Node {
   final bool areIndicesProvided;
 
   @override
-  Iterable<Node> get children => <Node>[child];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitInlineActionNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitInlineActionNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitInlineActionNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 sealed class SpecialSymbolNode implements AtomicNode {}
@@ -783,39 +314,15 @@ class StartOfInputNode implements SpecialSymbolNode {
   const StartOfInputNode();
 
   @override
-  Iterable<Node> get children => <Node>[];
-
-  @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitStartOfInputNode(this);
 
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitStartOfInputNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitStartOfInputNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class EndOfInputNode implements SpecialSymbolNode {
   const EndOfInputNode();
-
-  @override
-  Iterable<Node> get children => <Node>[];
 
   @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitEndOfInputNode(this);
@@ -823,31 +330,10 @@ class EndOfInputNode implements SpecialSymbolNode {
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitEndOfInputNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitEndOfInputNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }
 
 class AnyCharacterNode implements SpecialSymbolNode {
   const AnyCharacterNode();
-
-  @override
-  Iterable<Node> get children => <Node>[];
 
   @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitAnyCharacterNode(this);
@@ -855,22 +341,4 @@ class AnyCharacterNode implements SpecialSymbolNode {
   @override
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitAnyCharacterNode(this, parameters);
-
-  @override
-  O acceptCompilerVisitor<O, I>(
-    CodeGeneratorNodeVisitor<O, I> visitor, {
-    required bool isNullAllowed,
-    required Set<String>? withNames,
-    required I? inner,
-    required bool reported,
-    required String declarationName,
-  }) =>
-      visitor.visitAnyCharacterNode(
-        this,
-        isNullAllowed: isNullAllowed,
-        withNames: withNames,
-        inner: inner,
-        reported: reported,
-        declarationName: declarationName,
-      );
 }

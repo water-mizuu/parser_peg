@@ -4,8 +4,8 @@ import "dart:io";
 
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
-import "package:parser_peg/src/visitor/compiler_visitor/cst_visitor.dart";
-import "package:parser_peg/src/visitor/compiler_visitor/generator_visitor.dart";
+import "package:parser_peg/src/visitor/parametrized_visitor/cst_visitor.dart";
+import "package:parser_peg/src/visitor/parametrized_visitor/parser_visitor.dart";
 import "package:parser_peg/src/visitor/parametrized_visitor/simplify_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/can_inline_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/inline_visitor.dart";
@@ -374,23 +374,23 @@ final class ParserGenerator {
     fullBuffer.writeln("  get start => $parserStartRule;");
     fullBuffer.writeln();
 
-    if (CompilerVisitor(isNullable: isNullable, fixName: fixName) case CompilerVisitor compilerVisitor) {
+    if (ParserCompilerVisitor(isNullable: isNullable, fixName: fixName) case ParserCompilerVisitor compilerVisitor) {
       for (var (String rawName, (String? type, Node node)) in fragments.pairs) {
         compilerVisitor.ruleId = 0;
 
         StringBuffer inner = StringBuffer();
         String displayName = reverseRedirects[rawName]!;
         String fragmentName = fixName(rawName);
-        String body = node
-            .acceptCompilerVisitor(
-              compilerVisitor,
-              isNullAllowed: isNullable(node, displayName),
-              withNames: null,
-              inner: null,
-              reported: true,
-              declarationName: displayName,
-            )
-            .indent();
+        String body = node.acceptParametrizedVisitor(
+          compilerVisitor,
+          (
+            isNullAllowed: isNullable(node, displayName),
+            withNames: null,
+            inner: null,
+            reported: true,
+            declarationName: displayName,
+          ),
+        ).indent();
 
         inner.writeln();
         inner.writeln("/// `$displayName`");
@@ -413,16 +413,16 @@ final class ParserGenerator {
         StringBuffer inner = StringBuffer();
         String displayName = reverseRedirects[rawName]!;
         String ruleName = fixName(rawName);
-        String body = node
-            .acceptCompilerVisitor(
-              compilerVisitor,
-              isNullAllowed: isNullable(node, ruleName),
-              withNames: null,
-              inner: null,
-              reported: true,
-              declarationName: displayName,
-            )
-            .indent();
+        String body = node.acceptParametrizedVisitor(
+          compilerVisitor,
+          (
+            isNullAllowed: isNullable(node, ruleName),
+            withNames: null,
+            inner: null,
+            reported: true,
+            declarationName: displayName,
+          ),
+        ).indent();
 
         inner.writeln();
         inner.writeln("/// `$displayName`");
@@ -491,7 +491,7 @@ final class ParserGenerator {
     return fullBuffer.toString();
   }
 
-  String compileCst(String parserName, {String? start, String? type}) {
+  String compileCst(String parserName, {String? start}) {
     String parserTypeString = "Object";
     String parserStartRule = start ?? fixName(rules.keys.firstOrNull ?? fragments.keys.first);
     StringBuffer fullBuffer = StringBuffer();
@@ -525,16 +525,16 @@ final class ParserGenerator {
         StringBuffer inner = StringBuffer();
         String displayName = reverseRedirects[rawName]!;
         String fragmentName = fixName(rawName);
-        String body = node
-            .acceptCompilerVisitor(
-              compilerVisitor,
-              isNullAllowed: isNullable(node, displayName),
-              withNames: null,
-              inner: null,
-              reported: true,
-              declarationName: displayName,
-            )
-            .indent();
+        String body = node.acceptParametrizedVisitor(
+          compilerVisitor,
+          (
+            isNullAllowed: isNullable(node, displayName),
+            withNames: null,
+            inner: null,
+            reported: true,
+            declarationName: displayName,
+          ),
+        ).indent();
 
         inner.writeln();
         inner.writeln("/// `$displayName`");
@@ -557,16 +557,16 @@ final class ParserGenerator {
         StringBuffer inner = StringBuffer();
         String displayName = reverseRedirects[rawName]!;
         String ruleName = fixName(rawName);
-        String body = node
-            .acceptCompilerVisitor(
-              compilerVisitor,
-              isNullAllowed: isNullable(node, ruleName),
-              withNames: null,
-              inner: null,
-              reported: true,
-              declarationName: displayName,
-            )
-            .indent();
+        String body = node.acceptParametrizedVisitor(
+          compilerVisitor,
+          (
+            isNullAllowed: isNullable(node, ruleName),
+            withNames: null,
+            inner: null,
+            reported: true,
+            declarationName: displayName,
+          ),
+        ).indent();
 
         inner.writeln();
         inner.writeln("/// `$displayName`");
