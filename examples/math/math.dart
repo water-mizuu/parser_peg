@@ -259,9 +259,9 @@ final class MathParser extends _PegParser<num> {
   /// `global::rule`
   num? r0() {
     if (this.pos <= 0) {
-      if (this.apply(this.r1) case var $1?) {
+      if (this.apply(this.r1) case var expr?) {
         if (this.pos >= this.buffer.length) {
-          return $1;
+          return expr;
         }
       }
     }
@@ -399,10 +399,10 @@ final class MathParser extends _PegParser<num> {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$9) case _?) {
         if (this.apply(this.r5)! case _) {
-          if (this.apply(this.r1) case var $2?) {
+          if (this.apply(this.r1) case var expr?) {
             if (this.apply(this.r5)! case _) {
               if (this.matchPattern(_string.$8) case _?) {
-                return $2;
+                return expr;
               }
             }
           }

@@ -374,7 +374,7 @@ final class ParserGenerator {
     fullBuffer.writeln("  get start => $parserStartRule;");
     fullBuffer.writeln();
 
-    if (ParserCompilerVisitor(isNullable: isNullable, fixName: fixName) case ParserCompilerVisitor compilerVisitor) {
+    if (ParserCompilerVisitor(isNullable: isNullable) case ParserCompilerVisitor compilerVisitor) {
       for (var (String rawName, (String? type, Node node)) in fragments.pairs) {
         compilerVisitor.ruleId = 0;
 
@@ -518,7 +518,7 @@ final class ParserGenerator {
     fullBuffer.writeln("  get start => $parserStartRule;");
     fullBuffer.writeln();
 
-    if (CstCompilerVisitor(isNullable: isNullable, fixName: fixName) case CstCompilerVisitor compilerVisitor) {
+    if (CstCompilerVisitor(isNullable: isNullable) case CstCompilerVisitor compilerVisitor) {
       for (var (String rawName, (String? type, Node node)) in fragments.pairs) {
         compilerVisitor.ruleId = 0;
 
@@ -543,7 +543,7 @@ final class ParserGenerator {
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln("$Object${isNullable(node, fragmentName) ? "" : "?"} $fragmentName() {");
+          inner.writeln("Object${isNullable(node, fragmentName) ? "" : "?"} $fragmentName() {");
           inner.writeln(body);
           inner.writeln("}");
         }

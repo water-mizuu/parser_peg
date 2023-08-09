@@ -17,13 +17,9 @@ typedef Parameters = ({
 });
 
 class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> {
-  CstCompilerVisitor({
-    required this.isNullable,
-    required this.fixName,
-  });
+  CstCompilerVisitor({required this.isNullable});
 
   bool Function(Node, String) isNullable;
-  String Function(String) fixName;
 
   int ruleId = 0;
 
@@ -48,8 +44,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     EpsilonNode node,
     Parameters parameters,
   ) {
-    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, :String declarationName) =
-        parameters;
+    var (
+      :bool isNullAllowed,
+      :Set<String>? withNames,
+      :String? inner,
+      reported: bool _,
+      :String declarationName,
+    ) = parameters;
 
     List<String> buffer = <String>[
       "if ('' case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
@@ -68,8 +69,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     TriePatternNode node,
     Parameters parameters,
   ) {
-    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, :String declarationName) =
-        parameters;
+    var (
+      :bool isNullAllowed,
+      :Set<String>? withNames,
+      :String? inner,
+      reported: bool _,
+      :String declarationName,
+    ) = parameters;
     String key = jsonEncode(node.options);
     int id = switch (trieIds[key]) {
       int id => id,
@@ -93,8 +99,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     StringLiteralNode node,
     Parameters parameters,
   ) {
-    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, :String declarationName) =
-        parameters;
+    var (
+      :bool isNullAllowed,
+      :Set<String>? withNames,
+      :String? inner,
+      reported: bool _,
+      :String declarationName,
+    ) = parameters;
     String key = node.literal;
     int id = switch (stringIds[key]) {
       int id => id,
@@ -117,8 +128,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     RangeNode node,
     Parameters parameters,
   ) {
-    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, :String declarationName) =
-        parameters;
+    var (
+      :bool isNullAllowed,
+      :Set<String>? withNames,
+      :String? inner,
+      reported: bool _,
+      :String declarationName,
+    ) = parameters;
     String key = node.ranges //
         .map(
           ((int, int) v) => switch (v) {
@@ -148,8 +164,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     RegExpNode node,
     Parameters parameters,
   ) {
-    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, :String declarationName) =
-        parameters;
+    var (
+      :bool isNullAllowed,
+      :Set<String>? withNames,
+      :String? inner,
+      reported: bool _,
+      :String declarationName,
+    ) = parameters;
     String key = node.value;
     int id = switch (regexpIds[key]) {
       int id => id,
@@ -172,8 +193,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     RegExpEscapeNode node,
     Parameters parameters,
   ) {
-    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, :String declarationName) =
-        parameters;
+    var (
+      :bool isNullAllowed,
+      :Set<String>? withNames,
+      :String? inner,
+      reported: bool _,
+      :String declarationName,
+    ) = parameters;
     String pattern = node.pattern;
     int id = switch (regexpIds[pattern]) {
       int id => id,
@@ -196,8 +222,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     SequenceNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, inner: String? _, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      inner: String? _,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     List<String> names = <String>[
       for (int i = 0; i < node.children.length; ++i) "\$$i",
     ];
@@ -236,8 +267,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     ChoiceNode node,
     Parameters parameters,
   ) {
-    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      :bool isNullAllowed,
+      :Set<String>? withNames,
+      :String? inner,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     StringBuffer buffer = StringBuffer();
     StringBuffer innerBuffer = StringBuffer();
     for (var (int i, Node child) in node.children.indexed) {
@@ -270,8 +306,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     CountedNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      :String? inner,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     String variableName = "_${ruleId++}";
     String containerName = "_loop${++ruleId}";
     (withNames ??= <String>{}).add(containerName);
@@ -387,8 +428,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     PlusSeparatedNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      :String? inner,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     String variableName = "_${ruleId++}";
     String separatorName = "_${ruleId++}";
     String containerName = "_loop${++ruleId}";
@@ -461,8 +507,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     StarSeparatedNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      :String? inner,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     String variableName = "_${ruleId++}";
     String separatorName = "_${ruleId++}";
     String containerName = "_loop${++ruleId}";
@@ -551,8 +602,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     PlusNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      :String? inner,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     String variableName = "_${ruleId++}";
     String containerName = "_loop${++ruleId}";
     (withNames ??= <String>{}).add(containerName);
@@ -600,8 +656,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     StarNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      :String? inner,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     String variableName = "_${ruleId++}";
     String containerName = "_loop${++ruleId}";
     (withNames ??= <String>{}).add(containerName);
@@ -664,8 +725,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     AndPredicateNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      :String? inner,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     List<String> buffer = <String>[
       "if (this.pos case var mark) {",
       node.child.acceptParametrizedVisitor(
@@ -689,8 +755,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     NotPredicateNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      :String? inner,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     StringBuffer buffer = StringBuffer();
 
     buffer.writeln("if (this.pos case var mark) {");
@@ -716,8 +787,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     OptionalNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      :String? inner,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     return node.child.acceptParametrizedVisitor(
       this,
       (
@@ -735,10 +811,15 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     ReferenceNode node,
     Parameters parameters,
   ) {
-    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, :String declarationName) =
-        parameters;
+    var (
+      :bool isNullAllowed,
+      :Set<String>? withNames,
+      :String? inner,
+      reported: bool _,
+      :String declarationName,
+    ) = parameters;
     bool ruleIsNullable = isNullable(node, declarationName);
-    String ruleName = fixName(node.ruleName);
+    String ruleName = node.ruleName;
 
     List<String> buffer = <String>[
       "if (this.apply(this.$ruleName)${ruleIsNullable ? "!" : ""} case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
@@ -757,9 +838,14 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     FragmentNode node,
     Parameters parameters,
   ) {
-    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, reported: bool _, :String declarationName) =
-        parameters;
-    String fragmentName = fixName(node.fragmentName);
+    var (
+      :bool isNullAllowed,
+      :Set<String>? withNames,
+      :String? inner,
+      reported: bool _,
+      :String declarationName,
+    ) = parameters;
+    String fragmentName = node.fragmentName;
 
     List<String> buffer = <String>[
       "if (this.$fragmentName() case ${withNames.varNames}${isNullAllowed ? "" : "?"}) {",
@@ -778,13 +864,18 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     NamedNode node,
     Parameters parameters,
   ) {
-    var (:bool isNullAllowed, :Set<String>? withNames, :String? inner, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      :bool isNullAllowed,
+      :Set<String>? withNames,
+      :String? inner,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     return node.child.acceptParametrizedVisitor(
       this,
       (
         isNullAllowed: isNullAllowed,
-        withNames: <String>{...withNames ?? <String>{}, node.name},
+        withNames: withNames,
         inner: inner,
         reported: reported,
         declarationName: declarationName,
@@ -797,8 +888,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     ActionNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, inner: String? _, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      inner: String? _,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     return node.child.acceptParametrizedVisitor(
       this,
       (
@@ -816,8 +912,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     InlineActionNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, inner: String? _, :bool reported, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      inner: String? _,
+      :bool reported,
+      :String declarationName,
+    ) = parameters;
     return node.child.acceptParametrizedVisitor(
       this,
       (
@@ -835,8 +936,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     StartOfInputNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, reported: bool _, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      :String? inner,
+      reported: bool _,
+      :String declarationName,
+    ) = parameters;
     List<String> buffer = switch (withNames.varNames) {
       "_" => <String>[
           "if (this.pos <= 0) {",
@@ -864,8 +970,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     EndOfInputNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, reported: bool _, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      :String? inner,
+      reported: bool _,
+      :String declarationName,
+    ) = parameters;
     List<String> buffer = switch (withNames.varNames) {
       "_" => [
           "if (this.pos >= this.buffer.length) {",
@@ -893,8 +1004,13 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     AnyCharacterNode node,
     Parameters parameters,
   ) {
-    var (isNullAllowed: bool _, :Set<String>? withNames, :String? inner, reported: bool _, :String declarationName) =
-        parameters;
+    var (
+      isNullAllowed: bool _,
+      :Set<String>? withNames,
+      :String? inner,
+      reported: bool _,
+      :String declarationName,
+    ) = parameters;
     List<String> buffer = <String>[
       "if (pos < buffer.length) {",
       ...switch (withNames.varNames) {
