@@ -169,6 +169,7 @@ final class ParserGenerator {
       Iterable<(String, (String?, Node))> declarations = fragments.pairs //
           .followedBy(rules.pairs)
           .followedBy(inline.pairs);
+
       Map<String, int> refCount = <String, int>{
         for (String name in declarations.map(((String, (String?, Node)) e) => e.$1)) name: 0,
       };
@@ -198,24 +199,45 @@ final class ParserGenerator {
       for (var (String name, int count) in refCount.pairs) {
         if (count == 1) {
           if (fragments[name] case (String? type, Node node)) {
+            // stdout.writeln("Since '$name' is a fragment only used once, it can be inlined.");
             inline[name] = (type, node);
             fragments.remove(name);
           }
         }
       }
 
+      /// Remove the unreferenced rules,
       for (var (String name, int count) in rulesRefCount.pairs) {
+        if (name == "ROOT") {
+          continue;
+        }
+
         if (count == 0) {
+          // stdout.writeln("Since '$name' is not referenced anywhere, removing the rule '$name'.");
           rules.remove(name);
         }
       }
+
+      /// Remove the unreferenced fragments,
       for (var (String name, int count) in fragmentRefCount.pairs) {
+        if (name == "ROOT") {
+          continue;
+        }
+
         if (count == 0) {
+          // stdout.writeln("Since '$name' is not referenced anywhere, removing the fragment '$name'.");
           fragments.remove(name);
         }
       }
+
+      /// And the unused inline rules (optional, does not have any runtime bearing).
       for (var (String name, int count) in inlineRefCount.pairs) {
+        if (name == "ROOT") {
+          continue;
+        }
+
         if (count == 0) {
+          // stdout.writeln("Since '$name' is not referenced anywhere, removing the inline '$name'.");
           inline.remove(name);
         }
       }
@@ -349,7 +371,7 @@ final class ParserGenerator {
 
   String compile(String parserName, {String? start, String? type}) {
     String parserTypeString = type ?? rules.values.firstOrNull?.$1 ?? fragments.values.firstOrNull?.$1 ?? "Object";
-    String parserStartRule = start ?? fixName(rules.keys.firstOrNull ?? fragments.keys.first);
+    String parserStartRule = start ?? rules.keys.firstOrNull ?? fragments.keys.first;
     StringBuffer fullBuffer = StringBuffer();
 
     fullBuffer.writeln("// ignore_for_file: ${ignores.join(", ")}");
@@ -380,7 +402,6 @@ final class ParserGenerator {
 
         StringBuffer inner = StringBuffer();
         String displayName = reverseRedirects[rawName]!;
-        String fragmentName = fixName(rawName);
         String body = node.acceptParametrizedVisitor(
           compilerVisitor,
           (
@@ -395,11 +416,11 @@ final class ParserGenerator {
         inner.writeln();
         inner.writeln("/// `$displayName`");
         if (type == null) {
-          inner.writeln("late final $fragmentName = () {");
+          inner.writeln("late final $rawName = () {");
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln("$type${isNullable(node, fragmentName) ? "" : "?"} $fragmentName() {");
+          inner.writeln("$type${isNullable(node, rawName) ? "" : "?"} $rawName() {");
           inner.writeln(body);
           inner.writeln("}");
         }
@@ -412,11 +433,10 @@ final class ParserGenerator {
 
         StringBuffer inner = StringBuffer();
         String displayName = reverseRedirects[rawName]!;
-        String ruleName = fixName(rawName);
         String body = node.acceptParametrizedVisitor(
           compilerVisitor,
           (
-            isNullAllowed: isNullable(node, ruleName),
+            isNullAllowed: isNullable(node, rawName),
             withNames: null,
             inner: null,
             reported: true,
@@ -427,11 +447,11 @@ final class ParserGenerator {
         inner.writeln();
         inner.writeln("/// `$displayName`");
         if (type == null) {
-          inner.writeln("late final $ruleName = () {");
+          inner.writeln("late final $rawName = () {");
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln("$type${isNullable(node, ruleName) ? "" : "?"} $ruleName() {");
+          inner.writeln("$type${isNullable(node, rawName) ? "" : "?"} $rawName() {");
           inner.writeln(body);
           inner.writeln("}");
         }
@@ -493,7 +513,7 @@ final class ParserGenerator {
 
   String compileCst(String parserName, {String? start}) {
     String parserTypeString = "Object";
-    String parserStartRule = start ?? fixName(rules.keys.firstOrNull ?? fragments.keys.first);
+    String parserStartRule = start ?? rules.keys.firstOrNull ?? fragments.keys.first;
     StringBuffer fullBuffer = StringBuffer();
 
     fullBuffer.writeln("// ignore_for_file: ${ignores.join(", ")}");
@@ -524,7 +544,6 @@ final class ParserGenerator {
 
         StringBuffer inner = StringBuffer();
         String displayName = reverseRedirects[rawName]!;
-        String fragmentName = fixName(rawName);
         String body = node.acceptParametrizedVisitor(
           compilerVisitor,
           (
@@ -539,11 +558,11 @@ final class ParserGenerator {
         inner.writeln();
         inner.writeln("/// `$displayName`");
         if (type == null) {
-          inner.writeln("late final $fragmentName = () {");
+          inner.writeln("late final $rawName = () {");
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln("Object${isNullable(node, fragmentName) ? "" : "?"} $fragmentName() {");
+          inner.writeln("Object${isNullable(node, rawName) ? "" : "?"} $rawName() {");
           inner.writeln(body);
           inner.writeln("}");
         }
@@ -556,11 +575,10 @@ final class ParserGenerator {
 
         StringBuffer inner = StringBuffer();
         String displayName = reverseRedirects[rawName]!;
-        String ruleName = fixName(rawName);
         String body = node.acceptParametrizedVisitor(
           compilerVisitor,
           (
-            isNullAllowed: isNullable(node, ruleName),
+            isNullAllowed: isNullable(node, rawName),
             withNames: null,
             inner: null,
             reported: true,
@@ -571,11 +589,11 @@ final class ParserGenerator {
         inner.writeln();
         inner.writeln("/// `$displayName`");
         if (type == null) {
-          inner.writeln("late final $ruleName = () {");
+          inner.writeln("late final $rawName = () {");
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln("$Object${isNullable(node, ruleName) ? "" : "?"} $ruleName() {");
+          inner.writeln("$Object${isNullable(node, rawName) ? "" : "?"} $rawName() {");
           inner.writeln(body);
           inner.writeln("}");
         }
@@ -635,28 +653,6 @@ final class ParserGenerator {
     return fullBuffer.toString();
   }
 
-  String fixName(String name) {
-    if (name.split("") case ["`", ...List<String> inner, "`"]) {
-      StringBuffer buffer = StringBuffer(r"$");
-
-      for (var (int i, String character) in inner.indexed) {
-        int unit = character.codeUnits.single;
-
-        if (64 + 1 <= unit && unit <= 64 + 26 || 96 + 1 <= unit && unit <= 96 + 26) {
-          buffer.write(character);
-        } else {
-          buffer.write(unit);
-          if (i < inner.length - 1) {
-            buffer.write("_");
-          }
-        }
-      }
-
-      return buffer.toString();
-    }
-    return name.replaceAll("-", "_");
-  }
-
   final Expando<bool> _isNullable = Expando<bool>();
 
   /// Returns `true` if the node should pass even if the answer was null.
@@ -702,6 +698,7 @@ Never notFound(String name, Tag tag, [String? root]) {
 extension IndentationExtension on String {
   String indent([int count = 1]) =>
       trimRight().split("\n").map((String v) => v.isEmpty ? v : "${"  " * count}$v").join("\n");
+
   String unindent() {
     if (isEmpty) {
       return this;
@@ -719,10 +716,11 @@ extension IndentationExtension on String {
         .map((String line) => line.length - line.trimLeft().length)
         .reduce((int a, int b) => a < b ? a : b);
 
-    Iterable<String> unindented = lines //
-        .map((String line) => line.isEmpty ? line : line.substring(commonIndentation));
+    String unindented = lines //
+        .map((String line) => line.isEmpty ? line : line.substring(commonIndentation))
+        .join("\n");
 
-    return unindented.join("\n");
+    return unindented;
   }
 }
 
@@ -730,21 +728,19 @@ extension NameShortcuts on Set<String>? {
   String get singleName => this == null ? r"$" : this!.first;
   String get varNames => switch (this) {
         null => r"var $",
-        Set<String?>(length: 1, single: "_") => "_",
-        Set<String?>(length: 1, single: "null") => "null",
-        Set<String?>(length: 1, single: "!null") => "!= null",
-        Set<String?>(length: 1, single: String name) => "var $name",
-        Set<String?> set => set
-            .where((String? v) => v != "_")
-            .map(
-              (String? v) => v == "!null"
-                  ? "!= null"
-                  : v == "null"
-                      ? v
-                      : "var $v",
+        Set<String>(length: 1, single: "_") => "_",
+        Set<String>(length: 1, single: "null") => "null",
+        Set<String>(length: 1, single: String name) => "var $name",
+        Set<String> set => set //
+            .where((String v) => v != "_")
+            .map((String v) => v == "null" ? v : "var $v")
+            .toList()
+            .apply(
+              (List<String> iter) => switch (iter) {
+                List<String>(length: 1, :String single) => single,
+                List<String>() => iter.join(" && ").apply((String v) => "($v)")
+              },
             )
-            .join(" && ")
-            .apply((String v) => "($v)"),
       };
 }
 
