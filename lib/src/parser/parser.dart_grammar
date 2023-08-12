@@ -146,9 +146,6 @@ Node labeled =
   ;
 
 Node special =
-  /// Parsers with a specific count.
-  | min:number `..` max:number? body:atom { CountedNode(min, max, body) }
-  | :number body:atom                     { CountedNode(number, number, body) }
   /// Pegen style separators.
   ///   Difference here, is that we can use `+` or `*` as quantifiers.
   ///   `*`, like a normal kleene-star, means zero or more.
@@ -174,6 +171,9 @@ Node postfix =
 /// A parser that is prefixed.
 ///   Usually with disambiguators such as `and-predicate` and `not-predicate`.
 Node prefix =
+  /// Parsers with a specific count.
+  | min:number `..` max:number? body:atom { CountedNode(min, max, body) }
+  | :number body:atom                     { CountedNode(number, number, body) }
   /// A parser that is only matched if the following parser fails.
   | `~` prefix @1 { SequenceNode([NotPredicateNode($), const AnyCharacterNode()], choose: 1) }
   /// A parser that only returns a boolean, succeeding when the parser succeeds.

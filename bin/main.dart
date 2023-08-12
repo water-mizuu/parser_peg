@@ -3,9 +3,9 @@ import "dart:io";
 
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/parser/parser.dart";
+import "package:parser_peg/src/parser/parser_cst.dart";
 
-import "../examples/math/math.dart";
-import "../examples/math/math_cst.dart";
+import "playground.dart";
 
 String readFile(String path) => File(path).readAsStringSync().replaceAll("\r", "").trim();
 
@@ -49,9 +49,12 @@ void main(List<String> arguments) {
       switch (grammar.parse(input)) {
         case ParserGenerator generator:
           stdout.writeln("Successfully parsed grammar!");
+
+          stdout.writeln("Generating CST parser.");
           File("lib/src/parser/parser_cst.dart")
             ..createSync(recursive: true)
             ..writeAsStringSync(generator.compileCst("PegParserCst"));
+          stdout.writeln("Generating AST parser.");
           File("lib/src/parser/parser.dart")
             ..createSync(recursive: true)
             ..writeAsStringSync(generator.compile("PegParser"));
@@ -76,16 +79,23 @@ void main(List<String> arguments) {
     }
   }
 
-  const String input = "-2^2^2";
-  if (MathParserCst() case MathParserCst parser) {
-    if (parser.parse(input) case Object tree) {
-      stdout.writeln(displayTree(tree, "", isLast: true));
+  if (readFile("bin/playground.dart_grammar") case String input) {
+    if (PegParser() case PegParser grammar) {
+      switch (grammar.parse(input)) {
+        case ParserGenerator generator:
+          stdout.writeln("Successfully parsed grammar!");
+          File("bin/playground.dart")
+            ..createSync(recursive: true)
+            ..writeAsStringSync(generator.compile("Playground"));
+      }
+    }
+    if (PegParserCst() case PegParserCst grammar) {
+      switch (grammar.parse(input)) {
+        case Object generator:
+          stdout.writeln(displayTree(generator, "", isLast: true));
+      }
     }
   }
 
-  if (MathParser() case MathParser parser) {
-    if (parser.parse(input) case num result) {
-      stdout.writeln(result);
-    }
-  }
+  stdout.writeln(Playground().parse("."));
 }

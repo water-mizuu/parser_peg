@@ -1,10 +1,12 @@
+// ignore_for_file: always_declare_return_types, always_put_control_body_on_new_line, always_specify_types, avoid_escaping_inner_quotes, avoid_redundant_argument_values, annotate_overrides, body_might_complete_normally_nullable, constant_pattern_never_matches_value_type, curly_braces_in_flow_control_structures, dead_code, directives_ordering, duplicate_ignore, inference_failure_on_function_return_type, constant_identifier_names, prefer_function_declarations_over_variables, prefer_interpolation_to_compose_strings, prefer_is_empty, no_leading_underscores_for_local_identifiers, non_constant_identifier_names, unnecessary_null_check_pattern, unnecessary_brace_in_string_interps, unnecessary_string_interpolations, unnecessary_this, unused_element, unused_import, prefer_double_quotes, unused_local_variable, unreachable_from_main, use_raw_strings, type_annotate_public_apis
+
+// imports
 // ignore_for_file: collection_methods_unrelated_type
 
 import "dart:collection";
 import "dart:math" as math;
 
-/// IMPORTS-SPLIT
-
+// base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
 
@@ -248,100 +250,49 @@ class _Memo {
   int pos;
 }
 
-/// TRIE-SPLIT
+// GENERATED CODE
+final class Playground extends _PegParser<Object> {
+  Playground();
 
-typedef _Union<A, B> = (A? a, B? b);
-typedef _Key<K> = _Union<K, Symbol>;
+  @override
+  get start => r0;
 
-extension<R extends Object> on _PegParser<R> {
-  // ignore: unused_element
-  String? matchTrie(Trie trie) {
-    if (trie.matchLongest(buffer, pos) case (int start, int end)) {
-      pos = end;
-
-      return buffer.substring(start, end);
+  /// `ROOT`
+  late final f0 = () {
+    if (this.apply(this.r0) case var $?) {
+      return $;
     }
+  };
 
-    (failures[pos] ??= <String>{}).addAll(trie._keys(trie._innerMap).map((List<String> v) => v.join()));
-    return null;
-  }
-}
+  /// `global::$`
+  late final r0 = () {
+    if (this.apply(this.r1) case var $?) {
+      return $;
+    }
+  };
 
-class Trie {
-  Trie() : _innerMap = HashMap<_Key<String>, Object>();
-  factory Trie.from(Iterable<String> strings) => strings.fold(Trie(), (Trie t, String s) => t..add(s));
-  const Trie.complete(this._innerMap);
-
-  static final Symbol _safeGuard = Symbol(math.Random.secure().nextInt(32).toString());
-
-  final HashMap<_Key<String>, Object> _innerMap;
-
-  bool add(String value) {
-    _set(value.split(""), true);
-
-    return true;
-  }
-
-  Trie? derive(String key) => switch (_innerMap[(key, null)]) {
-        HashMap<_Key<String>, Object> value => Trie.complete(value),
-        _ => null,
-      };
-
-  Trie? deriveAll(String value) => value //
-      .split("")
-      .fold(this, (Trie? trie, String char) => trie?.derive(char));
-
-  (int, int)? matchLongest(String input, [int start = 0]) {
-    List<int> ends = <int>[];
-
-    int index = start;
-    Trie? derivation = this;
-    for (int i = index; i < input.length; ++i) {
-      derivation = derivation?.derive(input[i]);
-      if (derivation == null) {
-        break;
-      }
-
-      if (derivation._innerMap.containsKey((null, _safeGuard))) {
-        ends.add(i);
+  /// `global::w`
+  late final r1 = () {
+    if (this.matchPattern(_string.$1) case var _0?) {
+      if (nullable([_0]) case var _l1) {
+        if (_l1 != null) {
+          for (;;) {
+            if (this.pos case var mark) {
+              if (this.matchPattern(_string.$1) case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+              this.pos = mark;
+              break;
+            }
+          }
+        }
+        if (_l1 case var $) {
+          return _l1;
+        }
       }
     }
+  };
 
-    if (ends.isEmpty) {
-      return null;
-    }
-
-    int max = ends.last + 1;
-
-    return (index, max);
-  }
-
-  HashMap<_Key<String>, Object> _derived(List<String> keys) {
-    HashMap<_Key<String>, Object> map = _innerMap;
-    for (int i = 0; i < keys.length; ++i) {
-      map = map.putIfAbsent((keys[i], null), HashMap<_Key<String>, Object>.new) as HashMap<_Key<String>, Object>;
-    }
-
-    return map;
-  }
-
-  bool _set(List<String> keys, bool value) => _derived(keys)[(null, _safeGuard)] = value;
-
-  Iterable<List<String>> _keys(HashMap<_Key<String>, Object> map) sync* {
-    if (map.containsKey((null, _safeGuard))) {
-      yield <String>[];
-    }
-
-    for (var (String keys, _) in map.keys.whereType<(String, void)>()) {
-      /// Since it's not the safeguard,
-      ///  Get the derivative of the map.
-
-      switch (map[(keys, null)]) {
-        case HashMap<_Key<String>, Object> derivative:
-          yield* _keys(derivative).map((List<String> rest) => <String>[keys, ...rest]);
-        case null:
-          yield <String>[keys];
-      }
-    }
-  }
+  static const _string = (".",);
 }

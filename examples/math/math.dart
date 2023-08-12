@@ -172,6 +172,9 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
+  @pragma("vm:prefer-inline")
+  T? nullable<T extends Object>(T v) => v;
+
   void reset() {
     this.pos = 0;
     this.failures.clear();
@@ -255,6 +258,13 @@ final class MathParser extends _PegParser<num> {
   @override
   get start => r0;
 
+
+  /// `ROOT`
+  num? f0() {
+    if (this.apply(this.r0) case var $?) {
+      return $;
+    }
+  }
 
   /// `global::rule`
   num? r0() {
@@ -412,11 +422,11 @@ final class MathParser extends _PegParser<num> {
       if (this.pos case var mark) {
         if (this.pos case var from) {
           if (matchPattern(_regexp.$1) case var _2?) {
-            if ([_2] case (var $0 && var _loop3)) {
+            if ([_2] case (var $0 && var _l3)) {
               for (;;) {
                 if (this.pos case var mark) {
                   if (matchPattern(_regexp.$1) case var _2?) {
-                    _loop3.add(_2);
+                    _l3.add(_2);
                     continue;
                   }
                   this.pos = mark;
@@ -425,11 +435,11 @@ final class MathParser extends _PegParser<num> {
               }
               if (this.matchPattern(_string.$10) case var $1?) {
                 if (matchPattern(_regexp.$1) case var _0?) {
-                  if ([_0] case (var $2 && var _loop1)) {
+                  if ([_0] case (var $2 && var _l1)) {
                     for (;;) {
                       if (this.pos case var mark) {
                         if (matchPattern(_regexp.$1) case var _0?) {
-                          _loop1.add(_0);
+                          _l1.add(_0);
                           continue;
                         }
                         this.pos = mark;
@@ -449,11 +459,11 @@ final class MathParser extends _PegParser<num> {
         this.pos = mark;
         if (this.pos case var from) {
           if (matchPattern(_regexp.$1) case var _4?) {
-            if ([_4] case var _loop5) {
+            if ([_4] case var _l5) {
               for (;;) {
                 if (this.pos case var mark) {
                   if (matchPattern(_regexp.$1) case var _4?) {
-                    _loop5.add(_4);
+                    _l5.add(_4);
                     continue;
                   }
                   this.pos = mark;
@@ -474,12 +484,12 @@ final class MathParser extends _PegParser<num> {
   late final r5 = () {
     if (this.pos case var mark) {
       if (matchPattern(_regexp.$2) case var _0) {
-        if ([if (_0 case var _0?) _0] case var _loop1) {
-          if (_loop1.isNotEmpty) {
+        if ([if (_0 case var _0?) _0] case var _l1) {
+          if (_l1.isNotEmpty) {
             for (;;) {
               if (this.pos case var mark) {
                 if (matchPattern(_regexp.$2) case var _0?) {
-                  _loop1.add(_0);
+                  _l1.add(_0);
                   continue;
                 }
                 this.pos = mark;
