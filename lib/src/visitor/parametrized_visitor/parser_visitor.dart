@@ -40,10 +40,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   int rangeId = 0;
 
   @override
-  String visitEpsilonNode(
-    EpsilonNode node,
-    Parameters parameters,
-  ) {
+  String visitEpsilonNode(EpsilonNode node, Parameters parameters) {
     var (
       :bool isNullAllowed,
       :Set<String>? withNames,
@@ -64,10 +61,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitTriePatternNode(
-    TriePatternNode node,
-    Parameters parameters,
-  ) {
+  String visitTriePatternNode(TriePatternNode node, Parameters parameters) {
     var (
       :bool isNullAllowed,
       :Set<String>? withNames,
@@ -94,10 +88,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitStringLiteralNode(
-    StringLiteralNode node,
-    Parameters parameters,
-  ) {
+  String visitStringLiteralNode(StringLiteralNode node, Parameters parameters) {
     var (
       :bool isNullAllowed,
       :Set<String>? withNames,
@@ -123,10 +114,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitRangeNode(
-    RangeNode node,
-    Parameters parameters,
-  ) {
+  String visitRangeNode(RangeNode node, Parameters parameters) {
     var (
       :bool isNullAllowed,
       :Set<String>? withNames,
@@ -159,10 +147,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitRegExpNode(
-    RegExpNode node,
-    Parameters parameters,
-  ) {
+  String visitRegExpNode(RegExpNode node, Parameters parameters) {
     var (
       :bool isNullAllowed,
       :Set<String>? withNames,
@@ -188,10 +173,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitRegExpEscapeNode(
-    RegExpEscapeNode node,
-    Parameters parameters,
-  ) {
+  String visitRegExpEscapeNode(RegExpEscapeNode node, Parameters parameters) {
     var (
       :bool isNullAllowed,
       :Set<String>? withNames,
@@ -217,10 +199,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitSequenceNode(
-    SequenceNode node,
-    Parameters parameters,
-  ) {
+  String visitSequenceNode(SequenceNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -239,10 +218,12 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         for (var (int i, Node child) in node.children.indexed)
           if (child case NamedNode(:String name))
             name //
-          else if (node.choose != null) ...[
-            if (node.choose == i) "\$$i" else "_",
-          ] else ...[
-            if (inner.contains(RegExp(r"\$" "$i" r"\b"))) "\$$i" else "_",
+          else ...[
+            if (node.choose != null) ...[
+              if (node.choose == i) "\$$i" else "_",
+            ] else ...[
+              if (inner.contains(RegExp(r"\$" "$i" r"\b"))) "\$$i" else "_",
+            ],
           ],
       ] else ...[
         for (int i = 0; i < node.children.length; ++i) "\$$i",
@@ -282,10 +263,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitChoiceNode(
-    ChoiceNode node,
-    Parameters parameters,
-  ) {
+  String visitChoiceNode(ChoiceNode node, Parameters parameters) {
     var (
       :bool isNullAllowed,
       :Set<String>? withNames,
@@ -321,10 +299,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitCountedNode(
-    CountedNode node,
-    Parameters parameters,
-  ) {
+  String visitCountedNode(CountedNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -333,8 +308,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       :String declarationName,
     ) = parameters;
     String variableName = "_${ruleId++}";
-    String containerName = "_loop${ruleId++}";
-    (withNames ??= <String>{}).add(containerName);
+    String containerName = "_l${ruleId++}";
 
     if (node.min > 0) {
       String loopBody = node.child.acceptParametrizedVisitor(
@@ -346,35 +320,34 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
           reported: reported,
           declarationName: declarationName,
         ),
-      ).indent(3);
+      ).indent(4);
       StringBuffer loopBuffer = StringBuffer();
-      loopBuffer.writeln("if ([$variableName] case ${withNames.varNames}) {");
+      loopBuffer.writeln("if (nullable([$variableName]) case var $containerName) {");
+      loopBuffer.writeln("  if ($containerName != null) {");
       if (node.max == null) {
-        loopBuffer.writeln("      for (;;) {");
+        loopBuffer.writeln("    for (;;) {");
       } else {
-        loopBuffer.writeln("      while ($containerName.length < ${node.max}) {");
+        loopBuffer.writeln("    while ($containerName.length < ${node.max}) {");
       }
-      loopBuffer.writeln("    if (this.pos case var mark) {");
+      loopBuffer.writeln("      if (this.pos case var mark) {");
       loopBuffer.writeln(loopBody);
-      loopBuffer.writeln("      this.pos = mark;");
-      loopBuffer.writeln("      break;");
+      loopBuffer.writeln("        this.pos = mark;");
+      loopBuffer.writeln("        break;");
+      loopBuffer.writeln("      }");
       loopBuffer.writeln("    }");
-      loopBuffer.writeln("  }");
       if (node.min > 1) {
-        loopBuffer.writeln("  if ($containerName.length >= ${node.min}) {");
-        if (inner != null) {
-          loopBuffer.writeln(inner.indent(2));
-        } else {
-          loopBuffer.writeln("return $containerName;".indent(2));
-        }
-        loopBuffer.writeln("  }");
-      } else {
-        if (inner != null) {
-          loopBuffer.writeln(inner.indent());
-        } else {
-          loopBuffer.writeln("return $containerName;".indent());
-        }
+        loopBuffer.writeln("    if ($containerName.length < ${node.min}) {");
+        loopBuffer.writeln("      $containerName = null;");
+        loopBuffer.writeln("    }");
       }
+      loopBuffer.writeln("  }");
+      loopBuffer.writeln("  if ($containerName case ${withNames.varNames}) {");
+      if (inner != null) {
+        loopBuffer.writeln(inner.indent(2));
+      } else {
+        loopBuffer.writeln("    return $containerName;");
+      }
+      loopBuffer.writeln("  }");
       loopBuffer.writeln("}");
 
       return node.child.acceptParametrizedVisitor(
@@ -403,10 +376,10 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       loopBuffer.writeln("if (this.pos case var mark) {");
       loopBuffer.writeln(
         "  "
-        "if (${"[if ($variableName case var $variableName$question) "}$variableName] "
-        "case ${withNames.varNames}) {",
+        "if (nullable([if ($variableName case var $variableName$question) $variableName]) "
+        "case var $containerName) {",
       );
-      loopBuffer.writeln("    if ($containerName.isNotEmpty) {");
+      loopBuffer.writeln("    if ($containerName != null && $containerName.isNotEmpty) {");
       if (node.max == null) {
         loopBuffer.writeln("      for (;;) {");
       } else {
@@ -421,11 +394,13 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       loopBuffer.writeln("    } else {");
       loopBuffer.writeln("      this.pos = mark;");
       loopBuffer.writeln("    }");
+      loopBuffer.writeln("    if ($containerName case ${withNames.varNames}) {");
       if (inner case String inner) {
-        loopBuffer.writeln(inner.indent(2));
+        loopBuffer.writeln(inner.indent(3));
       } else {
-        loopBuffer.writeln("    return $containerName;");
+        loopBuffer.writeln("      return $containerName;");
       }
+      loopBuffer.writeln("    }");
       loopBuffer.writeln("  }");
       loopBuffer.writeln("}");
 
@@ -443,10 +418,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitPlusSeparatedNode(
-    PlusSeparatedNode node,
-    Parameters parameters,
-  ) {
+  String visitPlusSeparatedNode(PlusSeparatedNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -455,7 +427,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       :String declarationName,
     ) = parameters;
     String variableName = "_${ruleId++}";
-    String containerName = "_loop${ruleId++}";
+    String containerName = "_l${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
     String trailingBody = node.separator.acceptParametrizedVisitor(
@@ -521,10 +493,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitStarSeparatedNode(
-    StarSeparatedNode node,
-    Parameters parameters,
-  ) {
+  String visitStarSeparatedNode(StarSeparatedNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -533,7 +502,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       :String declarationName,
     ) = parameters;
     String variableName = "_${ruleId++}";
-    String containerName = "_loop${ruleId++}";
+    String containerName = "_l${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
     String loopBody = node.separator.acceptParametrizedVisitor(
@@ -615,10 +584,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitPlusNode(
-    PlusNode node,
-    Parameters parameters,
-  ) {
+  String visitPlusNode(PlusNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -627,7 +593,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       :String declarationName,
     ) = parameters;
     String variableName = "_${ruleId++}";
-    String containerName = "_loop${ruleId++}";
+    String containerName = "_l${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
     String loopBody = node.child.acceptParametrizedVisitor(
@@ -669,10 +635,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitStarNode(
-    StarNode node,
-    Parameters parameters,
-  ) {
+  String visitStarNode(StarNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -681,7 +644,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       :String declarationName,
     ) = parameters;
     String variableName = "_${ruleId++}";
-    String containerName = "_loop${ruleId++}";
+    String containerName = "_l${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
 
     String loopBody = node.child.acceptParametrizedVisitor(
@@ -738,10 +701,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitAndPredicateNode(
-    AndPredicateNode node,
-    Parameters parameters,
-  ) {
+  String visitAndPredicateNode(AndPredicateNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -768,10 +728,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitNotPredicateNode(
-    NotPredicateNode node,
-    Parameters parameters,
-  ) {
+  String visitNotPredicateNode(NotPredicateNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -800,10 +757,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitOptionalNode(
-    OptionalNode node,
-    Parameters parameters,
-  ) {
+  String visitOptionalNode(OptionalNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -824,10 +778,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitReferenceNode(
-    ReferenceNode node,
-    Parameters parameters,
-  ) {
+  String visitReferenceNode(ReferenceNode node, Parameters parameters) {
     var (
       :bool isNullAllowed,
       :Set<String>? withNames,
@@ -852,10 +803,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitFragmentNode(
-    FragmentNode node,
-    Parameters parameters,
-  ) {
+  String visitFragmentNode(FragmentNode node, Parameters parameters) {
     var (
       :bool isNullAllowed,
       :Set<String>? withNames,
@@ -877,10 +825,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitNamedNode(
-    NamedNode node,
-    Parameters parameters,
-  ) {
+  String visitNamedNode(NamedNode node, Parameters parameters) {
     var (
       :bool isNullAllowed,
       :Set<String>? withNames,
@@ -901,10 +846,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitActionNode(
-    ActionNode node,
-    Parameters parameters,
-  ) {
+  String visitActionNode(ActionNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -953,10 +895,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitInlineActionNode(
-    InlineActionNode node,
-    Parameters parameters,
-  ) {
+  String visitInlineActionNode(InlineActionNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -1004,10 +943,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitStartOfInputNode(
-    StartOfInputNode node,
-    Parameters parameters,
-  ) {
+  String visitStartOfInputNode(StartOfInputNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -1038,10 +974,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitEndOfInputNode(
-    EndOfInputNode node,
-    Parameters parameters,
-  ) {
+  String visitEndOfInputNode(EndOfInputNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
@@ -1072,10 +1005,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   }
 
   @override
-  String visitAnyCharacterNode(
-    AnyCharacterNode node,
-    Parameters parameters,
-  ) {
+  String visitAnyCharacterNode(AnyCharacterNode node, Parameters parameters) {
     var (
       isNullAllowed: bool _,
       :Set<String>? withNames,
