@@ -1,3 +1,4 @@
+import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
@@ -111,7 +112,7 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
       String potentialName = <String>[
         ...prefixes.sublist(0, i),
         name,
-      ].join("::");
+      ].join(ParserGenerator.separator);
       switch (potentialName) {
         case String name when rules.containsKey(name):
           return ReferenceNode(name);

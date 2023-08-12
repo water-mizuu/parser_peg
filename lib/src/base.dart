@@ -169,9 +169,6 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
-  @pragma("vm:prefer-inline")
-  T? nullable<T extends Object>(T v) => v;
-
   void reset() {
     this.pos = 0;
     this.failures.clear();
@@ -214,6 +211,11 @@ abstract base class _PegParser<R extends Object> {
         apply(start),
       ).$2;
   _Rule<R> get start;
+}
+
+extension NullableExtension<T extends Object> on T {
+  @pragma("vm:prefer-inline")
+  T? asNullable() => this;
 }
 
 typedef _Rule<T extends Object> = T? Function();

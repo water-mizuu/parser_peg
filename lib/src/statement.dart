@@ -10,6 +10,7 @@ sealed class Statement {}
 
 final class NamespaceStatement implements Statement {
   const NamespaceStatement(this.name, this.children, {required this.tag});
+  const NamespaceStatement.predefined(this.name, this.children) : tag = null;
 
   final String? name;
   final List<Statement> children;

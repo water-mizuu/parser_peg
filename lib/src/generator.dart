@@ -72,7 +72,7 @@ final class ParserGenerator {
 
         switch (statement) {
           case DeclarationStatement(:String? type, :String name, :Node node, tag: Tag? declaredTag):
-            String resolvedName = <String>[...prefix, name].join("::");
+            String resolvedName = <String>[...prefix, name].join(ParserGenerator.separator);
             switch (declaredTag ?? tag) {
               case Tag.inline:
                 inline[resolvedName] = (type, node);
@@ -105,7 +105,7 @@ final class ParserGenerator {
         switch (statement) {
           case DeclarationStatement(:String? type, :String name, :Node node, tag: Tag? declaredTag):
             ResolveReferencesVisitor visitor = ResolveReferencesVisitor(prefixes, rules, fragments, inline);
-            String resolvedName = <String>[...prefixes, name].join("::");
+            String resolvedName = <String>[...prefixes, name].join(ParserGenerator.separator);
             Node resolvedNode = node.acceptSimpleVisitor(visitor);
 
             switch (declaredTag ?? tag) {
@@ -320,6 +320,7 @@ final class ParserGenerator {
     }
   }
 
+  static const String separator = "::";
   static const List<Statement> predefined = <Statement>[
     /// std {
     ///   any = .;
@@ -345,15 +346,20 @@ final class ParserGenerator {
         DeclarationStatement.predefined("whitespace", RegExpNode(r"\s")),
         DeclarationStatement.predefined("digit", RegExpNode(r"\d")),
         DeclarationStatement.predefined("hex", RegExpNode("[0-9A-Fa-f]")),
+        NamespaceStatement.predefined(
+          "hex",
+          <Statement>[
+            DeclarationStatement.predefined("lower", RegExpNode("[0-9a-f]")),
+            DeclarationStatement.predefined("upper", RegExpNode("[0-9A-F]")),
+          ],
+        ),
         DeclarationStatement.predefined("alpha", RegExpNode("[a-zA-Z]")),
-        DeclarationStatement.predefined("alpha", RegExpNode("[a-zA-Z]")),
-        NamespaceStatement(
+        NamespaceStatement.predefined(
           "alpha",
           <Statement>[
             DeclarationStatement.predefined("lower", RegExpNode("[a-z]")),
             DeclarationStatement.predefined("upper", RegExpNode("[A-Z]")),
           ],
-          tag: null,
         ),
       ],
       tag: Tag.inline,

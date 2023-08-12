@@ -5,15 +5,17 @@
 
 import "dart:collection";
 import "dart:math" as math;
+
+import "package:parser_peg/src/generator.dart";
 // PREAMBLE
 import "package:parser_peg/src/node.dart";
-import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
 
 final _regexps = (
   from: RegExp(r"\bfrom\b"),
   to: RegExp(r"\bto\b"),
 );
+
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -179,9 +181,6 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
-  @pragma("vm:prefer-inline")
-  T? nullable<T extends Object>(T v) => v;
-
   void reset() {
     this.pos = 0;
     this.failures.clear();
@@ -226,6 +225,11 @@ abstract base class _PegParser<R extends Object> {
   _Rule<R> get start;
 }
 
+extension NullableExtension<T extends Object> on T {
+  @pragma("vm:prefer-inline")
+  T? asNullable() => this;
+}
+
 typedef _Rule<T extends Object> = T? Function();
 
 class _Head<T extends Object> {
@@ -264,7 +268,6 @@ final class PegParserCst extends _PegParser<Object> {
 
   @override
   get start => r0;
-
 
   /// `global::type`
   Object? f0() {
@@ -1058,7 +1061,7 @@ final class PegParserCst extends _PegParser<Object> {
     if (this.fv() case var $0) {
       if (this.matchPattern(_string.$30) case var $1?) {
         if (this.fv() case var $2) {
-          return ("fragment0", [$0, $1, $2]);
+          return [$0, $1, $2];
         }
       }
     }
@@ -1069,7 +1072,7 @@ final class PegParserCst extends _PegParser<Object> {
     if (this.fv() case var $0) {
       if (this.matchPattern(_string.$31) case var $1?) {
         if (this.fv() case var $2) {
-          return ("fragment1", [$0, $1, $2]);
+          return [$0, $1, $2];
         }
       }
     }
@@ -1080,7 +1083,7 @@ final class PegParserCst extends _PegParser<Object> {
     if (this.fv() case var $0) {
       if (this.matchPattern(_string.$32) case var $1?) {
         if (this.fv() case var $2) {
-          return ("fragment2", [$0, $1, $2]);
+          return [$0, $1, $2];
         }
       }
     }
@@ -1090,7 +1093,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f17 = () {
     if (this.f16() case var $0?) {
       if (this.f9() case var $1?) {
-        return ("fragment3", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1100,7 +1103,7 @@ final class PegParserCst extends _PegParser<Object> {
     if (this.fv() case var $0) {
       if (this.matchPattern(_string.$33) case var $1?) {
         if (this.fv() case var $2) {
-          return ("fragment4", [$0, $1, $2]);
+          return [$0, $1, $2];
         }
       }
     }
@@ -1111,7 +1114,7 @@ final class PegParserCst extends _PegParser<Object> {
     if (this.fv() case var $0) {
       if (this.matchPattern(_string.$34) case var $1?) {
         if (this.fv() case var $2) {
-          return ("fragment5", [$0, $1, $2]);
+          return [$0, $1, $2];
         }
       }
     }
@@ -1122,7 +1125,7 @@ final class PegParserCst extends _PegParser<Object> {
     if (this.fv() case var $0) {
       if (this.matchPattern(_string.$35) case var $1?) {
         if (this.fv() case var $2) {
-          return ("fragment6", [$0, $1, $2]);
+          return [$0, $1, $2];
         }
       }
     }
@@ -1132,7 +1135,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1b = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$1) case var $1?) {
-        return ("fragment7", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1141,7 +1144,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1c = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$36) case var $1?) {
-        return ("fragment8", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1150,7 +1153,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1d = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$37) case var $1?) {
-        return ("fragment9", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1159,7 +1162,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1e = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$38) case var $1?) {
-        return ("fragment10", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1168,7 +1171,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1f = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$36) case var $1?) {
-        return ("fragment11", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1177,7 +1180,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1g = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$37) case var $1?) {
-        return ("fragment12", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1186,7 +1189,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1h = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$38) case var $1?) {
-        return ("fragment13", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1195,7 +1198,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1i = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$39) case var $1?) {
-        return ("fragment14", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1204,7 +1207,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1j = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$40) case var $1?) {
-        return ("fragment15", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1213,7 +1216,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1k = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$25) case var $1?) {
-        return ("fragment16", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1222,7 +1225,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1l = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$41) case var $1?) {
-        return ("fragment17", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1231,7 +1234,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1m = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$42) case var $1?) {
-        return ("fragment18", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1240,7 +1243,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1n = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$36) case var $1?) {
-        return ("fragment19", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1249,7 +1252,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1o = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$37) case var $1?) {
-        return ("fragment20", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1258,7 +1261,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1p = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$38) case var $1?) {
-        return ("fragment21", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1267,7 +1270,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1q = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$40) case var $1?) {
-        return ("fragment22", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1276,7 +1279,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1r = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$25) case var $1?) {
-        return ("fragment23", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1285,7 +1288,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1s = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$39) case var $1?) {
-        return ("fragment24", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1294,7 +1297,7 @@ final class PegParserCst extends _PegParser<Object> {
   late final f1t = () {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$1) case var $1?) {
-        return ("fragment25", [$0, $1]);
+        return [$0, $1];
       }
     }
   };
@@ -1304,13 +1307,13 @@ final class PegParserCst extends _PegParser<Object> {
     if (this.pos case var mark) {
       if (this.pos case var mark) {
         if (this.matchPattern(_string.$43) case var $?) {
-          return ("fragment26", $);
+          return $;
         }
         this.pos = mark;
         if (this.fv() case var $0) {
           if (this.f1n() case var $1?) {
             if (this.fv() case var $2) {
-              return ("fragment26", [$0, $1, $2]);
+              return [$0, $1, $2];
             }
           }
         }
@@ -1318,7 +1321,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (this.fv() case var $0) {
           if (this.f1o() case var $1?) {
             if (this.fv() case var $2) {
-              return ("fragment26", [$0, $1, $2]);
+              return [$0, $1, $2];
             }
           }
         }
@@ -1326,7 +1329,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (this.fv() case var $0) {
           if (this.f1p() case var $1?) {
             if (this.fv() case var $2) {
-              return ("fragment26", [$0, $1, $2]);
+              return [$0, $1, $2];
             }
           }
         }
@@ -1334,7 +1337,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (this.fv() case var $0) {
           if (this.f1q() case var $1?) {
             if (this.fv() case var $2) {
-              return ("fragment26", [$0, $1, $2]);
+              return [$0, $1, $2];
             }
           }
         }
@@ -1342,7 +1345,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (this.fv() case var $0) {
           if (this.f1r() case var $1?) {
             if (this.fv() case var $2) {
-              return ("fragment26", [$0, $1, $2]);
+              return [$0, $1, $2];
             }
           }
         }
@@ -1350,7 +1353,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (this.fv() case var $0) {
           if (this.f1s() case var $1?) {
             if (this.fv() case var $2) {
-              return ("fragment26", [$0, $1, $2]);
+              return [$0, $1, $2];
             }
           }
         }
@@ -1358,7 +1361,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (this.fv() case var $0) {
           if (this.f1t() case var $1?) {
             if (this.fv() case var $2) {
-              return ("fragment26", [$0, $1, $2]);
+              return [$0, $1, $2];
             }
           }
         }
@@ -1368,13 +1371,13 @@ final class PegParserCst extends _PegParser<Object> {
       if (this.f5() case var $0?) {
         if (this.matchPattern(_string.$44) case var $1?) {
           if (this.f5() case var $2?) {
-            return ("fragment26", [$0, $1, $2]);
+            return [$0, $1, $2];
           }
         }
       }
       this.pos = mark;
       if (this.f5() case var $?) {
-        return ("fragment26", $);
+        return $;
       }
     }
   };
@@ -1399,7 +1402,7 @@ final class PegParserCst extends _PegParser<Object> {
             }
             if (this.matchPattern(_string.$2) case var $3?) {
               if (this.fv() case var $4) {
-                return ("fragment27", [$0, $1, $2, $3, $4]);
+                return [$0, $1, $2, $3, $4];
               }
             }
           }
@@ -1415,7 +1418,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment28", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -1426,7 +1429,7 @@ final class PegParserCst extends _PegParser<Object> {
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
               pos++;
-              return ("fragment28", [$0, $1]);
+              return [$0, $1];
             }
           }
         }
@@ -1448,7 +1451,7 @@ final class PegParserCst extends _PegParser<Object> {
             break;
           }
         }
-        return ("fragment29", _loop1);
+        return _loop1;
       }
     }
   };
@@ -1461,7 +1464,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment30", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -1476,7 +1479,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment31", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -1491,7 +1494,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment32", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -1506,7 +1509,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment33", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -1520,7 +1523,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment34", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -1531,7 +1534,7 @@ final class PegParserCst extends _PegParser<Object> {
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
               pos++;
-              return ("fragment34", [$0, $1]);
+              return [$0, $1];
             }
           }
         }
@@ -1546,7 +1549,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment35", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -1557,7 +1560,7 @@ final class PegParserCst extends _PegParser<Object> {
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
               pos++;
-              return ("fragment35", [$0, $1]);
+              return [$0, $1];
             }
           }
         }
@@ -1572,7 +1575,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment36", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -1583,7 +1586,7 @@ final class PegParserCst extends _PegParser<Object> {
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
               pos++;
-              return ("fragment36", [$0, $1]);
+              return [$0, $1];
             }
           }
         }
@@ -1598,7 +1601,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment37", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -1609,7 +1612,7 @@ final class PegParserCst extends _PegParser<Object> {
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
               pos++;
-              return ("fragment37", [$0, $1]);
+              return [$0, $1];
             }
           }
         }
@@ -1639,7 +1642,7 @@ final class PegParserCst extends _PegParser<Object> {
                 this.pos = mark;
               }
               if (this.matchPattern(_string.$24) case var $2?) {
-                return ("fragment38", [$0, $1, $2]);
+                return [$0, $1, $2];
               }
             }
           }
@@ -1665,7 +1668,7 @@ final class PegParserCst extends _PegParser<Object> {
                 this.pos = mark;
               }
               if (this.matchPattern(_string.$26) case var $2?) {
-                return ("fragment38", [$0, $1, $2]);
+                return [$0, $1, $2];
               }
             }
           }
@@ -1691,7 +1694,7 @@ final class PegParserCst extends _PegParser<Object> {
                 this.pos = mark;
               }
               if (this.matchPattern(_string.$27) case var $2?) {
-                return ("fragment38", [$0, $1, $2]);
+                return [$0, $1, $2];
               }
             }
           }
@@ -1717,7 +1720,7 @@ final class PegParserCst extends _PegParser<Object> {
                 this.pos = mark;
               }
               if (this.matchPattern(_string.$28) case var $2?) {
-                return ("fragment38", [$0, $1, $2]);
+                return [$0, $1, $2];
               }
             }
           }
@@ -1743,7 +1746,7 @@ final class PegParserCst extends _PegParser<Object> {
                 this.pos = mark;
               }
               if (this.matchPattern(_string.$24) case var $2?) {
-                return ("fragment38", [$0, $1, $2]);
+                return [$0, $1, $2];
               }
             }
           }
@@ -1769,7 +1772,7 @@ final class PegParserCst extends _PegParser<Object> {
                 this.pos = mark;
               }
               if (this.matchPattern(_string.$26) case var $2?) {
-                return ("fragment38", [$0, $1, $2]);
+                return [$0, $1, $2];
               }
             }
           }
@@ -1795,7 +1798,7 @@ final class PegParserCst extends _PegParser<Object> {
                 this.pos = mark;
               }
               if (this.matchPattern(_string.$27) case var $2?) {
-                return ("fragment38", [$0, $1, $2]);
+                return [$0, $1, $2];
               }
             }
           }
@@ -1821,7 +1824,7 @@ final class PegParserCst extends _PegParser<Object> {
                 this.pos = mark;
               }
               if (this.matchPattern(_string.$28) case var $2?) {
-                return ("fragment38", [$0, $1, $2]);
+                return [$0, $1, $2];
               }
             }
           }
@@ -1838,7 +1841,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment39", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -1849,13 +1852,13 @@ final class PegParserCst extends _PegParser<Object> {
   late final f28 = () {
     if (this.pos case var mark) {
       if (this.apply(this.rh) case var $?) {
-        return ("fragment40", $);
+        return $;
       }
       this.pos = mark;
       if (this.matchPattern(_string.$15) case var $0?) {
         if (this.apply(this.rg)! case var $1) {
           if (this.matchPattern(_string.$14) case var $2?) {
-            return ("fragment40", [$0, $1, $2]);
+            return [$0, $1, $2];
           }
         }
       }
@@ -1866,7 +1869,7 @@ final class PegParserCst extends _PegParser<Object> {
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
               pos++;
-              return ("fragment40", [$0, $1]);
+              return [$0, $1];
             }
           }
         }
@@ -1877,7 +1880,7 @@ final class PegParserCst extends _PegParser<Object> {
   /// `fragment41`
   late final f29 = () {
     if (this.fx() case var $?) {
-      return ("fragment41", $);
+      return $;
     }
   };
 
@@ -1887,7 +1890,7 @@ final class PegParserCst extends _PegParser<Object> {
       if (this.matchPattern(_string.$15) case var $0?) {
         if (this.apply(this.rj)! case var $1) {
           if (this.matchPattern(_string.$14) case var $2?) {
-            return ("fragment42", [$0, $1, $2]);
+            return [$0, $1, $2];
           }
         }
       }
@@ -1898,7 +1901,7 @@ final class PegParserCst extends _PegParser<Object> {
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
               pos++;
-              return ("fragment42", [$0, $1]);
+              return [$0, $1];
             }
           }
         }
@@ -1911,7 +1914,7 @@ final class PegParserCst extends _PegParser<Object> {
     if (this.fm() case var $0?) {
       if (this.f7() case var $1?) {
         if (this.fl() case var $2?) {
-          return ("fragment43", [$0, $1, $2]);
+          return [$0, $1, $2];
         }
       }
     }
@@ -1922,7 +1925,7 @@ final class PegParserCst extends _PegParser<Object> {
     if (this.fm() case var $0?) {
       if (this.f7() case var $1?) {
         if (this.fl() case var $2?) {
-          return ("fragment44", [$0, $1, $2]);
+          return [$0, $1, $2];
         }
       }
     }
@@ -1934,7 +1937,7 @@ final class PegParserCst extends _PegParser<Object> {
       if (this.fm() case var $1?) {
         if (this.f7() case var $2?) {
           if (this.fl() case var $3?) {
-            return ("fragment45", [$0, $1, $2, $3]);
+            return [$0, $1, $2, $3];
           }
         }
       }
@@ -1949,7 +1952,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment46", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -1977,7 +1980,7 @@ final class PegParserCst extends _PegParser<Object> {
               this.pos = mark;
             }
             if (this.matchPattern(_string.$3) case var $2?) {
-              return ("fragment47", [$0, $1, $2]);
+              return [$0, $1, $2];
             }
           }
         }
@@ -1989,14 +1992,14 @@ final class PegParserCst extends _PegParser<Object> {
   late final f2g = () {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$51) case var $?) {
-        return ("fragment48", $);
+        return $;
       }
       this.pos = mark;
       if (this.pos case var mark) {
         if (this.matchPattern(_string.$11) case (var $0 && null)) {
           this.pos = mark;
           if (this.matchPattern(_string.$23) case var $1?) {
-            return ("fragment48", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2007,15 +2010,15 @@ final class PegParserCst extends _PegParser<Object> {
   late final f2h = () {
     if (this.pos case var mark) {
       if (this.ff() case var $?) {
-        return ("fragment49", $);
+        return $;
       }
       this.pos = mark;
       if (this.fg() case var $?) {
-        return ("fragment49", $);
+        return $;
       }
       this.pos = mark;
       if (this.fh() case var $?) {
-        return ("fragment49", $);
+        return $;
       }
     }
   };
@@ -2027,7 +2030,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (this.pos case var mark) {
           if (this.f2h() case (var $2 && null)) {
             this.pos = mark;
-            return ("fragment50", [$0, $1, $2]);
+            return [$0, $1, $2];
           }
         }
       }
@@ -2040,7 +2043,7 @@ final class PegParserCst extends _PegParser<Object> {
       if (this.fv() case var $0) {
         if (this.matchPattern(_string.$52) case var $1?) {
           if (this.fv() case var $2) {
-            return ("fragment51", [$0, $1, $2]);
+            return [$0, $1, $2];
           }
         }
       }
@@ -2048,7 +2051,7 @@ final class PegParserCst extends _PegParser<Object> {
       if (this.fv() case var $0) {
         if (this.matchPattern(_string.$53) case var $1?) {
           if (this.fv() case var $2) {
-            return ("fragment51", [$0, $1, $2]);
+            return [$0, $1, $2];
           }
         }
       }
@@ -2056,7 +2059,7 @@ final class PegParserCst extends _PegParser<Object> {
       if (this.fv() case var $0) {
         if (this.matchPattern(_string.$54) case var $1?) {
           if (this.fv() case var $2) {
-            return ("fragment51", [$0, $1, $2]);
+            return [$0, $1, $2];
           }
         }
       }
@@ -2068,7 +2071,7 @@ final class PegParserCst extends _PegParser<Object> {
     if (this.fv() case var $0) {
       if (this.matchPattern(_string.$55) case var $1?) {
         if (this.fv() case var $2) {
-          return ("fragment52", [$0, $1, $2]);
+          return [$0, $1, $2];
         }
       }
     }
@@ -2082,7 +2085,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment53", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2093,15 +2096,15 @@ final class PegParserCst extends _PegParser<Object> {
   late final f2m = () {
     if (this.pos case var mark) {
       if (matchPattern(_regexp.$2) case var $?) {
-        return ("fragment54", $);
+        return $;
       }
       this.pos = mark;
       if (matchPattern(_regexp.$3) case var $?) {
-        return ("fragment54", $);
+        return $;
       }
       this.pos = mark;
       if (matchPattern(_regexp.$4) case var $?) {
-        return ("fragment54", $);
+        return $;
       }
     }
   };
@@ -2114,7 +2117,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment55", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2129,7 +2132,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment56", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2144,7 +2147,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment57", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2159,7 +2162,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment58", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2173,7 +2176,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment59", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2182,7 +2185,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (this.matchPattern(_string.$29) case var $0?) {
           this.pos = mark;
           if (this.fy() case var $1?) {
-            return ("fragment59", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2193,7 +2196,7 @@ final class PegParserCst extends _PegParser<Object> {
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
               pos++;
-              return ("fragment59", [$0, $1]);
+              return [$0, $1];
             }
           }
         }
@@ -2208,7 +2211,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment60", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2217,7 +2220,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (this.matchPattern(_string.$29) case var $0?) {
           this.pos = mark;
           if (this.fy() case var $1?) {
-            return ("fragment60", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2228,7 +2231,7 @@ final class PegParserCst extends _PegParser<Object> {
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
               pos++;
-              return ("fragment60", [$0, $1]);
+              return [$0, $1];
             }
           }
         }
@@ -2243,7 +2246,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment61", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2252,7 +2255,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (this.matchPattern(_string.$29) case var $0?) {
           this.pos = mark;
           if (this.fy() case var $1?) {
-            return ("fragment61", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2263,7 +2266,7 @@ final class PegParserCst extends _PegParser<Object> {
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
               pos++;
-              return ("fragment61", [$0, $1]);
+              return [$0, $1];
             }
           }
         }
@@ -2278,7 +2281,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (pos < buffer.length) {
           if (buffer[pos] case var $1) {
             pos++;
-            return ("fragment62", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2287,7 +2290,7 @@ final class PegParserCst extends _PegParser<Object> {
         if (this.matchPattern(_string.$29) case var $0?) {
           this.pos = mark;
           if (this.fy() case var $1?) {
-            return ("fragment62", [$0, $1]);
+            return [$0, $1];
           }
         }
       }
@@ -2298,7 +2301,7 @@ final class PegParserCst extends _PegParser<Object> {
           if (pos < buffer.length) {
             if (buffer[pos] case var $1) {
               pos++;
-              return ("fragment62", [$0, $1]);
+              return [$0, $1];
             }
           }
         }
@@ -2322,7 +2325,7 @@ final class PegParserCst extends _PegParser<Object> {
             break;
           }
         }
-        return ("fragment63", _loop2);
+        return _loop2;
       }
     }
   };
@@ -2332,7 +2335,7 @@ final class PegParserCst extends _PegParser<Object> {
     if (this.fv() case var $0) {
       if (this.matchPattern(_string.$56) case var $1?) {
         if (this.fv() case var $2) {
-          return ("fragment64", [$0, $1, $2]);
+          return [$0, $1, $2];
         }
       }
     }
@@ -2343,7 +2346,7 @@ final class PegParserCst extends _PegParser<Object> {
     if (this.fv() case var $0) {
       if (this.matchPattern(_string.$57) case var $1?) {
         if (this.fv() case var $2) {
-          return ("fragment65", [$0, $1, $2]);
+          return [$0, $1, $2];
         }
       }
     }
@@ -3369,9 +3372,7 @@ final class PegParserCst extends _PegParser<Object> {
     RegExp("\\/{2}(?:(?!(?:(?:\\r?\\n)|(?:\$))).)*(?=(?:\\r?\\n)|(?:\$))"),
     RegExp("(?:\\/\\*(?:(?!\\*\\/).)*\\*\\/)"),
   );
-  static final _trie = (
-    Trie.from(["{","}"]),
-  );
+  static final _trie = (Trie.from(["{", "}"]),);
   static const _string = (
     "\\",
     "]",
@@ -3423,7 +3424,7 @@ final class PegParserCst extends _PegParser<Object> {
     "r'''",
     "r\"",
     "r'",
-    "::",
+    ParserGenerator.separator,
     "=",
     "<-",
     "->",
@@ -3434,10 +3435,11 @@ final class PegParserCst extends _PegParser<Object> {
     "ε",
   );
   static const _range = (
-    { (97, 122), (65, 90), (48, 57), (95, 95), (36, 36) },
-    { (97, 122), (65, 90), (95, 95), (36, 36) },
+    {(97, 122), (65, 90), (48, 57), (95, 95), (36, 36)},
+    {(97, 122), (65, 90), (95, 95), (36, 36)},
   );
 }
+
 typedef _Union<A, B> = (A? a, B? b);
 typedef _Key<K> = _Union<K, Symbol>;
 

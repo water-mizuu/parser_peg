@@ -60,7 +60,7 @@ Statement declaration =
   /// Rules related to types declarations.
   String type = _ ~> raw <~ _ | dart.type.main;
 
-  String namespaceReference = (identifier ("::" | !".." ".") !mac @0)* { $.join("::") };
+  String namespaceReference = (identifier (ParserGenerator.separator | !".." ".") !mac @0)* { $.join(ParserGenerator.separator) };
   String namespacedRaw = namespaceReference literal.raw { $0.isEmpty ? $1 : "${$0}::${$1}" };
   String namespacedIdentifier = namespaceReference identifier { $0.isEmpty ? $1 : "${$0}::${$1}" };
 
@@ -126,19 +126,19 @@ Node labeled =
   | :identifier ":" _ :special { NamedNode(identifier, special) }
 
   /// Special cases, where the name can be inferred from the context.
-  | ":" id:namespacedIdentifier `?` { switch ((id, id.split("::"))) {
+  | ":" id:namespacedIdentifier `?` { switch ((id, id.split(ParserGenerator.separator))) {
       (var ref, [..., var name]) => NamedNode(name, OptionalNode(ReferenceNode(ref))),
       _ => null,
     } }
-  | ":" id:namespacedIdentifier `*` { switch ((id, id.split("::"))) {
+  | ":" id:namespacedIdentifier `*` { switch ((id, id.split(ParserGenerator.separator))) {
       (var ref, [..., var name]) => NamedNode(name, StarNode(ReferenceNode(ref))),
       _ => null,
     } }
-  | ":" id:namespacedIdentifier `+` { switch ((id, id.split("::"))) {
+  | ":" id:namespacedIdentifier `+` { switch ((id, id.split(ParserGenerator.separator))) {
       (var ref, [..., var name]) => NamedNode(name, PlusNode(ReferenceNode(ref))),
       _ => null,
     } }
-  | ":" id:namespacedIdentifier { switch ((id, id.split("::"))) {
+  | ":" id:namespacedIdentifier { switch ((id, id.split(ParserGenerator.separator))) {
       (var ref, [..., var name]) => NamedNode(name, ReferenceNode(ref)),
       _ => null,
     } }
@@ -435,7 +435,7 @@ dart {
 
   /// Literal tokens
   String `..`  = _ ~> ".." <~ _;
-  String `::`  = _ ~> "::" <~ _;
+  String `::`  = _ ~> ParserGenerator.separator <~ _;
   String `%%`  = _ ~> "%%" <~ _;
   String `=>`  = _ ~> "=>" <~ _;
   String `<-`  = _ ~> "<-" <~ _;

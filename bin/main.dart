@@ -97,5 +97,5 @@ void main(List<String> arguments) {
     }
   }
 
-  stdout.writeln(Playground().parse("."));
+  stdout.writeln(Playground().parse("...."));
 }

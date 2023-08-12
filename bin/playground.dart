@@ -5,7 +5,6 @@
 
 import "dart:collection";
 import "dart:math" as math;
-
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -171,9 +170,6 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
-  @pragma("vm:prefer-inline")
-  T? nullable<T extends Object>(T v) => v;
-
   void reset() {
     this.pos = 0;
     this.failures.clear();
@@ -218,6 +214,11 @@ abstract base class _PegParser<R extends Object> {
   _Rule<R> get start;
 }
 
+extension NullableExtension<T extends Object> on T {
+  @pragma("vm:prefer-inline")
+  T? asNullable() => this;
+}
+
 typedef _Rule<T extends Object> = T? Function();
 
 class _Head<T extends Object> {
@@ -257,6 +258,7 @@ final class Playground extends _PegParser<Object> {
   @override
   get start => r0;
 
+
   /// `ROOT`
   late final f0 = () {
     if (this.apply(this.r0) case var $?) {
@@ -274,7 +276,7 @@ final class Playground extends _PegParser<Object> {
   /// `global::w`
   late final r1 = () {
     if (this.matchPattern(_string.$1) case var _0?) {
-      if (nullable([_0]) case var _l1) {
+      if ([_0].asNullable() case var _l1) {
         if (_l1 != null) {
           for (;;) {
             if (this.pos case var mark) {
@@ -294,5 +296,7 @@ final class Playground extends _PegParser<Object> {
     }
   };
 
-  static const _string = (".",);
+  static const _string = (
+    ".",
+  );
 }

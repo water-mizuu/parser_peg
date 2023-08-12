@@ -322,7 +322,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         ),
       ).indent(4);
       StringBuffer loopBuffer = StringBuffer();
-      loopBuffer.writeln("if (nullable([$variableName]) case var $containerName) {");
+      loopBuffer.writeln("if ([$variableName].asNullable() case var $containerName) {");
       loopBuffer.writeln("  if ($containerName != null) {");
       if (node.max == null) {
         loopBuffer.writeln("    for (;;) {");
@@ -376,7 +376,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       loopBuffer.writeln("if (this.pos case var mark) {");
       loopBuffer.writeln(
         "  "
-        "if (nullable([if ($variableName case var $variableName$question) $variableName]) "
+        "if ([if ($variableName case var $variableName$question) $variableName].asNullable() "
         "case var $containerName) {",
       );
       loopBuffer.writeln("    if ($containerName != null && $containerName.isNotEmpty) {");

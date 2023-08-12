@@ -54,7 +54,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
       if (inner != null) //
         inner.indent()
       else
-        "return (${encode(declarationName)}, ${withNames.singleName});".indent(),
+        "return ${withNames.singleName.wrappedName(declarationName)};".indent(),
       "}",
     ];
 
@@ -81,7 +81,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
       if (inner != null) //
         inner.indent()
       else
-        "return (${encode(declarationName)}, ${withNames.singleName});".indent(),
+        "return ${withNames.singleName.wrappedName(declarationName)};".indent(),
       "}",
     ];
 
@@ -108,7 +108,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
       if (inner != null) //
         inner.indent()
       else
-        "return (${encode(declarationName)}, ${withNames.singleName});".indent(),
+        "return ${withNames.singleName.wrappedName(declarationName)};".indent(),
       "}",
     ];
     return buffer.join("\n");
@@ -140,7 +140,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
       if (inner != null) //
         inner.indent()
       else
-        "return (${encode(declarationName)}, ${withNames.singleName});".indent(),
+        "return ${withNames.singleName.wrappedName(declarationName)};".indent(),
       "}",
     ];
 
@@ -166,7 +166,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
       if (inner != null) //
         inner.indent()
       else
-        "return (${encode(declarationName)}, ${withNames.singleName});".indent(),
+        "return ${withNames.singleName.wrappedName(declarationName)};".indent(),
       "}",
     ];
 
@@ -192,7 +192,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
       if (inner != null) //
         inner.indent()
       else
-        "return (${encode(declarationName)}, ${withNames.singleName});".indent(),
+        "return ${withNames.singleName.wrappedName(declarationName)};".indent(),
       "}",
     ];
 
@@ -213,7 +213,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     ];
     String lowestInner = names //
         .join(", ")
-        .apply((String v) => "return (${encode(declarationName)}, [$v]);");
+        .apply((String v) => "return ${"[$v]".wrappedName(declarationName)};");
 
     String aliased = switch (withNames) {
       null => lowestInner,
@@ -301,7 +301,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
         ),
       ).indent(4);
       StringBuffer loopBuffer = StringBuffer();
-      loopBuffer.writeln("if (nullable([$variableName]) case var $containerName) {");
+      loopBuffer.writeln("if ([$variableName].asNullable() case var $containerName) {");
       loopBuffer.writeln("  if ($containerName != null) {");
       if (node.max == null) {
         loopBuffer.writeln("    for (;;) {");
@@ -355,7 +355,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
       loopBuffer.writeln("if (this.pos case var mark) {");
       loopBuffer.writeln(
         "  "
-        "if (nullable([if ($variableName case var $variableName$question) $variableName]) "
+        "if ([if ($variableName case var $variableName$question) $variableName].asNullable() "
         "case var $containerName) {",
       );
       loopBuffer.writeln("    if ($containerName != null && $containerName.isNotEmpty) {");
@@ -456,7 +456,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     if (inner != null) {
       loopBuffer.writeln(inner.indent());
     } else {
-      loopBuffer.writeln("return (${encode(declarationName)}, $containerName);".indent());
+      loopBuffer.writeln("return ${containerName.wrappedName(declarationName)};".indent());
     }
     loopBuffer.writeln("}");
 
@@ -541,7 +541,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     if (inner case String inner?) {
       loopBuffer.writeln(inner.indent());
     } else {
-      loopBuffer.writeln("  return (${encode(declarationName)}, $containerName);");
+      loopBuffer.writeln("  return ${containerName.wrappedName(declarationName)}");
     }
     loopBuffer.writeln("}");
 
@@ -599,7 +599,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     if (inner != null) {
       loopBuffer.writeln(inner.indent());
     } else {
-      loopBuffer.writeln("return (${encode(declarationName)}, $containerName);".indent());
+      loopBuffer.writeln("return ${containerName.wrappedName(declarationName)};".indent());
     }
     loopBuffer.writeln("}");
 
@@ -658,7 +658,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     if (inner case String inner?) {
       loopBuffer.writeln(inner.indent());
     } else {
-      loopBuffer.writeln("  return (${encode(declarationName)}, $containerName);");
+      loopBuffer.writeln("  return ${containerName.wrappedName(declarationName)};");
     }
     loopBuffer.writeln("}");
 
@@ -726,7 +726,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
         (
           isNullAllowed: true,
           withNames: <String>{...withNames ?? <String>{}, "null"},
-          inner: "this.pos = mark;\n${inner ?? "return (${encode(declarationName)}, null);"}",
+          inner: "this.pos = mark;\n${inner ?? "return ${"null".wrappedName(declarationName)};"}",
           reported: reported,
           declarationName: declarationName,
         ),
@@ -775,7 +775,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
       if (inner != null) //
         inner.indent()
       else
-        "return (${encode(declarationName)}, ${withNames.singleName});".indent(),
+        "return ${withNames.singleName.wrappedName(declarationName)};".indent(),
       "}",
     ];
 
@@ -798,7 +798,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
       if (inner != null) //
         inner.indent()
       else
-        "return (${encode(declarationName)}, ${withNames.singleName});".indent(),
+        "return ${withNames.singleName.wrappedName(declarationName)};".indent(),
       "}",
     ];
 
@@ -883,7 +883,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
           if (inner != null) //
             inner.indent()
           else
-            "return (${encode(declarationName)}, this.pos);".indent(),
+            "return ${"this.pos".wrappedName(declarationName)};".indent(),
           "}",
         ],
       String names => <String>[
@@ -891,7 +891,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
           if (inner != null) //
             inner.indent()
           else
-            "return (${encode(declarationName)}, ${withNames.singleName});".indent(),
+            "return ${withNames.singleName.wrappedName(declarationName)};".indent(),
           "}",
         ],
     };
@@ -914,7 +914,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
           if (inner != null) //
             inner.indent()
           else
-            "return (${encode(declarationName)}, this.pos);".indent(),
+            "return ${"this.pos".wrappedName(declarationName)};".indent(),
           "}",
         ],
       String names => <String>[
@@ -922,7 +922,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
           if (inner != null) //
             inner.indent()
           else
-            "return (${encode(declarationName)}, ${withNames.singleName});".indent(),
+            "return ${withNames.singleName.wrappedName(declarationName)};".indent(),
           "}",
         ],
     };
@@ -947,7 +947,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
             if (inner != null) //
               inner.indent()
             else
-              "  return (${encode(declarationName)}, ${withNames.singleName});",
+              "  return ${withNames.singleName.wrappedName(declarationName)};",
           ],
         String names => [
             "  if (buffer[pos] case $names) {",
@@ -955,7 +955,7 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
             if (inner != null) //
               inner.indent(2)
             else
-              "    return ${withNames.singleName};",
+              "    return ${withNames.singleName.wrappedName(declarationName)};",
             "  }",
           ]
       },
@@ -963,4 +963,11 @@ class CstCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> 
     ];
     return buffer.join("\n");
   }
+}
+
+extension on String {
+  String wrappedName(String declarationName) => //
+      declarationName.startsWith("fragment") //
+          ? this
+          : "(${encode(declarationName)}, $this)";
 }

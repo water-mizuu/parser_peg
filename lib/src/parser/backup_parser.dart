@@ -5,9 +5,10 @@
 
 import "dart:collection";
 import "dart:math" as math;
+
+import "package:parser_peg/src/generator.dart";
 // PREAMBLE
 import "package:parser_peg/src/node.dart";
-import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
 
 final _regexps = (
@@ -180,6 +181,9 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
+  @pragma("vm:prefer-inline")
+  T? nullable<T extends Object>(T v) => v;
+
   void reset() {
     this.pos = 0;
     this.failures.clear();
@@ -299,7 +303,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
           } else {
             this.pos = mark;
           }
-          return $.join("::");
+          return $.join(ParserGenerator.separator);
         }
       }
     }
@@ -2840,7 +2844,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$30) case _?) {
         if (this.f2() case var id?) {
           if (this.fp() case _?) {
-            return switch ((id, id.split("::"))) {
+            return switch ((id, id.split(ParserGenerator.separator))) {
               (var ref, [..., var name]) => NamedNode(name, OptionalNode(ReferenceNode(ref))),
               _ => null,
             };
@@ -2851,7 +2855,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$30) case _?) {
         if (this.f2() case var id?) {
           if (this.fq() case _?) {
-            return switch ((id, id.split("::"))) {
+            return switch ((id, id.split(ParserGenerator.separator))) {
               (var ref, [..., var name]) => NamedNode(name, StarNode(ReferenceNode(ref))),
               _ => null,
             };
@@ -2862,7 +2866,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$30) case _?) {
         if (this.f2() case var id?) {
           if (this.fr() case _?) {
-            return switch ((id, id.split("::"))) {
+            return switch ((id, id.split(ParserGenerator.separator))) {
               (var ref, [..., var name]) => NamedNode(name, PlusNode(ReferenceNode(ref))),
               _ => null,
             };
@@ -2872,7 +2876,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.matchPattern(_string.$30) case _?) {
         if (this.f2() case var id?) {
-          return switch ((id, id.split("::"))) {
+          return switch ((id, id.split(ParserGenerator.separator))) {
             (var ref, [..., var name]) => NamedNode(name, ReferenceNode(ref)),
             _ => null,
           };
@@ -3596,7 +3600,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     "r'''",
     "r\"",
     "r'",
-    "::",
+    ParserGenerator.separator,
     "=",
     "<-",
     "->",
