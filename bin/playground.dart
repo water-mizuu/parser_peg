@@ -266,24 +266,6 @@ final class Playground extends _PegParser<Object> {
     }
   };
 
-  /// `fragment0`
-  late final f1 = () {
-    if (this.matchPattern(_string.$2) case var $0?) {
-      if (this.matchPattern(_string.$1) case _?) {
-        return $0;
-      }
-    }
-  };
-
-  /// `fragment1`
-  late final f2 = () {
-    if (this.f1() case var $0?) {
-      if (this.matchPattern(_string.$3) case _?) {
-        return $0;
-      }
-    }
-  };
-
   /// `global::$`
   late final r0 = () {
     if (this.apply(this.r1) case var $?) {
@@ -294,16 +276,20 @@ final class Playground extends _PegParser<Object> {
   /// `global::w`
   late final r1 = () {
     if (this.matchPattern(_string.$4) case _?) {
-      if (this.f2() case var $1?) {
-        return $1;
+      if (this.matchPattern(_string.$3) case var b?) {
+        if (this.matchPattern(_string.$2) case _?) {
+          if (this.matchPattern(_string.$1) case _?) {
+            return b;
+          }
+        }
       }
     }
   };
 
   static const _string = (
+    "d",
     "c",
     "b",
-    "d",
     "a",
   );
 }

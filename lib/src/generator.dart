@@ -4,12 +4,12 @@ import "dart:io";
 
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
-import "package:parser_peg/src/visitor/parametrized_visitor/cst_visitor.dart";
 import "package:parser_peg/src/visitor/parametrized_visitor/parser_visitor.dart";
 import "package:parser_peg/src/visitor/parametrized_visitor/simplify_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/can_inline_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/inline_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/referenced_visitor.dart";
+import "package:parser_peg/src/visitor/simple_visitor/remove_action_node_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/rename_visitors.dart";
 import "package:parser_peg/src/visitor/simple_visitor/resolve_references_visitor.dart";
 
@@ -375,7 +375,13 @@ final class ParserGenerator {
 
   final String? preamble;
 
-  String compile(String parserName, {String? start, String? type}) {
+  String _compile(
+    String parserName, {
+    required Map<String, (String?, Node)> rules,
+    required Map<String, (String?, Node)> fragments,
+    String? start,
+    String? type,
+  }) {
     String parserTypeString = type ?? rules.values.firstOrNull?.$1 ?? fragments.values.firstOrNull?.$1 ?? "Object";
     String parserStartRule = start ?? rules.keys.firstOrNull ?? fragments.keys.first;
     StringBuffer fullBuffer = StringBuffer();
@@ -517,146 +523,56 @@ final class ParserGenerator {
     return fullBuffer.toString();
   }
 
-  String compileCst(String parserName, {String? start}) {
-    String parserTypeString = "Object";
-    String parserStartRule = start ?? rules.keys.firstOrNull ?? fragments.keys.first;
-    StringBuffer fullBuffer = StringBuffer();
+  String compileParserGenerator(String parserName, {String? start, String? type}) {
+    return _compile(parserName, rules: rules, fragments: fragments, start: start, type: type);
+  }
 
-    fullBuffer.writeln("// ignore_for_file: ${ignores.join(", ")}");
-    fullBuffer.writeln();
+  String compileAstParserGenerator(String parserName, {String? start}) {
+    RemoveActionNodeVisitor removeActionNodeVisitor = const RemoveActionNodeVisitor();
+    Map<String, (String?, Node)> rules = <String, (String?, Node)>{
+      for (var (String name, (_, Node node)) in this.rules.pairs)
+        name: (
+          "Object",
+          node.acceptSimpleVisitor(removeActionNodeVisitor),
+        ),
+    };
+    Map<String, (String?, Node)> fragments = <String, (String?, Node)>{
+      for (var (String name, (_, Node node)) in this.fragments.pairs)
+        name: (
+          "Object",
+          node.acceptSimpleVisitor(removeActionNodeVisitor),
+        ),
+    };
 
-    fullBuffer.writeln("// imports");
-    fullBuffer.writeln(importCode);
-    if (preamble case String preamble?) {
-      fullBuffer.writeln("// PREAMBLE");
-      fullBuffer.writeln(preamble.unindent());
-    }
-    fullBuffer.writeln("// base.dart");
-    fullBuffer.writeln(baseCode);
-    fullBuffer.writeln();
+    return _compile(parserName, rules: rules, fragments: fragments, start: start, type: "Object");
+  }
 
-    fullBuffer.writeln("// GENERATED CODE");
+  String compileCstParserGenerator(String parserName, {String? start}) {
+    RemoveActionNodeVisitor removeActionNodeVisitor = const RemoveActionNodeVisitor();
+    Map<String, (String?, Node)> rules = <String, (String?, Node)>{
+      for (var (String name, (_, Node node)) in this.rules.pairs)
+        name: (
+          "Object",
+          InlineActionNode(
+            NamedNode(r"$", node.acceptSimpleVisitor(removeActionNodeVisitor)),
+            r"$".wrappedName(reverseRedirects[name]!.unwrappedName),
+            areIndicesProvided: false,
+          )
+        ),
+    };
+    Map<String, (String?, Node)> fragments = <String, (String?, Node)>{
+      for (var (String name, (_, Node node)) in this.fragments.pairs)
+        name: (
+          "Object",
+          InlineActionNode(
+            NamedNode(r"$", node.acceptSimpleVisitor(removeActionNodeVisitor)),
+            r"$".wrappedName(reverseRedirects[name]!),
+            areIndicesProvided: false,
+          )
+        ),
+    };
 
-    fullBuffer.writeln("final class $parserName extends _PegParser<$parserTypeString> {");
-    fullBuffer.writeln("  $parserName();");
-    fullBuffer.writeln();
-    fullBuffer.writeln("  @override");
-    fullBuffer.writeln("  get start => $parserStartRule;");
-    fullBuffer.writeln();
-
-    if (CstCompilerVisitor(isNullable: isNullable) case CstCompilerVisitor compilerVisitor) {
-      for (var (String rawName, (String? type, Node node)) in fragments.pairs) {
-        compilerVisitor.ruleId = 0;
-
-        StringBuffer inner = StringBuffer();
-        String displayName = reverseRedirects[rawName]!;
-        String body = node.acceptParametrizedVisitor(
-          compilerVisitor,
-          (
-            isNullAllowed: isNullable(node, displayName),
-            withNames: null,
-            inner: null,
-            reported: true,
-            declarationName: displayName,
-          ),
-        ).indent();
-
-        inner.writeln();
-        inner.writeln("/// `$displayName`");
-        if (type == null) {
-          inner.writeln("late final $rawName = () {");
-          inner.writeln(body);
-          inner.writeln("};");
-        } else {
-          inner.writeln("Object${isNullable(node, rawName) ? "" : "?"} $rawName() {");
-          inner.writeln(body);
-          inner.writeln("}");
-        }
-
-        fullBuffer.writeln(inner.toString().indent());
-      }
-
-      for (var (String rawName, (String? type, Node node)) in rules.pairs) {
-        compilerVisitor.ruleId = 0;
-
-        StringBuffer inner = StringBuffer();
-        String displayName = reverseRedirects[rawName]!;
-        String body = node.acceptParametrizedVisitor(
-          compilerVisitor,
-          (
-            isNullAllowed: isNullable(node, rawName),
-            withNames: null,
-            inner: null,
-            reported: true,
-            declarationName: displayName,
-          ),
-        ).indent();
-
-        inner.writeln();
-        inner.writeln("/// `$displayName`");
-        if (type == null) {
-          inner.writeln("late final $rawName = () {");
-          inner.writeln(body);
-          inner.writeln("};");
-        } else {
-          inner.writeln("$Object${isNullable(node, rawName) ? "" : "?"} $rawName() {");
-          inner.writeln(body);
-          inner.writeln("}");
-        }
-
-        fullBuffer.writeln(inner.toString().indent());
-      }
-
-      fullBuffer.writeln();
-
-      if (compilerVisitor.regexps.isNotEmpty) {
-        fullBuffer.writeln("static final _regexp = (".indent());
-        for (String regExp in compilerVisitor.regexps) {
-          fullBuffer.writeln("RegExp(${encode(regExp)}),".indent(2));
-        }
-        fullBuffer.writeln(");".indent());
-      }
-
-      if (compilerVisitor.tries.isNotEmpty) {
-        fullBuffer.writeln("static final _trie = (".indent());
-        for (List<String> options in compilerVisitor.tries) {
-          fullBuffer.writeln("Trie.from(${encode(options)}),".indent(2));
-        }
-        fullBuffer.writeln(");".indent());
-      }
-
-      if (compilerVisitor.strings.isNotEmpty) {
-        fullBuffer.writeln("static const _string = (".indent());
-        for (String string in compilerVisitor.strings) {
-          fullBuffer.writeln("${encode(string)},".indent(2));
-        }
-        fullBuffer.writeln(");".indent());
-      }
-
-      if (compilerVisitor.ranges.isNotEmpty) {
-        fullBuffer.writeln("static const _range = (".indent());
-        for (Set<(int, int)> ranges in compilerVisitor.ranges) {
-          fullBuffer.write("    { ");
-          for (var (int i, (int low, int high)) in ranges.indexed) {
-            fullBuffer.write("($low, $high)");
-
-            if (i < ranges.length - 1) {
-              fullBuffer.write(", ");
-            }
-          }
-          fullBuffer.writeln(" },");
-        }
-        fullBuffer.writeln(");".indent());
-      }
-
-      fullBuffer.writeln("}");
-
-      if (compilerVisitor.tries.isNotEmpty) {
-        fullBuffer.writeln(trieCode);
-      }
-    }
-
-    return fullBuffer.toString();
+    return _compile(parserName, rules: rules, fragments: fragments, start: start, type: "Object");
   }
 
   final Expando<bool> _isNullable = Expando<bool>();
@@ -756,4 +672,13 @@ extension MonadicTypeExtension<T extends Object> on T {
 
 extension<K, V> on Map<K, V> {
   Iterable<(K, V)> get pairs => entries.map((MapEntry<K, V> v) => (v.key, v.value));
+}
+
+extension on String {
+  String wrappedName(String declarationName) => //
+      declarationName.startsWith("fragment") //
+          ? this
+          : "(${encode("<${declarationName.unwrappedName}>")}, $this)";
+
+  String get unwrappedName => startsWith("global::") ? substring(8) : this;
 }

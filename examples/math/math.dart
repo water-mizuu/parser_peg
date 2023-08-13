@@ -424,7 +424,7 @@ final class MathParser extends _PegParser<num> {
       if (this.pos case var mark) {
         if (this.pos case var from) {
           if (matchPattern(_regexp.$1) case var _2?) {
-            if ([_2] case (var $0 && var _l3)) {
+            if ([_2] case var _l3) {
               for (;;) {
                 if (this.pos case var mark) {
                   if (matchPattern(_regexp.$1) case var _2?) {
@@ -435,9 +435,9 @@ final class MathParser extends _PegParser<num> {
                   break;
                 }
               }
-              if (this.matchPattern(_string.$10) case var $1?) {
+              if (this.matchPattern(_string.$10) case _?) {
                 if (matchPattern(_regexp.$1) case var _0?) {
-                  if ([_0] case (var $2 && var _l1)) {
+                  if ([_0] case var _l1) {
                     for (;;) {
                       if (this.pos case var mark) {
                         if (matchPattern(_regexp.$1) case var _0?) {

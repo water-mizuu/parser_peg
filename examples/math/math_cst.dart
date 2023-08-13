@@ -264,16 +264,18 @@ final class MathParserCst extends _PegParser<Object> {
   /// `ROOT`
   Object? f0() {
     if (this.apply(this.r0) case var $?) {
-      return ("ROOT", $);
+      return ("<ROOT>", $);
     }
   }
 
   /// `global::rule`
   Object? r0() {
     if (this.pos case var $0 when this.pos <= 0) {
-      if (this.apply(this.r1) case var $1?) {
+      if (this.apply(this.r1) case var expr?) {
         if (this.pos case var $2 when this.pos >= this.buffer.length) {
-          return ("global::rule", [$0, $1, $2]);
+          if ([$0, expr, $2] case var $) {
+            return ("<rule>", $);
+          }
         }
       }
     }
@@ -282,24 +284,28 @@ final class MathParserCst extends _PegParser<Object> {
   /// `global::expr`
   Object? r1() {
     if (this.pos case var mark) {
-      if (this.apply(this.r1) case var $0?) {
+      if (this.apply(this.r1) case var expr?) {
         if (this.apply(this.r5)! case var $1) {
           if (this.matchPattern(_string.$1) case var $2?) {
             if (this.apply(this.r5)! case var $3) {
-              if (this.apply(this.r2) case var $4?) {
-                return ("global::expr", [$0, $1, $2, $3, $4]);
+              if (this.apply(this.r2) case var term?) {
+                if ([expr, $1, $2, $3, term] case var $) {
+                  return ("<expr>", $);
+                }
               }
             }
           }
         }
       }
       this.pos = mark;
-      if (this.apply(this.r1) case var $0?) {
+      if (this.apply(this.r1) case var expr?) {
         if (this.apply(this.r5)! case var $1) {
           if (this.matchPattern(_string.$2) case var $2?) {
             if (this.apply(this.r5)! case var $3) {
-              if (this.apply(this.r2) case var $4?) {
-                return ("global::expr", [$0, $1, $2, $3, $4]);
+              if (this.apply(this.r2) case var term?) {
+                if ([expr, $1, $2, $3, term] case var $) {
+                  return ("<expr>", $);
+                }
               }
             }
           }
@@ -307,7 +313,7 @@ final class MathParserCst extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.r2) case var $?) {
-        return ("global::expr", $);
+        return ("<expr>", $);
       }
     }
   }
@@ -317,62 +323,74 @@ final class MathParserCst extends _PegParser<Object> {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$2) case var $0?) {
         if (this.apply(this.r5)! case var $1) {
-          if (this.apply(this.r2) case var $2?) {
-            return ("global::term", [$0, $1, $2]);
+          if (this.apply(this.r2) case var term?) {
+            if ([$0, $1, term] case var $) {
+              return ("<term>", $);
+            }
           }
         }
       }
       this.pos = mark;
-      if (this.apply(this.r2) case var $0?) {
+      if (this.apply(this.r2) case var term?) {
         if (this.apply(this.r5)! case var $1) {
-          if (this.apply(this.r3) case var $2?) {
-            return ("global::term", [$0, $1, $2]);
+          if (this.apply(this.r3) case var factor?) {
+            if ([term, $1, factor] case var $) {
+              return ("<term>", $);
+            }
           }
         }
       }
       this.pos = mark;
-      if (this.apply(this.r2) case var $0?) {
+      if (this.apply(this.r2) case var term?) {
         if (this.apply(this.r5)! case var $1) {
           if (this.matchPattern(_string.$3) case var $2?) {
             if (this.apply(this.r5)! case var $3) {
-              if (this.apply(this.r3) case var $4?) {
-                return ("global::term", [$0, $1, $2, $3, $4]);
+              if (this.apply(this.r3) case var factor?) {
+                if ([term, $1, $2, $3, factor] case var $) {
+                  return ("<term>", $);
+                }
               }
             }
           }
         }
       }
       this.pos = mark;
-      if (this.apply(this.r2) case var $0?) {
+      if (this.apply(this.r2) case var term?) {
         if (this.apply(this.r5)! case var $1) {
           if (this.matchPattern(_string.$4) case var $2?) {
             if (this.apply(this.r5)! case var $3) {
-              if (this.apply(this.r3) case var $4?) {
-                return ("global::term", [$0, $1, $2, $3, $4]);
+              if (this.apply(this.r3) case var factor?) {
+                if ([term, $1, $2, $3, factor] case var $) {
+                  return ("<term>", $);
+                }
               }
             }
           }
         }
       }
       this.pos = mark;
-      if (this.apply(this.r2) case var $0?) {
+      if (this.apply(this.r2) case var term?) {
         if (this.apply(this.r5)! case var $1) {
           if (this.matchPattern(_string.$5) case var $2?) {
             if (this.apply(this.r5)! case var $3) {
-              if (this.apply(this.r3) case var $4?) {
-                return ("global::term", [$0, $1, $2, $3, $4]);
+              if (this.apply(this.r3) case var factor?) {
+                if ([term, $1, $2, $3, factor] case var $) {
+                  return ("<term>", $);
+                }
               }
             }
           }
         }
       }
       this.pos = mark;
-      if (this.apply(this.r2) case var $0?) {
+      if (this.apply(this.r2) case var term?) {
         if (this.apply(this.r5)! case var $1) {
           if (this.matchPattern(_string.$6) case var $2?) {
             if (this.apply(this.r5)! case var $3) {
-              if (this.apply(this.r3) case var $4?) {
-                return ("global::term", [$0, $1, $2, $3, $4]);
+              if (this.apply(this.r3) case var factor?) {
+                if ([term, $1, $2, $3, factor] case var $) {
+                  return ("<term>", $);
+                }
               }
             }
           }
@@ -380,7 +398,7 @@ final class MathParserCst extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.r3) case var $?) {
-        return ("global::term", $);
+        return ("<term>", $);
       }
     }
   }
@@ -388,12 +406,14 @@ final class MathParserCst extends _PegParser<Object> {
   /// `global::factor`
   Object? r3() {
     if (this.pos case var mark) {
-      if (this.apply(this.r4) case var $0?) {
+      if (this.apply(this.r4) case var primary?) {
         if (this.apply(this.r5)! case var $1) {
           if (this.matchPattern(_string.$7) case var $2?) {
             if (this.apply(this.r5)! case var $3) {
-              if (this.apply(this.r3) case var $4?) {
-                return ("global::factor", [$0, $1, $2, $3, $4]);
+              if (this.apply(this.r3) case var factor?) {
+                if ([primary, $1, $2, $3, factor] case var $) {
+                  return ("<factor>", $);
+                }
               }
             }
           }
@@ -401,7 +421,7 @@ final class MathParserCst extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.r4) case var $?) {
-        return ("global::factor", $);
+        return ("<factor>", $);
       }
     }
   }
@@ -411,10 +431,12 @@ final class MathParserCst extends _PegParser<Object> {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$9) case var $0?) {
         if (this.apply(this.r5)! case var $1) {
-          if (this.apply(this.r1) case var $2?) {
+          if (this.apply(this.r1) case var expr?) {
             if (this.apply(this.r5)! case var $3) {
               if (this.matchPattern(_string.$8) case var $4?) {
-                return ("global::primary", [$0, $1, $2, $3, $4]);
+                if ([$0, $1, expr, $3, $4] case var $) {
+                  return ("<primary>", $);
+                }
               }
             }
           }
@@ -423,11 +445,11 @@ final class MathParserCst extends _PegParser<Object> {
       this.pos = mark;
       if (this.pos case var mark) {
         if (matchPattern(_regexp.$1) case var _2?) {
-          if ([_2] case (var $0 && var _loop3)) {
+          if ([_2] case (var $0 && var _l3)) {
             for (;;) {
               if (this.pos case var mark) {
                 if (matchPattern(_regexp.$1) case var _2?) {
-                  _loop3.add(_2);
+                  _l3.add(_2);
                   continue;
                 }
                 this.pos = mark;
@@ -436,18 +458,20 @@ final class MathParserCst extends _PegParser<Object> {
             }
             if (this.matchPattern(_string.$10) case var $1?) {
               if (matchPattern(_regexp.$1) case var _0?) {
-                if ([_0] case (var $2 && var _loop1)) {
+                if ([_0] case (var $2 && var _l1)) {
                   for (;;) {
                     if (this.pos case var mark) {
                       if (matchPattern(_regexp.$1) case var _0?) {
-                        _loop1.add(_0);
+                        _l1.add(_0);
                         continue;
                       }
                       this.pos = mark;
                       break;
                     }
                   }
-                  return ("global::primary", [$0, $1, $2]);
+                  if ([$0, $1, $2] case var $) {
+                    return ("<primary>", $);
+                  }
                 }
               }
             }
@@ -455,18 +479,18 @@ final class MathParserCst extends _PegParser<Object> {
         }
         this.pos = mark;
         if (matchPattern(_regexp.$1) case var _4?) {
-          if ([_4] case var _loop5) {
+          if ([_4] case (var $ && var _l5)) {
             for (;;) {
               if (this.pos case var mark) {
                 if (matchPattern(_regexp.$1) case var _4?) {
-                  _loop5.add(_4);
+                  _l5.add(_4);
                   continue;
                 }
                 this.pos = mark;
                 break;
               }
             }
-            return ("global::primary", _loop5);
+            return ("<primary>", $);
           }
         }
       }
@@ -474,15 +498,15 @@ final class MathParserCst extends _PegParser<Object> {
   }
 
   /// `global::_`
-  late final r5 = () {
+  Object r5() {
     if (this.pos case var mark) {
       if (matchPattern(_regexp.$2) case var _0) {
-        if ([if (_0 case var _0?) _0] case var _loop1) {
-          if (_loop1.isNotEmpty) {
+        if ([if (_0 case var _0?) _0] case (var $ && var _l1)) {
+          if (_l1.isNotEmpty) {
             for (;;) {
               if (this.pos case var mark) {
                 if (matchPattern(_regexp.$2) case var _0?) {
-                  _loop1.add(_0);
+                  _l1.add(_0);
                   continue;
                 }
                 this.pos = mark;
@@ -492,11 +516,11 @@ final class MathParserCst extends _PegParser<Object> {
           } else {
             this.pos = mark;
           }
-          return ("global::_", _loop1);
+          return ("<_>", $);
         }
       }
     }
-  };
+  }
 
   static final _regexp = (
     RegExp("\\d"),

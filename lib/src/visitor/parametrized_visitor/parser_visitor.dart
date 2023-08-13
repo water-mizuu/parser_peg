@@ -208,25 +208,49 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       :String declarationName,
     ) = parameters;
     List<String> names = <String>[
+      /// If the inner is null, take it easy.
       if (inner == null) ...[
+        /// If there aren't any chosen items, then we name all of them.
         if (node.choose == null)
           for (int i = 0; i < node.children.length; ++i) "\$$i"
+
+        /// If there is a chosen item, then just name that one.
         else
           for (int i = 0; i < node.children.length; ++i)
             if (node.choose == i) "\$$i" else "_",
-      ] else if (node.children.whereType<NamedNode>().isNotEmpty) ...[
+      ]
+
+      /// Since there is an inner, we must be more careful.
+      else ...[
         for (var (int i, Node child) in node.children.indexed)
+
+          /// If a child is named, then obviously we name them as is.
           if (child case NamedNode(:String name))
             name //
           else ...[
+            /// If we're not choosing anything, then we *MIGHT* need to use it.
             if (node.choose != null) ...[
-              if (node.choose == i) "\$$i" else "_",
+              /// If we're not naming our result, then we *won't* need it.
+              if (withNames == null)
+                "_"
+
+              /// Else, we just add a name.
+              else
+                "\$$i",
             ] else ...[
-              if (inner.contains(RegExp(r"\$" "$i" r"\b"))) "\$$i" else "_",
+              /// If we're going to use this, then we need to name it.
+              if (inner.contains(RegExp(r"\$" "$i" r"\b")))
+                "\$$i"
+
+              /// If we won't name our general result, then we won't need it.
+              else if (withNames == null)
+                "_"
+
+              /// Else, we just add a name.
+              else
+                "\$$i",
             ],
           ],
-      ] else ...[
-        for (int i = 0; i < node.children.length; ++i) "\$$i",
       ],
     ];
     String lowestInner = inner ?? //
@@ -236,7 +260,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     String aliased = switch (withNames) {
       null => lowestInner,
       Set<String> withNames => switch (node.choose) {
-          null => "if ((${names.join(", ")}) case ${withNames.varNames}) {\n${lowestInner.indent()}\n}",
+          null => "if ([${names.join(", ")}] case ${withNames.varNames}) {\n${lowestInner.indent()}\n}",
           int choose => "if (\$$choose case ${withNames.varNames}) {\n${lowestInner.indent()}\n}"
         },
     };

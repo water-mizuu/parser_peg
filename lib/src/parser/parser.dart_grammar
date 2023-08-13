@@ -58,7 +58,7 @@ Statement declaration =
 /// Shared code between declarations.
 @fragment {
   /// Rules related to types declarations.
-  String type = _ ~> raw <~ _ | dart.type.main;
+  String type = _ raw _ @1 | dart.type.main;
 
   String namespaceReference = (identifier ("::" | !".." ".") !mac @0)* {
       $.join(ParserGenerator.separator)
@@ -105,7 +105,7 @@ Node acted =
 ///   By default, a sequence parser returns a [Record] of the results of the parsers.
 /// By specifying which item to keep, the specific item can be returned.
 Node sequence =
-  | body:_..dropped+ chosen:(`@` ~> number)? { body.length == 1 ? body.single : SequenceNode(body, choose: chosen) };
+  | body:_..dropped+ chosen:(`@` number @1)? { body.length == 1 ? body.single : SequenceNode(body, choose: chosen) };
 
 /// A parser that is prefixed or suffixed by another parser.
 Node dropped =
@@ -214,7 +214,7 @@ Node callLike =
 ///   These are usually parsers that are delimited.
 Node atom =
   /// Basic atomic parsers.
-  | `(` ~> choice <~ `)`
+  | `(` choice `)` @1
   /// Special syntax for character classes.
   | `^` { const StartOfInputNode() }
   | `$` { const EndOfInputNode() }
@@ -249,38 +249,38 @@ Node atom =
 
 code {
   String curly =
-    | "`" ~> ~"`"* <~ "`" { $.join() }
+    | "`" ~"`"* "`" @1 { $.join() }
     | curly.balanced
     ;
 
   curly {
     String balanced = code:(
         | dart.literal.string
-        | "{" ~> balanced <~ "}" {"{" + $ + "}"}
+        | "{" balanced "}" @1 {"{" + $ + "}"}
         | ~("{" | "}")
       )* { code.join() };
   }
 }
 
 @fragment literal {
-  String regexp = "/" ~> ((\\ ~> . { r"\" + $ } | ~"/")+ { $.join() }) <~ "/";
-  String string = _ ~> string.main <~ _;
+  String regexp = "/" ((\\ . @1 { r"\" + $ } | ~"/")+ { $.join() }) "/" @1;
+  String string = _ string.main _ @1;
   string {
     @inline String main =
       /// Raw string literals
-      | 'r"""' ~> ~'"""'* <~ '"""' { $.join() }
-      | "r'''" ~> ~"'''"* <~ "'''" { $.join() }
-      | 'r"'   ~> ~'"'*   <~ '"'   { $.join() }
-      | "r'"   ~> ~"'"*   <~ "'"   { $.join() }
+      | 'r"""' ~'"""'* '"""' @1 { $.join() }
+      | "r'''" ~"'''"* "'''" @1 { $.join() }
+      | 'r"'   ~'"'*   '"'   @1 { $.join() }
+      | "r'"   ~"'"*   "'"   @1 { $.join() }
       /// Escaped string literals
-      | '"""' ~> (\\ ~> . | ~'"""')* <~ '"""' { $.join() }
-      | "'''" ~> (\\ ~> . | ~"'''")* <~ "'''" { $.join() }
-      | '"'   ~> (\\ ~> . | ~'"'  )* <~ '"'   { $.join() }
-      | "'"   ~> (\\ ~> . | ~"'"  )* <~ "'"   { $.join() }
+      | '"""' (\\ . | ~'"""')* '"""' @1 { $.join() }
+      | "'''" (\\ . | ~"'''")* "'''" @1 { $.join() }
+      | '"'   (\\ . | ~'"'  )* '"'   @1 { $.join() }
+      | "'"   (\\ . | ~"'"  )* "'"   @1 { $.join() }
       ;
   }
 
-  Node range =  _ ~> range.main <~ _;
+  Node range =  _ range.main _ @1;
   range {
     @inline Node main = _ "[" elements:_..element+ "]" _ { RangeNode(elements.reduce((a, b) => a.union(b))) };
     Set<(int, int)> element =
@@ -299,10 +299,10 @@ code {
       | regexEscape.tab { {(9, 9)} }
       | regexEscape.backslash { {(92, 92)} }
       ;
-    String atom = \\ ~> . | ~"]";
+    String atom = \\ . @1 | ~"]";
   }
 
-  String raw = "`" ~> ~"`"* <~ "`" { $.join() };
+  String raw = "`" ~"`"* "`" @1 { $.join() };
 }
 
 /// Rules related to [Dart] expressions.
@@ -336,7 +336,7 @@ dart {
   }
 
   type {
-    String main = _ ~> nullable <~ _;
+    String main = _ nullable _ @1;
     String nullable = :nonNullable `?`? { $1 == null ? "$nonNullable" : "$nonNullable?" };
     String nonNullable = generic | record | base;
 
@@ -344,10 +344,10 @@ dart {
     ///   The fields can be positional or named.
     ///   The fields are special by commas.
     String record =
-      | `(` (`{` ~> fields.named <~ `}`)? `)` {
+      | `(` (`{` fields.named `}` @1)? `)` {
           "(" + ($1 == null ? "" : "{" + $1 + "}") + ")"
         }
-      | `(` field.positional `,` (`{` ~> fields.named <~ `}`)? `)` {
+      | `(` field.positional `,` (`{` fields.named `}` @1)? `)` {
           "(" + $1 + ", " + ($3 == null ? "" : "{" + $3 + "}") + ")"
         }
       | `(` fields.positional (`,` `{` fields.named `}` @2)? `)` {
@@ -377,7 +377,7 @@ dart {
 ///   Since they are not recursive, they are not defined as rules.
 @fragment {
   String identifier = [a-zA-Z_$][a-zA-Z0-9_$]* { $0 + $1.join() };
-  String raw = "`" ~> ~"`"* <~ "`"{ $.join() };
+  String raw = "`" ~"`"* "`" @1 { $.join() };
   int number = \d+ { int.parse($.join()) };
 
   kw {
@@ -409,66 +409,66 @@ dart {
   }
 
   @inline regexEscape {
-    String backslash       = _ ~> (\\ r"\").flat!() <~ _;
+    String backslash       = _ (\\ r"\").flat!() _ @1;
 
-    String digit           = _ ~> (\\ r"d").flat!() <~ _;
-    String word            = _ ~> (\\ r"w").flat!() <~ _;
-    String whitespace      = _ ~> (\\ r"s").flat!() <~ _;
+    String digit           = _ (\\ r"d").flat!() _ @1;
+    String word            = _ (\\ r"w").flat!() _ @1;
+    String whitespace      = _ (\\ r"s").flat!() _ @1;
 
-    String notDigit        = _ ~> (\\ r"d").flat!() <~ _;
-    String notWord         = _ ~> (\\ r"w").flat!() <~ _;
-    String notWhitespace   = _ ~> (\\ r"s").flat!() <~ _;
+    String notDigit        = _ (\\ r"d").flat!() _ @1;
+    String notWord         = _ (\\ r"w").flat!() _ @1;
+    String notWhitespace   = _ (\\ r"s").flat!() _ @1;
 
-    String newline         = _ ~> (\\ r"n").flat!() <~ _;
-    String carriageReturn  = _ ~> (\\ r"r").flat!() <~ _;
-    String tab             = _ ~> (\\ r"t").flat!() <~ _;
-    String formFeed        = _ ~> (\\ r"f").flat!() <~ _;
-    String verticalTab     = _ ~> (\\ r"v").flat!() <~ _;
-    String null            = _ ~> (\\ r"0").flat!() <~ _;
-    String control         = _ ~> (\\ r"c").flat!() <~ _;
-    String hex             = _ ~> (\\ r"x").flat!() <~ _;
-    String unicode         = _ ~> (\\ r"u").flat!() <~ _;
-    String unicodeExtended = _ ~> (\\ r"U").flat!() <~ _;
-    String literal         = _ ~> (\\ r".").flat!() <~ _;
+    String newline         = _ (\\ r"n").flat!() _ @1;
+    String carriageReturn  = _ (\\ r"r").flat!() _ @1;
+    String tab             = _ (\\ r"t").flat!() _ @1;
+    String formFeed        = _ (\\ r"f").flat!() _ @1;
+    String verticalTab     = _ (\\ r"v").flat!() _ @1;
+    String null            = _ (\\ r"0").flat!() _ @1;
+    String control         = _ (\\ r"c").flat!() _ @1;
+    String hex             = _ (\\ r"x").flat!() _ @1;
+    String unicode         = _ (\\ r"u").flat!() _ @1;
+    String unicodeExtended = _ (\\ r"U").flat!() _ @1;
+    String literal         = _ (\\ r".").flat!() _ @1;
   }
 
   /// Literal tokens
-  String `..`  = _ ~> ".." <~ _;
-  String `::`  = _ ~> "::" <~ _;
-  String `%%`  = _ ~> "%%" <~ _;
-  String `=>`  = _ ~> "=>" <~ _;
-  String `<-`  = _ ~> "<-" <~ _;
-  String `->`  = _ ~> "->" <~ _;
-  String `~>`  = _ ~> "~>" <~ _;
-  String `<~`  = _ ~> "<~" <~ _;
+  String `..`  = _ ".." _ @1;
+  String `::`  = _ "::" _ @1;
+  String `%%`  = _ "%%" _ @1;
+  String `=>`  = _ "=>" _ @1;
+  String `<-`  = _ "<-" _ @1;
+  String `->`  = _ "->" _ @1;
+  String `~>`  = _ "~>" _ @1;
+  String `<~`  = _ "<~" _ @1;
 
-  String `%` = _ ~> "%" <~ _;
-  String `@` = _ ~> "@" <~ _;
-  String `<` = _ ~> "<" <~ _;
-  String `>` = _ ~> ">" <~ _;
-  String `]` = _ ~> "]" <~ _;
-  String `[` = _ ~> "[" <~ _;
-  String `}` = _ ~> "}" <~ _;
-  String `{` = _ ~> "{" <~ _;
-  String `)` = _ ~> ")" <~ _;
-  String `(` = _ ~> "(" <~ _;
-  String `;` = _ ~> ";" <~ _;
-  String `=` = _ ~> "=" <~ _;
-  String `?` = _ ~> "?" <~ _;
-  String `!` = _ ~> "!" <~ _;
-  String `~` = _ ~> "~" <~ _;
-  String `&` = _ ~> "&" <~ _;
-  String `*` = _ ~> "*" <~ _;
-  String `+` = _ ~> "+" <~ _;
-  String `,` = _ ~> "," <~ _;
-  String `:` = _ ~> ":" <~ _;
-  String `|` = _ ~> "|" <~ _;
-  String `/` = _ ~> "/" <~ _;
+  String `%` = _ "%" _ @1;
+  String `@` = _ "@" _ @1;
+  String `<` = _ "<" _ @1;
+  String `>` = _ ">" _ @1;
+  String `]` = _ "]" _ @1;
+  String `[` = _ "[" _ @1;
+  String `}` = _ "}" _ @1;
+  String `{` = _ "{" _ @1;
+  String `)` = _ ")" _ @1;
+  String `(` = _ "(" _ @1;
+  String `;` = _ ";" _ @1;
+  String `=` = _ "=" _ @1;
+  String `?` = _ "?" _ @1;
+  String `!` = _ "!" _ @1;
+  String `~` = _ "~" _ @1;
+  String `&` = _ "&" _ @1;
+  String `*` = _ "*" _ @1;
+  String `+` = _ "+" _ @1;
+  String `,` = _ "," _ @1;
+  String `:` = _ ":" _ @1;
+  String `|` = _ "|" _ @1;
+  String `/` = _ "/" _ @1;
 
-  String `.` = _ ~> "." <~ _;
-  String `ε` = _ ~> "ε" <~ _;
-  String `^` = _ ~> "^" <~ _;
-  String `$` = _ ~> "$" <~ _;
+  String `.` = _ "." _ @1;
+  String `ε` = _ "ε" _ @1;
+  String `^` = _ "^" _ @1;
+  String `$` = _ "$" _ @1;
 
   /// Layout parser allows comments (like this) and space between parsers.
   /// Regular Expression monster below:
