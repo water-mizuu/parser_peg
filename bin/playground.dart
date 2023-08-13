@@ -266,6 +266,24 @@ final class Playground extends _PegParser<Object> {
     }
   };
 
+  /// `fragment0`
+  late final f1 = () {
+    if (this.matchPattern(_string.$2) case var $0?) {
+      if (this.matchPattern(_string.$1) case _?) {
+        return $0;
+      }
+    }
+  };
+
+  /// `fragment1`
+  late final f2 = () {
+    if (this.f1() case var $0?) {
+      if (this.matchPattern(_string.$3) case _?) {
+        return $0;
+      }
+    }
+  };
+
   /// `global::$`
   late final r0 = () {
     if (this.apply(this.r1) case var $?) {
@@ -275,28 +293,17 @@ final class Playground extends _PegParser<Object> {
 
   /// `global::w`
   late final r1 = () {
-    if (this.matchPattern(_string.$1) case var _0?) {
-      if ([_0].asNullable() case var _l1) {
-        if (_l1 != null) {
-          for (;;) {
-            if (this.pos case var mark) {
-              if (this.matchPattern(_string.$1) case var _0?) {
-                _l1.add(_0);
-                continue;
-              }
-              this.pos = mark;
-              break;
-            }
-          }
-        }
-        if (_l1 case var $) {
-          return _l1;
-        }
+    if (this.matchPattern(_string.$4) case _?) {
+      if (this.f2() case var $1?) {
+        return $1;
       }
     }
   };
 
   static const _string = (
-    ".",
+    "c",
+    "b",
+    "d",
+    "a",
   );
 }

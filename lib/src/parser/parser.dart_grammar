@@ -60,7 +60,9 @@ Statement declaration =
   /// Rules related to types declarations.
   String type = _ ~> raw <~ _ | dart.type.main;
 
-  String namespaceReference = (identifier (ParserGenerator.separator | !".." ".") !mac @0)* { $.join(ParserGenerator.separator) };
+  String namespaceReference = (identifier ("::" | !".." ".") !mac @0)* {
+      $.join(ParserGenerator.separator)
+    };
   String namespacedRaw = namespaceReference literal.raw { $0.isEmpty ? $1 : "${$0}::${$1}" };
   String namespacedIdentifier = namespaceReference identifier { $0.isEmpty ? $1 : "${$0}::${$1}" };
 
@@ -107,12 +109,9 @@ Node sequence =
 
 /// A parser that is prefixed or suffixed by another parser.
 Node dropped =
-  /// The "surround operator".
-  ///   (left) ~> (body) <~ (right)
-  | left:special `~>` body:labeled `<~` right:special { SequenceNode([left, body, right], choose: 1) }
   /// The "suffix operator".
   ///   (captured) <~ (dropped)
-  | captured:dropped `<~` dropped:special { SequenceNode([captured, dropped], choose: 1) }
+  | captured:dropped `<~` dropped:special { SequenceNode([captured, dropped], choose: 0) }
   /// The "prefix operator".
   ///   (dropped) ~> (captured)
   | dropped:special `~>` captured:dropped { SequenceNode([dropped, captured], choose: 1) }
@@ -435,7 +434,7 @@ dart {
 
   /// Literal tokens
   String `..`  = _ ~> ".." <~ _;
-  String `::`  = _ ~> ParserGenerator.separator <~ _;
+  String `::`  = _ ~> "::" <~ _;
   String `%%`  = _ ~> "%%" <~ _;
   String `=>`  = _ ~> "=>" <~ _;
   String `<-`  = _ ~> "<-" <~ _;
