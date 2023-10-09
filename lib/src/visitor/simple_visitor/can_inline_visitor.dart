@@ -6,7 +6,7 @@ import "package:parser_peg/src/visitor/node_visitor.dart";
 class CanInlineVisitor implements SimpleNodeVisitor<bool> {
   CanInlineVisitor(this.rules, this.fragments, this.inline);
 
-  bool canBeInlined(Node node) => node.acceptSimpleVisitor(this);
+  bool canBeInlined(Node node) => node.acceptSimpleVisitor<bool>(this);
 
   final Expando<bool> _cache = Expando<bool>();
   final Map<String, (String?, Node)> rules;
@@ -59,70 +59,70 @@ class CanInlineVisitor implements SimpleNodeVisitor<bool> {
   bool visitSequenceNode(SequenceNode node) {
     if (_cache[node] case bool b) return b;
 
-    return _cache[node] = node.children.every((Node child) => child.acceptSimpleVisitor(this));
+    return _cache[node] = node.children.every((Node child) => child.acceptSimpleVisitor<bool>(this));
   }
 
   @override
   bool visitChoiceNode(ChoiceNode node) {
     if (_cache[node] case bool b) return b;
 
-    return _cache[node] = node.children.every((Node child) => child.acceptSimpleVisitor(this));
+    return _cache[node] = node.children.every((Node child) => child.acceptSimpleVisitor<bool>(this));
   }
 
   @override
   bool visitCountedNode(CountedNode node) {
     if (_cache[node] case bool b) return b;
 
-    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
+    return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
 
   @override
   bool visitPlusSeparatedNode(PlusSeparatedNode node) {
     if (_cache[node] case bool b) return b;
 
-    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
+    return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
 
   @override
   bool visitStarSeparatedNode(StarSeparatedNode node) {
     if (_cache[node] case bool b) return b;
 
-    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
+    return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
 
   @override
   bool visitPlusNode(PlusNode node) {
     if (_cache[node] case bool b) return b;
 
-    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
+    return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
 
   @override
   bool visitStarNode(StarNode node) {
     if (_cache[node] case bool b) return b;
 
-    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
+    return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
 
   @override
   bool visitAndPredicateNode(AndPredicateNode node) {
     if (_cache[node] case bool b) return b;
 
-    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
+    return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
 
   @override
   bool visitNotPredicateNode(NotPredicateNode node) {
     if (_cache[node] case bool b) return b;
 
-    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
+    return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
 
   @override
   bool visitOptionalNode(OptionalNode node) {
     if (_cache[node] case bool b) return b;
 
-    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
+    return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
 
   @override
@@ -130,7 +130,7 @@ class CanInlineVisitor implements SimpleNodeVisitor<bool> {
     if (_cache[node] case bool b) return b;
 
     _cache[node] = false;
-    _cache[node] = rules[node.ruleName]!.$2.acceptSimpleVisitor(this);
+    _cache[node] = rules[node.ruleName]!.$2.acceptSimpleVisitor<bool>(this);
 
     return _cache[node]!;
   }
@@ -140,8 +140,9 @@ class CanInlineVisitor implements SimpleNodeVisitor<bool> {
     if (_cache[node] case bool b) return b;
 
     _cache[node] = false;
-    _cache[node] = fragments[node.fragmentName]?.$2.acceptSimpleVisitor(this) ??
-        inline[node.fragmentName]?.$2.acceptSimpleVisitor(this);
+    _cache[node] = fragments[node.fragmentName]?.$2.acceptSimpleVisitor<bool>(this) ??
+        inline[node.fragmentName]?.$2.acceptSimpleVisitor<bool>(this) ??
+        false;
 
     return _cache[node]!;
   }
@@ -150,21 +151,21 @@ class CanInlineVisitor implements SimpleNodeVisitor<bool> {
   bool visitNamedNode(NamedNode node) {
     if (_cache[node] case bool b) return b;
 
-    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
+    return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
 
   @override
   bool visitActionNode(ActionNode node) {
     if (_cache[node] case bool b) return b;
 
-    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
+    return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
 
   @override
   bool visitInlineActionNode(InlineActionNode node) {
     if (_cache[node] case bool b) return b;
 
-    return (_cache[node] = node.child.acceptSimpleVisitor(this))!;
+    return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
 
   @override

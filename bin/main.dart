@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_function_declarations_over_variables, always_specify_types, non_constant_identifier_names, unreachable_from_main, inference_failure_on_untyped_parameter, avoid_dynamic_calls
+
 import "dart:convert";
 import "dart:io";
 

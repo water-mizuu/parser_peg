@@ -263,7 +263,7 @@ code {
 }
 
 @fragment literal {
-  String regexp = "/" ((\\ . @1 { r"\" + $ } | ~"/")+ { $.join() }) "/" @1;
+  `String` regexp = "/" ((\\ . @1 { r"\" + $ } | ~"/")+ { $.join() }) "/" @1;
   String string = _ string.main _ @1;
   string {
     @inline String main =
@@ -383,9 +383,9 @@ dart {
   kw {
     Tag decorator = decorator.rule | decorator.fragment | decorator.inline;
     decorator {
-      Tag rule      = _ "@rule" _        @1 {Tag.rule};
-      Tag fragment  = _ "@fragment" _    @1 {Tag.fragment};
-      Tag inline    = _ "@inline" _      @1 {Tag.inline};
+      Tag rule      = _ "@rule" _      { Tag.rule };
+      Tag fragment  = _ "@fragment" _  { Tag.fragment };
+      Tag inline    = _ "@inline" _    { Tag.inline };
     }
 
     String start     = _ "startOfInput" _ @1;

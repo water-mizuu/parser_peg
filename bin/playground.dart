@@ -276,10 +276,10 @@ final class Playground extends _PegParser<Object> {
   /// `global::w`
   late final r1 = () {
     if (this.matchPattern(_string.$4) case _?) {
-      if (this.matchPattern(_string.$3) case var b?) {
+      if (this.matchPattern(_string.$3) case var $1?) {
         if (this.matchPattern(_string.$2) case _?) {
           if (this.matchPattern(_string.$1) case _?) {
-            return b;
+            return $1;
           }
         }
       }

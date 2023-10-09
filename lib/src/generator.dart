@@ -59,7 +59,7 @@ const List<String> ignores = <String>[
 final class ParserGenerator {
   ParserGenerator.fromParsed({required List<Statement> statements, required this.preamble}) {
     /// We add all the special nodes :)
-    predefined.forEach(statements.add);
+    statements.insertAll(0, predefined);
 
     /// We add ALL the rules in advance.
     ///   Why? Because we need ALL the rules to be able to resolve references.
@@ -257,7 +257,7 @@ final class ParserGenerator {
 
     /// We inline the rules that can be inlined.
     if (InlineVisitor(inline) case InlineVisitor visitor) {
-      bool runLoop = false;
+      bool runLoop;
 
       do {
         runLoop = false;
@@ -322,7 +322,7 @@ final class ParserGenerator {
 
   static const String separator = "::";
   static const List<Statement> predefined = <Statement>[
-    /// std {
+    /// @inline std {
     ///   any = .;
     ///   epsilon = ε;
     ///   start = ^;

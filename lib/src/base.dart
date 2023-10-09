@@ -264,7 +264,9 @@ extension<R extends Object> on _PegParser<R> {
       return buffer.substring(start, end);
     }
 
-    (failures[pos] ??= <String>{}).addAll(trie._keys(trie._innerMap).map((List<String> v) => v.join()));
+    if (failures[pos] ??= <String>{} case Set<String> failures) {
+      trie._keys(trie._innerMap).map((List<String> v) => v.join()).forEach(failures.add);
+    }
     return null;
   }
 }
