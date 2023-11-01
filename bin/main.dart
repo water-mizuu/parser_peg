@@ -1,12 +1,10 @@
-// ignore_for_file: prefer_function_declarations_over_variables, always_specify_types, non_constant_identifier_names, unreachable_from_main, inference_failure_on_untyped_parameter, avoid_dynamic_calls
+// ignore_for_file: prefer_function_declarations_over_variables, always_specify_types, non_constant_identifier_names, unreachable_from_main, inference_failure_on_untyped_parameter, avoid_dynamic_calls, unused_element, body_might_complete_normally_nullable
 
 import "dart:convert";
 import "dart:io";
 
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/parser/parser.dart";
-import "package:parser_peg/src/parser/parser_ast.dart";
-import "package:parser_peg/src/parser/parser_cst.dart";
 
 String readFile(String path) => File(path).readAsStringSync().replaceAll("\r", "").trim();
 
@@ -50,15 +48,6 @@ void main(List<String> arguments) {
       switch (grammar.parse(input)) {
         case ParserGenerator generator:
           stdout.writeln("Successfully parsed grammar!");
-
-          stdout.writeln("Generating CST parser.");
-          File("lib/src/parser/parser_cst.dart")
-            ..createSync(recursive: true)
-            ..writeAsStringSync(generator.compileCstParserGenerator("PegParserCst"));
-          stdout.writeln("Generating AST parser.");
-          File("lib/src/parser/parser_ast.dart")
-            ..createSync(recursive: true)
-            ..writeAsStringSync(generator.compileAstParserGenerator("PegParserAst"));
           stdout.writeln("Generating parser.");
           File("lib/src/parser/parser.dart")
             ..createSync(recursive: true)
@@ -80,30 +69,6 @@ void main(List<String> arguments) {
             ..writeAsStringSync(generator.compileParserGenerator("MathParser"));
         case _:
           stdout.writeln(grammar.reportFailures());
-      }
-    }
-  }
-
-  if (readFile("bin/playground.dart_grammar") case String input) {
-    if (PegParser() case PegParser grammar) {
-      switch (grammar.parse(input)) {
-        case ParserGenerator generator:
-          stdout.writeln("Successfully parsed grammar!");
-          File("bin/playground.dart")
-            ..createSync(recursive: true)
-            ..writeAsStringSync(generator.compileParserGenerator("Playground"));
-      }
-    }
-    if (PegParserAst() case PegParserAst grammar) {
-      switch (grammar.parse(input)) {
-        case Object node:
-          stdout.writeln(node);
-      }
-    }
-    if (PegParserCst() case PegParserCst grammar) {
-      switch (grammar.parse(input)) {
-        case Object node:
-          stdout.writeln(displayTree(node, "", isLast: true));
       }
     }
   }

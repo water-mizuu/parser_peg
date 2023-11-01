@@ -252,7 +252,7 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class Playground extends _PegParser<Object> {
+final class Playground extends _PegParser<String> {
   Playground();
 
   @override
@@ -260,36 +260,577 @@ final class Playground extends _PegParser<Object> {
 
 
   /// `ROOT`
-  late final f0 = () {
+  String? f0() {
     if (this.apply(this.r0) case var $?) {
       return $;
     }
-  };
+  }
 
-  /// `global::$`
-  late final r0 = () {
-    if (this.apply(this.r1) case var $?) {
-      return $;
+  /// `fragment0`
+  late final f1 = () {
+    if (this.pos case var mark) {
+      if (this.apply(this.rt) case var $?) {
+        return $;
+      }
+      this.pos = mark;
+      if (this.apply(this.ru) case var $?) {
+        return $;
+      }
+      this.pos = mark;
+      if (this.apply(this.rv) case var $?) {
+        return $;
+      }
     }
   };
 
-  /// `global::w`
-  late final r1 = () {
-    if (this.matchPattern(_string.$4) case _?) {
-      if (this.matchPattern(_string.$3) case var $1?) {
-        if (this.matchPattern(_string.$2) case _?) {
-          if (this.matchPattern(_string.$1) case _?) {
+  /// `global::main`
+  String? r0() {
+    if (this.apply(this.rs)! case _) {
+      if (this.apply(this.r1) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          if (this.pos >= this.buffer.length) {
             return $1;
           }
         }
       }
     }
-  };
+  }
 
+  /// `global::type`
+  String? r1() {
+    if (this.pos case var mark) {
+      if (this.apply(this.r5) case var parameters?) {
+        if (this.apply(this.rf) case _?) {
+          if (this.apply(this.r1) case var type?) {
+            return "$type Function$parameters";
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.r1) case var type?) {
+        if (this.apply(this.rs)! case var $1) {
+          if (this.matchPattern(_string.$1) case var $2?) {
+            if (this.apply(this.r5) case var parameters?) {
+              if (this.apply(this.ro) case var $4) {
+                if ([type, $1, $2, parameters, $4] case var $) {
+                  return "$type Function$parameters${$4 ?? " "}";
+                }
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.r2) case var $?) {
+        return $;
+      }
+    }
+  }
+
+  /// `global::nullable`
+  String? r2() {
+    if (this.apply(this.r3) case var nonNullable?) {
+      if (this.apply(this.ro) case var $1) {
+        return $1 == null ? "$nonNullable" : "$nonNullable?";
+      }
+    }
+  }
+
+  /// `global::nonNullable`
+  String? r3() {
+    if (this.pos case var mark) {
+      if (this.apply(this.r6) case var $?) {
+        return $;
+      }
+      this.pos = mark;
+      if (this.apply(this.r4) case var $?) {
+        return $;
+      }
+      this.pos = mark;
+      if (this.apply(this.r8) case var $?) {
+        return $;
+      }
+    }
+  }
+
+  /// `global::record`
+  String? r4() {
+    if (this.pos case var mark) {
+      if (this.apply(this.rn) case _?) {
+        if (this.apply(this.rb) case var positional?) {
+          if (this.apply(this.rp) case _?) {
+            if (this.apply(this.ra) case var named?) {
+              if (this.apply(this.rm) case _?) {
+                return "(" + positional + ", " + named + ")";
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.rn) case _?) {
+        if (this.apply(this.rb) case var positional?) {
+          if (this.apply(this.rp) case _) {
+            if (this.apply(this.rm) case _?) {
+              return "(" + positional + ")";
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.rn) case _?) {
+        if (this.apply(this.ra) case var named?) {
+          if (this.apply(this.rm) case _?) {
+            return "(" + named + ")";
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.rn) case _?) {
+        if (this.apply(this.rm) case _?) {
+          return "()";
+        }
+      }
+    }
+  }
+
+  /// `global::function_parameters`
+  String? r5() {
+    if (this.pos case var mark) {
+      if (this.apply(this.rn) case _?) {
+        if (this.apply(this.rb) case var positional?) {
+          if (this.apply(this.rp) case _?) {
+            if (this.apply(this.ra) case var named?) {
+              if (this.apply(this.rm) case _?) {
+                return "($positional, $named)";
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.rn) case _?) {
+        if (this.apply(this.rb) case var positional?) {
+          if (this.apply(this.rp) case _?) {
+            if (this.apply(this.r9) case var optional?) {
+              if (this.apply(this.rm) case _?) {
+                return "($positional, $optional)";
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.rn) case _?) {
+        if (this.apply(this.rb) case var positional?) {
+          if (this.apply(this.rp) case _) {
+            if (this.apply(this.rm) case _?) {
+              return "($positional)";
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.rn) case _?) {
+        if (this.apply(this.ra) case var named?) {
+          if (this.apply(this.rm) case _?) {
+            return "($named)";
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.rn) case _?) {
+        if (this.apply(this.r9) case var optional?) {
+          if (this.apply(this.rm) case _?) {
+            return "($optional)";
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.rn) case _?) {
+        if (this.apply(this.rm) case _?) {
+          return "()";
+        }
+      }
+    }
+  }
+
+  /// `global::generic`
+  String? r6() {
+    if (this.apply(this.r8) case var base?) {
+      if (this.apply(this.rg) case _?) {
+        if (this.apply(this.r7) case var arguments?) {
+          if (this.apply(this.rh) case _?) {
+            return "$base<$arguments>";
+          }
+        }
+      }
+    }
+  }
+
+  /// `global::arguments`
+  String? r7() {
+    if (this.apply(this.r1) case var _0?) {
+      if ([_0] case (var $ && var _l1)) {
+        for (;;) {
+          if (this.pos case var mark) {
+            if (this.apply(this.rp) case _?) {
+              if (this.apply(this.r1) case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+            }
+            this.pos = mark;
+            break;
+          }
+        }
+        return $.join(", ");
+      }
+    }
+  }
+
+  /// `global::base`
+  String? r8() {
+    if (this.apply(this.rr) case var _0?) {
+      if ([_0] case (var $ && var _l1)) {
+        for (;;) {
+          if (this.pos case var mark) {
+            if (this.apply(this.rq) case _?) {
+              if (this.apply(this.rr) case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+            }
+            this.pos = mark;
+            break;
+          }
+        }
+        return $.join(".");
+      }
+    }
+  }
+
+  /// `global::parameters::optional`
+  String? r9() {
+    if (this.apply(this.rj) case _?) {
+      if (this.apply(this.rb) case var $1?) {
+        if (this.apply(this.rp) case _) {
+          if (this.apply(this.ri) case _?) {
+            return "[" + $1 + "]";
+          }
+        }
+      }
+    }
+  }
+
+  /// `global::parameters::named`
+  String? ra() {
+    if (this.apply(this.rl) case _?) {
+      if (this.apply(this.rc) case var $1?) {
+        if (this.apply(this.rp) case _) {
+          if (this.apply(this.rk) case _?) {
+            return "{" + $1 + "}";
+          }
+        }
+      }
+    }
+  }
+
+  /// `global::fields::positional`
+  String? rb() {
+    if (this.apply(this.rd) case var _0?) {
+      if ([_0] case (var $ && var _l1)) {
+        for (;;) {
+          if (this.pos case var mark) {
+            if (this.apply(this.rp) case _?) {
+              if (this.apply(this.rd) case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+            }
+            this.pos = mark;
+            break;
+          }
+        }
+        return $.join(", ");
+      }
+    }
+  }
+
+  /// `global::fields::named`
+  String? rc() {
+    if (this.apply(this.re) case var _0?) {
+      if ([_0] case (var $ && var _l1)) {
+        for (;;) {
+          if (this.pos case var mark) {
+            if (this.apply(this.rp) case _?) {
+              if (this.apply(this.re) case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+            }
+            this.pos = mark;
+            break;
+          }
+        }
+        return $.join(", ");
+      }
+    }
+  }
+
+  /// `global::field::positional`
+  String? rd() {
+    if (this.apply(this.r1) case var $0?) {
+      if (this.apply(this.rs)! case var $1) {
+        if (this.apply(this.rr) case var $2) {
+          if ([$0, $1, $2] case var $) {
+            return "${$0} ${$2 ?? ""}".trimRight();
+          }
+        }
+      }
+    }
+  }
+
+  /// `global::field::named`
+  String? re() {
+    if (this.apply(this.r1) case var $0?) {
+      if (this.apply(this.rs)! case var $1) {
+        if (this.apply(this.rr) case var $2?) {
+          if ([$0, $1, $2] case var $) {
+            return "${$0} ${$2}";
+          }
+        }
+      }
+    }
+  }
+
+  /// `global::=>`
+  String? rf() {
+    if (this.apply(this.rs)! case _) {
+      if (this.matchPattern(_string.$2) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::<`
+  String? rg() {
+    if (this.apply(this.rs)! case _) {
+      if (this.matchPattern(_string.$3) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::>`
+  String? rh() {
+    if (this.apply(this.rs)! case _) {
+      if (this.matchPattern(_string.$4) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::]`
+  String? ri() {
+    if (this.apply(this.rs)! case _) {
+      if (this.matchPattern(_string.$5) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::[`
+  String? rj() {
+    if (this.apply(this.rs)! case _) {
+      if (this.matchPattern(_string.$6) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::}`
+  String? rk() {
+    if (this.apply(this.rs)! case _) {
+      if (this.matchPattern(_string.$7) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::{`
+  String? rl() {
+    if (this.apply(this.rs)! case _) {
+      if (this.matchPattern(_string.$8) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::)`
+  String? rm() {
+    if (this.apply(this.rs)! case _) {
+      if (this.matchPattern(_string.$9) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::(`
+  String? rn() {
+    if (this.apply(this.rs)! case _) {
+      if (this.matchPattern(_string.$10) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::?`
+  String? ro() {
+    if (this.apply(this.rs)! case _) {
+      if (this.matchPattern(_string.$11) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::,`
+  String? rp() {
+    if (this.apply(this.rs)! case _) {
+      if (this.matchPattern(_string.$12) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::.`
+  String? rq() {
+    if (this.apply(this.rs)! case _) {
+      if (this.matchPattern(_string.$13) case var $1?) {
+        if (this.apply(this.rs)! case _) {
+          return $1;
+        }
+      }
+    }
+  }
+
+  /// `global::identifier`
+  String? rr() {
+    if (this.matchRange(_range.$2) case var $0?) {
+      if (this.pos case var mark) {
+        if (this.matchRange(_range.$1) case var _0) {
+          if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
+            if (_l1.isNotEmpty) {
+              for (;;) {
+                if (this.pos case var mark) {
+                  if (this.matchRange(_range.$1) case var _0?) {
+                    _l1.add(_0);
+                    continue;
+                  }
+                  this.pos = mark;
+                  break;
+                }
+              }
+            } else {
+              this.pos = mark;
+            }
+            return $0 + $1.join();
+          }
+        }
+      }
+    }
+  }
+
+  /// `global::_`
+  String rs() {
+    if (this.pos case var mark) {
+      if (this.f1() case var _0) {
+        if ([if (_0 case var _0?) _0] case var _l1) {
+          if (_l1.isNotEmpty) {
+            for (;;) {
+              if (this.pos case var mark) {
+                if (this.f1() case var _0?) {
+                  _l1.add(_0);
+                  continue;
+                }
+                this.pos = mark;
+                break;
+              }
+            }
+          } else {
+            this.pos = mark;
+          }
+          return "";
+        }
+      }
+    }
+  }
+
+  /// `global::whitespace`
+  String? rt() {
+    if (matchPattern(_regexp.$1) case var $?) {
+      return $;
+    }
+  }
+
+  /// `global::comment::singleLine`
+  String? ru() {
+    if (matchPattern(_regexp.$2) case var $?) {
+      return $;
+    }
+  }
+
+  /// `global::comment::multiLine`
+  String? rv() {
+    if (matchPattern(_regexp.$3) case var $?) {
+      return $;
+    }
+  }
+
+  static final _regexp = (
+    RegExp("\\s+"),
+    RegExp("\\/{2}(?:(?!(?:(?:\\r?\\n)|(?:\$))).)*(?=(?:\\r?\\n)|(?:\$))"),
+    RegExp("(?:\\/\\*(?:(?!\\*\\/).)*\\*\\/)"),
+  );
   static const _string = (
-    "d",
-    "c",
-    "b",
-    "a",
+    "Function",
+    "=>",
+    "<",
+    ">",
+    "]",
+    "[",
+    "}",
+    "{",
+    ")",
+    "(",
+    "?",
+    ",",
+    ".",
+  );
+  static const _range = (
+    { (97, 122), (65, 90), (48, 57), (95, 95), (36, 36) },
+    { (97, 122), (65, 90), (95, 95), (36, 36) },
   );
 }
