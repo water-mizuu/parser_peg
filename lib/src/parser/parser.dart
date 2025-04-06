@@ -1,4 +1,4 @@
-// ignore_for_file: always_declare_return_types, always_put_control_body_on_new_line, always_specify_types, avoid_escaping_inner_quotes, avoid_redundant_argument_values, annotate_overrides, body_might_complete_normally_nullable, constant_pattern_never_matches_value_type, curly_braces_in_flow_control_structures, dead_code, directives_ordering, duplicate_ignore, inference_failure_on_function_return_type, constant_identifier_names, prefer_function_declarations_over_variables, prefer_interpolation_to_compose_strings, prefer_is_empty, no_leading_underscores_for_local_identifiers, non_constant_identifier_names, unnecessary_null_check_pattern, unnecessary_brace_in_string_interps, unnecessary_string_interpolations, unnecessary_this, unused_element, unused_import, prefer_double_quotes, unused_local_variable, unreachable_from_main, use_raw_strings, type_annotate_public_apis
+// ignore_for_file: type=lint, body_might_complete_normally_nullable, unused_local_variable, inference_failure_on_function_return_type, unused_import, duplicate_ignore
 
 // imports
 // ignore_for_file: collection_methods_unrelated_type
@@ -310,19 +310,8 @@ final class PegParser extends _PegParser<ParserGenerator> {
     }
   }
 
-  /// `global::namespacedIdentifier`
-  String? f2() {
-    if (this.f1() case var $0) {
-      if (this.f7() case var $1?) {
-        if ([$0, $1] case var $) {
-          return $0.isEmpty ? $1 : "${$0}::${$1}";
-        }
-      }
-    }
-  }
-
   /// `global::name`
-  String? f3() {
+  String? f2() {
     if (this.pos case var mark) {
       if (this.f1() case var $0) {
         if (this.f6() case var $1?) {
@@ -332,8 +321,19 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f2() case var $?) {
+      if (this.f3() case var $?) {
         return $;
+      }
+    }
+  }
+
+  /// `global::namespacedIdentifier`
+  String? f3() {
+    if (this.f1() case var $0) {
+      if (this.f7() case var $1?) {
+        if ([$0, $1] case var $) {
+          return $0.isEmpty ? $1 : "${$0}::${$1}";
+        }
       }
     }
   }
@@ -1349,7 +1349,6 @@ final class PegParser extends _PegParser<ParserGenerator> {
           }
         }
       }
-
       this.pos = mark;
       if (this.f5() case var l?) {
         if (this.matchPattern(_string.$44) case _?) {
@@ -2496,7 +2495,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
     if (this.pos case var mark) {
       if (this.f9() case var decorator) {
         if (this.fd() case _) {
-          if (this.f3() case var name?) {
+          if (this.f2() case var name?) {
             if (this.f4() case var body?) {
               return DeclarationStatement(null, name, body, tag: decorator);
             }
@@ -2506,7 +2505,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.f9() case var decorator) {
         if (this.f0() case var type?) {
-          if (this.f3() case var name?) {
+          if (this.f2() case var name?) {
             if (this.f4() case var body?) {
               return DeclarationStatement(type, name, body, tag: decorator);
             }
@@ -2516,7 +2515,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       this.pos = mark;
       if (this.f9() case var decorator) {
         if (this.fd() case _) {
-          if (this.f3() case var name?) {
+          if (this.f2() case var name?) {
             if (this.fx() case _?) {
               if (this.f0() case var type?) {
                 if (this.f4() case var body?) {
@@ -2650,7 +2649,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
           }
         }
         if (this.fz() case var chosen) {
-          return body.length == 1 ? body.single : SequenceNode(body, choose: chosen);
+          return body.length == 1 ? body.single : SequenceNode(body, chosenIndex: chosen);
         }
       }
     }
@@ -2662,7 +2661,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.apply(this.r8) case var captured?) {
         if (this.f10() case _?) {
           if (this.apply(this.ra) case var dropped?) {
-            return SequenceNode([captured, dropped], choose: 0);
+            return SequenceNode([captured, dropped], chosenIndex: 0);
           }
         }
       }
@@ -2670,7 +2669,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.apply(this.ra) case var dropped?) {
         if (this.f11() case _?) {
           if (this.apply(this.r8) case var captured?) {
-            return SequenceNode([dropped, captured], choose: 1);
+            return SequenceNode([dropped, captured], chosenIndex: 1);
           }
         }
       }
@@ -2695,7 +2694,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       }
       this.pos = mark;
       if (this.matchPattern(_string.$29) case _?) {
-        if (this.f2() case var id?) {
+        if (this.f3() case var id?) {
           if (this.fn() case _?) {
             return switch ((id, id.split(ParserGenerator.separator))) {
                   (var ref, [..., var name]) => NamedNode(name, OptionalNode(ReferenceNode(ref))),
@@ -2706,7 +2705,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       }
       this.pos = mark;
       if (this.matchPattern(_string.$29) case _?) {
-        if (this.f2() case var id?) {
+        if (this.f3() case var id?) {
           if (this.fo() case _?) {
             return switch ((id, id.split(ParserGenerator.separator))) {
                   (var ref, [..., var name]) => NamedNode(name, StarNode(ReferenceNode(ref))),
@@ -2717,7 +2716,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       }
       this.pos = mark;
       if (this.matchPattern(_string.$29) case _?) {
-        if (this.f2() case var id?) {
+        if (this.f3() case var id?) {
           if (this.fp() case _?) {
             return switch ((id, id.split(ParserGenerator.separator))) {
                   (var ref, [..., var name]) => NamedNode(name, PlusNode(ReferenceNode(ref))),
@@ -2728,7 +2727,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       }
       this.pos = mark;
       if (this.matchPattern(_string.$29) case _?) {
-        if (this.f2() case var id?) {
+        if (this.f3() case var id?) {
           return switch ((id, id.split(ParserGenerator.separator))) {
                 (var ref, [..., var name]) => NamedNode(name, ReferenceNode(ref)),
                 _ => null,
@@ -2745,6 +2744,30 @@ final class PegParser extends _PegParser<ParserGenerator> {
   /// `global::special`
   Node? ra() {
     if (this.pos case var mark) {
+      if (this.apply(this.rd) case var sep?) {
+        if (this.fh() case _?) {
+          if (this.apply(this.rd) case var expr?) {
+            if (this.fp() case _?) {
+              if (this.fn() case _?) {
+                return PlusSeparatedNode(sep, expr, isTrailingAllowed: true);
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.rd) case var sep?) {
+        if (this.fh() case _?) {
+          if (this.apply(this.rd) case var expr?) {
+            if (this.fo() case _?) {
+              if (this.fn() case _?) {
+                return StarSeparatedNode(sep, expr, isTrailingAllowed: true);
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
       if (this.apply(this.rd) case var sep?) {
         if (this.fh() case _?) {
           if (this.apply(this.rd) case var expr?) {
@@ -2826,7 +2849,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
       if (this.f12() case var $0?) {
         if (this.apply(this.rc) case var $1?) {
           if ($1 case var $) {
-            return SequenceNode([NotPredicateNode($), const AnyCharacterNode()], choose: 1);
+            return SequenceNode([NotPredicateNode($), const AnyCharacterNode()], chosenIndex: 1);
           }
         }
       }
@@ -3184,7 +3207,7 @@ final class PegParser extends _PegParser<ParserGenerator> {
         }
       }
       this.pos = mark;
-      if (this.f3() case var $?) {
+      if (this.f2() case var $?) {
         return ReferenceNode($);
       }
     }

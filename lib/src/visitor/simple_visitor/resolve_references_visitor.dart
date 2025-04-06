@@ -3,8 +3,15 @@ import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
 class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
-  const ResolveReferencesVisitor(this.prefixes, this.rules, this.fragments, this.inline);
+  const ResolveReferencesVisitor(
+    this.declarationName,
+    this.prefixes,
+    this.rules,
+    this.fragments,
+    this.inline,
+  );
 
+  final String declarationName;
   final List<String> prefixes;
   final Map<String, (String?, Node)> rules;
   final Map<String, (String?, Node)> fragments;
@@ -43,15 +50,15 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
   @override
   Node visitSequenceNode(SequenceNode node) {
     return SequenceNode(
-      <Node>[for (Node sub in node.children) sub.acceptSimpleVisitor(this)],
-      choose: node.choose,
+      [for (var sub in node.children) sub.acceptSimpleVisitor(this)],
+      chosenIndex: node.chosenIndex,
     );
   }
 
   @override
   Node visitChoiceNode(ChoiceNode node) {
     return ChoiceNode(
-      <Node>[for (Node sub in node.children) sub.acceptSimpleVisitor(this)],
+      [for (var sub in node.children) sub.acceptSimpleVisitor(this)],
     );
   }
 
@@ -109,10 +116,7 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
 
   Node resolveReference(String name) {
     for (int i = prefixes.length; i >= 0; --i) {
-      String potentialName = <String>[
-        ...prefixes.sublist(0, i),
-        name,
-      ].join(ParserGenerator.separator);
+      var potentialName = [...prefixes.sublist(0, i), name].join(ParserGenerator.separator);
       switch (potentialName) {
         case String name when rules.containsKey(name):
           return ReferenceNode(name);
@@ -122,7 +126,7 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
       }
     }
 
-    return throw Exception("Unknown reference: $name");
+    throw Exception("Unknown reference from $declarationName: $name");
   }
 
   @override

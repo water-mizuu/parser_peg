@@ -27,52 +27,54 @@ class SExpressionVisitor implements SimpleNodeVisitor<String> {
   String visitSequenceNode(SequenceNode node) => node.children //
       .map((Node child) => child.acceptSimpleVisitor(this))
       .join(" ")
-      .apply((String v) => "(sequence $v)");
+      .apply((v) => "(sequence $v)");
 
   @override
   String visitChoiceNode(ChoiceNode node) => node.children //
       .map((Node child) => child.acceptSimpleVisitor(this))
       .join(" ")
-      .apply((String v) => "(choice $v)");
+      .apply((v) => "(choice $v)");
 
   @override
   String visitCountedNode(CountedNode node) => (
         node.min,
         node.max,
         node.child.acceptSimpleVisitor(this),
-      ).apply(((int, int?, String) v) => "(counted ${v.$1} ${v.$2} ${v.$3})");
+      ).apply((v) => "(counted ${v.$1} ${v.$2} ${v.$3})");
 
   @override
   String visitPlusSeparatedNode(PlusSeparatedNode node) => (
         node.separator.acceptSimpleVisitor(this),
         node.child.acceptSimpleVisitor(this),
         node.isTrailingAllowed
-      ).apply(((String, String, bool) v) => "(plus-separated ${v.$1} ${v.$2} (:trailing ${v.$3}))");
+      ).apply((v) => "(plus-separated ${v.$1} ${v.$2} (:trailing ${v.$3}))");
 
   @override
   String visitStarSeparatedNode(StarSeparatedNode node) => (
         node.separator.acceptSimpleVisitor(this),
         node.child.acceptSimpleVisitor(this),
         node.isTrailingAllowed
-      ).apply(((String, String, bool) v) => "(star-separated ${v.$1} (${v.$2}) (:trailing ${v.$3}))");
+      ).apply((v) => "(star-separated ${v.$1} (${v.$2}) (:trailing ${v.$3}))");
 
   @override
-  String visitPlusNode(PlusNode node) => node.child.acceptSimpleVisitor(this).apply((String v) => "(plus $v)");
+  String visitPlusNode(PlusNode node) =>
+      node.child.acceptSimpleVisitor(this).apply((v) => "(plus $v)");
 
   @override
-  String visitStarNode(StarNode node) => node.child.acceptSimpleVisitor(this).apply((String v) => "(star $v)");
+  String visitStarNode(StarNode node) =>
+      node.child.acceptSimpleVisitor(this).apply((v) => "(star $v)");
 
   @override
   String visitAndPredicateNode(AndPredicateNode node) =>
-      node.child.acceptSimpleVisitor(this).apply((String v) => "(and-predicate $v)");
+      node.child.acceptSimpleVisitor(this).apply((v) => "(and-predicate $v)");
 
   @override
   String visitNotPredicateNode(NotPredicateNode node) =>
-      node.child.acceptSimpleVisitor(this).apply((String v) => "(not-predicate $v)");
+      node.child.acceptSimpleVisitor(this).apply((v) => "(not-predicate $v)");
 
   @override
   String visitOptionalNode(OptionalNode node) =>
-      node.child.acceptSimpleVisitor(this).apply((String v) => "(optional $v)");
+      node.child.acceptSimpleVisitor(this).apply((v) => "(optional $v)");
 
   @override
   String visitReferenceNode(ReferenceNode node) => node.ruleName;
@@ -81,13 +83,16 @@ class SExpressionVisitor implements SimpleNodeVisitor<String> {
   String visitFragmentNode(FragmentNode node) => node.fragmentName;
 
   @override
-  String visitNamedNode(NamedNode node) => "(named ${jsonEncode(node.name)} ${node.child.acceptSimpleVisitor(this)})";
+  String visitNamedNode(NamedNode node) =>
+      "(named ${jsonEncode(node.name)} ${node.child.acceptSimpleVisitor(this)})";
 
   @override
-  String visitActionNode(ActionNode node) => "(action ${node.child.acceptSimpleVisitor(this)} (){ ... })";
+  String visitActionNode(ActionNode node) =>
+      "(action ${node.child.acceptSimpleVisitor(this)} (){ ... })";
 
   @override
-  String visitInlineActionNode(InlineActionNode node) => "(action ${node.child.acceptSimpleVisitor(this)} { ... })";
+  String visitInlineActionNode(InlineActionNode node) =>
+      "(action ${node.child.acceptSimpleVisitor(this)} { ... })";
 
   @override
   String visitStartOfInputNode(StartOfInputNode node) => "^";

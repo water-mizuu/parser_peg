@@ -51,49 +51,52 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
     if (depth > 0) {
       return createFragment(
         SequenceNode(
-          <Node>[
+          [
             for (Node child in node.children) //
               child.acceptParametrizedVisitor(this, 1),
           ],
-          choose: node.choose,
+          chosenIndex: node.chosenIndex,
         ),
       );
     } else {
       return SequenceNode(
-        <Node>[
+        [
           for (Node child in node.children) //
             child.acceptParametrizedVisitor(this, depth + 1),
         ],
-        choose: node.choose,
+        chosenIndex: node.chosenIndex,
       );
     }
   }
 
   @override
   Node visitChoiceNode(ChoiceNode node, int depth) {
-    List<StringLiteralNode> stringNodes = node.children.whereType<StringLiteralNode>().toList();
+    var stringNodes = node.children.whereType<StringLiteralNode>().toList();
     if (stringNodes.length < 2) {
       if (depth > 0) {
         return createFragment(
-          ChoiceNode(<Node>[for (Node child in node.children) child.acceptParametrizedVisitor(this, 0)]),
+          ChoiceNode(
+            [for (var child in node.children) child.acceptParametrizedVisitor(this, 0)],
+          ),
         );
       } else {
         return ChoiceNode(
-          <Node>[for (Node child in node.children) child.acceptParametrizedVisitor(this, depth)],
+          [for (var child in node.children) child.acceptParametrizedVisitor(this, depth)],
         );
       }
     } else {
-      List<String> strings = stringNodes //
-          .map((StringLiteralNode node) => node.literal)
+      var strings = stringNodes //
+          .map((node) => node.literal)
           .toList();
-      List<Node> notStrings = node.children //
-          .where((Node node) => node is! StringLiteralNode)
+      var notStrings = node.children //
+          .where((node) => node is! StringLiteralNode)
           .toList();
 
       if (notStrings.isEmpty) {
         return TriePatternNode(strings).acceptParametrizedVisitor(this, depth);
       } else {
-        return ChoiceNode(<Node>[...notStrings, TriePatternNode(strings)]).acceptParametrizedVisitor(this, depth);
+        return ChoiceNode(<Node>[...notStrings, TriePatternNode(strings)])
+            .acceptParametrizedVisitor(this, depth);
       }
     }
   }

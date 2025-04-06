@@ -40,24 +40,24 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
 
   @override
   (bool, Node) visitSequenceNode(SequenceNode node) {
-    bool hasChanged = false;
-    List<Node> children = <Node>[];
-    for (Node sub in node.children) {
-      var (bool changed, Node node) = sub.acceptSimpleVisitor(this);
+    var hasChanged = false;
+    var children = <Node>[];
+    for (var sub in node.children) {
+      var (changed, node) = sub.acceptSimpleVisitor(this);
       hasChanged |= changed;
 
       children.add(node);
     }
 
-    return (hasChanged, SequenceNode(children, choose: node.choose));
+    return (hasChanged, SequenceNode(children, chosenIndex: node.chosenIndex));
   }
 
   @override
   (bool, Node) visitChoiceNode(ChoiceNode node) {
-    bool hasChanged = false;
-    List<Node> children = <Node>[];
-    for (Node sub in node.children) {
-      var (bool changed, Node node) = sub.acceptSimpleVisitor(this);
+    var hasChanged = false;
+    var children = <Node>[];
+    for (var sub in node.children) {
+      var (changed, node) = sub.acceptSimpleVisitor(this);
       hasChanged |= changed;
 
       children.add(node);
@@ -68,15 +68,15 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
 
   @override
   (bool, Node) visitCountedNode(CountedNode node) {
-    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+    var (changed, child) = node.child.acceptSimpleVisitor(this);
 
     return (changed, CountedNode(node.min, node.max, child));
   }
 
   @override
   (bool, Node) visitPlusSeparatedNode(PlusSeparatedNode node) {
-    var (bool changed0, Node separator) = node.separator.acceptSimpleVisitor(this);
-    var (bool changed1, Node child) = node.child.acceptSimpleVisitor(this);
+    var (changed0, separator) = node.separator.acceptSimpleVisitor(this);
+    var (changed1, child) = node.child.acceptSimpleVisitor(this);
 
     return (
       changed0 || changed1,
@@ -86,8 +86,8 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
 
   @override
   (bool, Node) visitStarSeparatedNode(StarSeparatedNode node) {
-    var (bool changed0, Node separator) = node.separator.acceptSimpleVisitor(this);
-    var (bool changed1, Node child) = node.child.acceptSimpleVisitor(this);
+    var (changed0, separator) = node.separator.acceptSimpleVisitor(this);
+    var (changed1, child) = node.child.acceptSimpleVisitor(this);
 
     return (
       changed0 || changed1,
@@ -97,7 +97,7 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
 
   @override
   (bool, Node) visitPlusNode(PlusNode node) {
-    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+    var (changed, child) = node.child.acceptSimpleVisitor(this);
 
     return (changed, PlusNode(child));
   }
@@ -111,21 +111,21 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
 
   @override
   (bool, Node) visitAndPredicateNode(AndPredicateNode node) {
-    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+    var (changed, child) = node.child.acceptSimpleVisitor(this);
 
     return (changed, AndPredicateNode(child));
   }
 
   @override
   (bool, Node) visitNotPredicateNode(NotPredicateNode node) {
-    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+    var (changed, child) = node.child.acceptSimpleVisitor(this);
 
     return (changed, NotPredicateNode(child));
   }
 
   @override
   (bool, Node) visitOptionalNode(OptionalNode node) {
-    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+    var (changed, child) = node.child.acceptSimpleVisitor(this);
 
     return (changed, OptionalNode(child));
   }
@@ -149,14 +149,14 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
 
   @override
   (bool, Node) visitNamedNode(NamedNode node) {
-    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+    var (changed, child) = node.child.acceptSimpleVisitor(this);
 
     return (changed, NamedNode(node.name, child));
   }
 
   @override
   (bool, Node) visitActionNode(ActionNode node) {
-    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+    var (changed, child) = node.child.acceptSimpleVisitor(this);
     return (
       changed,
       ActionNode(
@@ -169,7 +169,7 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
 
   @override
   (bool, Node) visitInlineActionNode(InlineActionNode node) {
-    var (bool changed, Node child) = node.child.acceptSimpleVisitor(this);
+    var (changed, child) = node.child.acceptSimpleVisitor(this);
     return (
       changed,
       InlineActionNode(

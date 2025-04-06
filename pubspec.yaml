@@ -3,6 +3,6 @@ environment:
   sdk: ">=3.1.0-0"
 
 dependencies:
-  code:
-    git:
-      url: https://github.com/water-mizuu/code.git
+  analyzer: ^7.3.0
+  args: ^2.7.0
+  path: ^1.9.1

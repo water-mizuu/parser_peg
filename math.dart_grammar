@@ -1,0 +1,34 @@
+{
+import "dart:math" as math show pow;
+}
+
+num rule = ^ :expr $ { expr };
+
+num expr =
+  | :expr _ "+" _ :term { expr + term }
+  | :expr _ "-" _ :term { expr - term }
+  | term;
+
+num term =
+  | "-" _ :term            { -term }
+  | :term _ :factor        { term  * factor }
+  | :term _ "*" _ :factor  { term  * factor }
+  | :term _ "/" _ :factor  { term  / factor }
+  | :term _ "%" _ :factor  { term  % factor }
+  | :term _ "~/" _ :factor { term ~/ factor }
+  | factor; 
+
+num factor =
+  | :primary _ "^" _ :factor { math.pow(primary, factor) }
+  | primary;
+
+num primary =
+  | "(" _ :expr _ ")" { expr }
+  | number;
+
+@fragment
+num number =
+  | \d+ "." \d+ { double.parse(buffer.substring(from, to)) }
+  | \d+         { int.parse(buffer.substring(from, to)) };
+
+_ = \s* { () };

@@ -112,9 +112,9 @@ enum SimpleRegExpEscapeNode implements RegExpEscapeNode {
 }
 
 class SequenceNode implements Node {
-  const SequenceNode(this.children, {required this.choose});
+  const SequenceNode(this.children, {required this.chosenIndex});
 
-  final int? choose;
+  final int? chosenIndex;
   final List<Node> children;
 
   @override

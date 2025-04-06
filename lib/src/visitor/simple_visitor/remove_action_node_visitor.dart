@@ -38,7 +38,7 @@ class RemoveActionNodeVisitor implements SimpleNodeVisitor<Node> {
   Node visitSequenceNode(SequenceNode node) {
     return SequenceNode(
       <Node>[for (Node child in node.children) child.acceptSimpleVisitor(this)],
-      choose: node.choose,
+      chosenIndex: node.chosenIndex,
     );
   }
 
