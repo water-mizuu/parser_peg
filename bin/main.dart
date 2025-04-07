@@ -35,13 +35,7 @@ String displayTree(
       }
 
       for (var (int i, Object? object) in child.indexed) {
-        buffer.write(
-          displayTree(
-            object,
-            indent: newIndent,
-            isLast: i == child.length - 1,
-          ),
-        );
+        buffer.write(displayTree(object, indent: newIndent, isLast: i == child.length - 1));
       }
 
     /// Iterables
@@ -49,34 +43,17 @@ String displayTree(
       buffer.writeln("[]");
     case Iterable<Object?> objects when objects.length == 1:
       buffer.write("──");
-      buffer.write(
-        displayTree(
-          objects.single,
-          indent: newIndent,
-          shouldNotPrintIndent: true,
-        ),
-      );
+      buffer.write(displayTree(objects.single, indent: newIndent, shouldNotPrintIndent: true));
     case (List<Object?>() || Set<Object?>()) && Iterable<Object?> objects:
       var list = objects.toList();
 
       buffer
         ..write("┬─")
         ..write(
-          displayTree(
-            list.first,
-            indent: newIndent,
-            isLast: false,
-            shouldNotPrintIndent: true,
-          ),
+          displayTree(list.first, indent: newIndent, isLast: false, shouldNotPrintIndent: true),
         );
       for (var (i, object) in list.indexed.skip(1)) {
-        buffer.write(
-          displayTree(
-            object,
-            indent: newIndent,
-            isLast: i == objects.length - 1,
-          ),
-        );
+        buffer.write(displayTree(object, indent: newIndent, isLast: i == objects.length - 1));
       }
 
     /// Maps
@@ -121,9 +98,10 @@ void main(List<String> arguments) {
     return;
   }
   // ignore: unnecessary_statements
-  var argParser = ArgParser()
-    ..addOption("output", abbr: "o", help: "Output file path")
-    ..addOption("name", abbr: "n", help: "Parser name");
+  var argParser =
+      ArgParser()
+        ..addOption("output", abbr: "o", help: "Output file path")
+        ..addOption("name", abbr: "n", help: "Parser name");
 
   var parsedArgs = argParser.parse(arguments.sublist(1));
 

@@ -7,8 +7,6 @@ import "dart:collection";
 import "dart:math" as math;
 // PREAMBLE
 import "dart:math" as math show pow;
-
-const message = "tangina mo bobo";
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -256,8 +254,8 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class MathParser extends _PegParser<num> {
-  MathParser();
+final class Parser extends _PegParser<num> {
+  Parser();
 
   @override
   get start => r0;
@@ -328,7 +326,7 @@ final class MathParser extends _PegParser<num> {
       if (this.apply(this.r2) case var term?) {
         if (this.apply(this.r5)! case _) {
           if (this.apply(this.r3) case var factor?) {
-            return term * factor;
+            return term  * factor;
           }
         }
       }
@@ -338,7 +336,7 @@ final class MathParser extends _PegParser<num> {
           if (this.matchPattern(_string.$3) case _?) {
             if (this.apply(this.r5)! case _) {
               if (this.apply(this.r3) case var factor?) {
-                return term * factor;
+                return term  * factor;
               }
             }
           }
@@ -350,7 +348,7 @@ final class MathParser extends _PegParser<num> {
           if (this.matchPattern(_string.$4) case _?) {
             if (this.apply(this.r5)! case _) {
               if (this.apply(this.r3) case var factor?) {
-                return term / factor;
+                return term  / factor;
               }
             }
           }
@@ -362,7 +360,7 @@ final class MathParser extends _PegParser<num> {
           if (this.matchPattern(_string.$5) case _?) {
             if (this.apply(this.r5)! case _) {
               if (this.apply(this.r3) case var factor?) {
-                return term % factor;
+                return term  % factor;
               }
             }
           }

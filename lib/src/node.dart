@@ -96,10 +96,10 @@ enum SimpleRegExpEscapeNode implements RegExpEscapeNode {
   newline(r"\n"),
   carriageReturn(r"\r"),
   formFeed(r"\f"),
-  verticalTab(r"\v"),
-  ;
+  verticalTab(r"\v");
 
   const SimpleRegExpEscapeNode(this.pattern);
+
   @override
   final String pattern;
 

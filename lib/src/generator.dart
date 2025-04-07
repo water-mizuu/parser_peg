@@ -436,7 +436,7 @@ final class ParserGenerator {
           compilerVisitor,
           (
             isNullAllowed: isNullable(node, displayName),
-            withNames: null,
+            withNames: null as Set<String>?,
             inner: null,
             reported: true,
             declarationName: displayName,
