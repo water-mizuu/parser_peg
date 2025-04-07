@@ -36,10 +36,9 @@ class RemoveActionNodeVisitor implements SimpleNodeVisitor<Node> {
 
   @override
   Node visitSequenceNode(SequenceNode node) {
-    return SequenceNode(
-      <Node>[for (Node child in node.children) child.acceptSimpleVisitor(this)],
-      chosenIndex: node.chosenIndex,
-    );
+    return SequenceNode(<Node>[
+      for (Node child in node.children) child.acceptSimpleVisitor(this),
+    ], chosenIndex: node.chosenIndex);
   }
 
   @override
@@ -49,11 +48,7 @@ class RemoveActionNodeVisitor implements SimpleNodeVisitor<Node> {
 
   @override
   Node visitCountedNode(CountedNode node) {
-    return CountedNode(
-      node.min,
-      node.max,
-      node.child.acceptSimpleVisitor(this),
-    );
+    return CountedNode(node.min, node.max, node.child.acceptSimpleVisitor(this));
   }
 
   @override

@@ -11,7 +11,8 @@ import "package:path/path.dart" as path;
 import "../parser.cst.dart";
 import "../parser.dart";
 
-String readFile(String path) => File(path).readAsStringSync().replaceAll("\r", "").trim();
+String readFile(String path) =>
+    File(path).readAsStringSync().replaceAll("\r", "").trim();
 
 String displayTree(
   Object? node, {
@@ -38,7 +39,9 @@ String displayTree(
       }
 
       for (var (i, object) in child.indexed) {
-        buffer.write(displayTree(object, indent: newIndent, isLast: i == child.length - 1));
+        buffer.write(
+          displayTree(object, indent: newIndent, isLast: i == child.length - 1),
+        );
       }
 
     /// Iterables
@@ -46,17 +49,34 @@ String displayTree(
       buffer.writeln("[]");
     case Iterable<Object?> objects when objects.length == 1:
       buffer.write("──");
-      buffer.write(displayTree(objects.single, indent: newIndent, shouldNotPrintIndent: true));
+      buffer.write(
+        displayTree(
+          objects.single,
+          indent: newIndent,
+          shouldNotPrintIndent: true,
+        ),
+      );
     case (List<Object?>() || Set<Object?>()) && Iterable<Object?> objects:
       var list = objects.toList();
 
       buffer
         ..write("┬─")
         ..write(
-          displayTree(list.first, indent: newIndent, isLast: false, shouldNotPrintIndent: true),
+          displayTree(
+            list.first,
+            indent: newIndent,
+            isLast: false,
+            shouldNotPrintIndent: true,
+          ),
         );
       for (var (i, object) in list.indexed.skip(1)) {
-        buffer.write(displayTree(object, indent: newIndent, isLast: i == objects.length - 1));
+        buffer.write(
+          displayTree(
+            object,
+            indent: newIndent,
+            isLast: i == objects.length - 1,
+          ),
+        );
       }
 
     /// Maps
@@ -190,11 +210,15 @@ void _experiment() {
 
           File(path.join(parentPath, "$fileName.dart"))
             ..createSync(recursive: true)
-            ..writeAsStringSync(generator.compileParserGenerator("GrammarParser"));
+            ..writeAsStringSync(
+              generator.compileParserGenerator("GrammarParser"),
+            );
 
           File(path.join(parentPath, "$fileName.cst.dart"))
             ..createSync(recursive: true)
-            ..writeAsStringSync(generator.compileCstParserGenerator("CstGrammarParser"));
+            ..writeAsStringSync(
+              generator.compileCstParserGenerator("CstGrammarParser"),
+            );
         case _:
           stdout.writeln(grammar.reportFailures());
       }

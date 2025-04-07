@@ -2,7 +2,6 @@ expr1 = . |>
         MyConstructor(
           name: "Hello there"
         );
-expr2 =
-  | . |> hi { (a | b)
-      hi} )( ][
+(expr2, expr3) =
+  | . |> "this is nice."
   | ^ |> bye;

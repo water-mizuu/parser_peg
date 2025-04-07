@@ -6,14 +6,15 @@
   │ │   ├─null
   │ │   ├─null
   │ │   ├─<name>
-  │ │   │ └─<namespacedIdentifier>
-  │ │   │   ├─<namespaceReference>
-  │ │   │   └─<identifier>
-  │ │   │     ├─"e"
-  │ │   │     └─┬─"x"
-  │ │   │       ├─"p"
-  │ │   │       ├─"r"
-  │ │   │       └─"1"
+  │ │   │ └─<singleName>
+  │ │   │   └─<namespacedIdentifier>
+  │ │   │     ├─<namespaceReference>
+  │ │   │     └─<identifier>
+  │ │   │       ├─"e"
+  │ │   │       └─┬─"x"
+  │ │   │         ├─"p"
+  │ │   │         ├─"r"
+  │ │   │         └─"1"
   │ │   └─<body>
   │ │     ├─┬─<_>
   │ │     │ │ └─" "
@@ -160,17 +161,35 @@
   │     ├─null
   │     ├─null
   │     ├─<name>
-  │     │ └─<namespacedIdentifier>
-  │     │   ├─<namespaceReference>
-  │     │   └─<identifier>
-  │     │     ├─"e"
-  │     │     └─┬─"x"
-  │     │       ├─"p"
-  │     │       ├─"r"
-  │     │       └─"2"
+  │     │ ├─<(>
+  │     │ │ ├─<_>
+  │     │ │ ├─"("
+  │     │ │ └─<_>
+  │     │ ├─┬─<singleName>
+  │     │ │ │ └─<namespacedIdentifier>
+  │     │ │ │   ├─<namespaceReference>
+  │     │ │ │   └─<identifier>
+  │     │ │ │     ├─"e"
+  │     │ │ │     └─┬─"x"
+  │     │ │ │       ├─"p"
+  │     │ │ │       ├─"r"
+  │     │ │ │       └─"2"
+  │     │ │ └─<singleName>
+  │     │ │   └─<namespacedIdentifier>
+  │     │ │     ├─<namespaceReference>
+  │     │ │     └─<identifier>
+  │     │ │       ├─"e"
+  │     │ │       └─┬─"x"
+  │     │ │         ├─"p"
+  │     │ │         ├─"r"
+  │     │ │         └─"3"
+  │     │ └─<)>
+  │     │   ├─<_>
+  │     │   ├─")"
+  │     │   └─<_>
+  │     │     └─" "
   │     └─<body>
   │       ├─┬─<_>
-  │       │ │ └─" "
   │       │ ├─"="
   │       │ └─<_>
   │       │   └─"\n  "
@@ -288,4 +307,4 @@
   │         ├─";"
   │         └─<_>
   ├─<_>
-  └─136
+  └─145

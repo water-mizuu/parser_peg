@@ -24,37 +24,39 @@ class SExpressionVisitor implements SimpleNodeVisitor<String> {
   String visitRegExpEscapeNode(RegExpEscapeNode node) => "(escape ${node.pattern})";
 
   @override
-  String visitSequenceNode(SequenceNode node) => node.children //
+  String visitSequenceNode(SequenceNode node) => node
+      .children //
       .map((Node child) => child.acceptSimpleVisitor(this))
       .join(" ")
       .apply((v) => "(sequence $v)");
 
   @override
-  String visitChoiceNode(ChoiceNode node) => node.children //
+  String visitChoiceNode(ChoiceNode node) => node
+      .children //
       .map((Node child) => child.acceptSimpleVisitor(this))
       .join(" ")
       .apply((v) => "(choice $v)");
 
   @override
   String visitCountedNode(CountedNode node) => (
-        node.min,
-        node.max,
-        node.child.acceptSimpleVisitor(this),
-      ).apply((v) => "(counted ${v.$1} ${v.$2} ${v.$3})");
+    node.min,
+    node.max,
+    node.child.acceptSimpleVisitor(this),
+  ).apply((v) => "(counted ${v.$1} ${v.$2} ${v.$3})");
 
   @override
   String visitPlusSeparatedNode(PlusSeparatedNode node) => (
-        node.separator.acceptSimpleVisitor(this),
-        node.child.acceptSimpleVisitor(this),
-        node.isTrailingAllowed
-      ).apply((v) => "(plus-separated ${v.$1} ${v.$2} (:trailing ${v.$3}))");
+    node.separator.acceptSimpleVisitor(this),
+    node.child.acceptSimpleVisitor(this),
+    node.isTrailingAllowed,
+  ).apply((v) => "(plus-separated ${v.$1} ${v.$2} (:trailing ${v.$3}))");
 
   @override
   String visitStarSeparatedNode(StarSeparatedNode node) => (
-        node.separator.acceptSimpleVisitor(this),
-        node.child.acceptSimpleVisitor(this),
-        node.isTrailingAllowed
-      ).apply((v) => "(star-separated ${v.$1} (${v.$2}) (:trailing ${v.$3}))");
+    node.separator.acceptSimpleVisitor(this),
+    node.child.acceptSimpleVisitor(this),
+    node.isTrailingAllowed,
+  ).apply((v) => "(star-separated ${v.$1} (${v.$2}) (:trailing ${v.$3}))");
 
   @override
   String visitPlusNode(PlusNode node) =>

@@ -107,11 +107,7 @@ abstract base class _PegParser<R extends Object> {
   }
 
   void _setupLr<T extends Object>(_Rule<T> r, _Lr<void> l) {
-    l.head ??= _Head<T>(
-      rule: r,
-      evalSet: <_Rule<void>>{},
-      involvedSet: <_Rule<void>>{},
-    );
+    l.head ??= _Head<T>(rule: r, evalSet: <_Rule<void>>{}, involvedSet: <_Rule<void>>{});
 
     for (_Lr<void> lr in _lrStack.takeWhile((_Lr<void> lr) => lr.head != l.head)) {
       l.head!.involvedSet.add(lr.rule);
@@ -139,7 +135,8 @@ abstract base class _PegParser<R extends Object> {
 
     if (isReported) {
       (failures[pos] ??= <String>{}).addAll(<String>[
-        for (var (int start, int end) in ranges) "${String.fromCharCode(start)}-${String.fromCharCode(end)}",
+        for (var (int start, int end) in ranges)
+          "${String.fromCharCode(start)}-${String.fromCharCode(end)}",
       ]);
     }
   }
@@ -184,10 +181,8 @@ abstract base class _PegParser<R extends Object> {
   }
 
   String reportFailures() {
-    var MapEntry<int, Set<String>>(
-      key: int pos,
-      value: Set<String> messages,
-    ) = failures.entries.last;
+    var MapEntry<int, Set<String>>(key: int pos, value: Set<String> messages) =
+        failures.entries.last;
     var (int column, int row) = _columnRow(buffer, pos);
 
     return "($column:$row): Expected the following: $messages";
@@ -204,7 +199,8 @@ abstract base class _PegParser<R extends Object> {
   late String buffer;
   int pos = 0;
 
-  R? parse(String buffer) => (
+  R? parse(String buffer) =>
+      (
         this
           ..buffer = buffer
           ..reset(),
@@ -221,22 +217,14 @@ extension NullableExtension<T extends Object> on T {
 typedef _Rule<T extends Object> = T? Function();
 
 class _Head<T extends Object> {
-  const _Head({
-    required this.rule,
-    required this.involvedSet,
-    required this.evalSet,
-  });
+  const _Head({required this.rule, required this.involvedSet, required this.evalSet});
   final _Rule<T> rule;
   final Set<_Rule<void>> involvedSet;
   final Set<_Rule<void>> evalSet;
 }
 
 class _Lr<T extends Object> {
-  _Lr({
-    required this.seed,
-    required this.rule,
-    required this.head,
-  });
+  _Lr({required this.seed, required this.rule, required this.head});
 
   final _Rule<T> rule;
   T? seed;
@@ -273,7 +261,8 @@ extension<R extends Object> on _PegParser<R> {
 
 class Trie {
   Trie() : _innerMap = HashMap<_Key<String>, Object>();
-  factory Trie.from(Iterable<String> strings) => strings.fold(Trie(), (Trie t, String s) => t..add(s));
+  factory Trie.from(Iterable<String> strings) =>
+      strings.fold(Trie(), (Trie t, String s) => t..add(s));
   const Trie.complete(this._innerMap);
 
   static final Symbol _safeGuard = Symbol(math.Random.secure().nextInt(32).toString());
@@ -287,9 +276,9 @@ class Trie {
   }
 
   Trie? derive(String key) => switch (_innerMap[(key, null)]) {
-        HashMap<_Key<String>, Object> value => Trie.complete(value),
-        _ => null,
-      };
+    HashMap<_Key<String>, Object> value => Trie.complete(value),
+    _ => null,
+  };
 
   Trie? deriveAll(String value) => value //
       .split("")
@@ -323,7 +312,9 @@ class Trie {
   HashMap<_Key<String>, Object> _derived(List<String> keys) {
     HashMap<_Key<String>, Object> map = _innerMap;
     for (int i = 0; i < keys.length; ++i) {
-      map = map.putIfAbsent((keys[i], null), HashMap<_Key<String>, Object>.new) as HashMap<_Key<String>, Object>;
+      map =
+          map.putIfAbsent((keys[i], null), HashMap<_Key<String>, Object>.new)
+              as HashMap<_Key<String>, Object>;
     }
 
     return map;

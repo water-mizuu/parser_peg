@@ -4,9 +4,10 @@
 // ignore_for_file: collection_methods_unrelated_type
 
 import "dart:collection";
-import "dart:math" as math;
 // PREAMBLE
 import "dart:math" as math show pow;
+import "dart:math" as math;
+
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -110,11 +111,7 @@ abstract base class _PegParser<R extends Object> {
   }
 
   void _setupLr<T extends Object>(_Rule<T> r, _Lr<void> l) {
-    l.head ??= _Head<T>(
-      rule: r,
-      evalSet: <_Rule<void>>{},
-      involvedSet: <_Rule<void>>{},
-    );
+    l.head ??= _Head<T>(rule: r, evalSet: <_Rule<void>>{}, involvedSet: <_Rule<void>>{});
 
     for (_Lr<void> lr in _lrStack.takeWhile((_Lr<void> lr) => lr.head != l.head)) {
       l.head!.involvedSet.add(lr.rule);
@@ -142,7 +139,8 @@ abstract base class _PegParser<R extends Object> {
 
     if (isReported) {
       (failures[pos] ??= <String>{}).addAll(<String>[
-        for (var (int start, int end) in ranges) "${String.fromCharCode(start)}-${String.fromCharCode(end)}",
+        for (var (int start, int end) in ranges)
+          "${String.fromCharCode(start)}-${String.fromCharCode(end)}",
       ]);
     }
   }
@@ -187,10 +185,8 @@ abstract base class _PegParser<R extends Object> {
   }
 
   String reportFailures() {
-    var MapEntry<int, Set<String>>(
-      key: int pos,
-      value: Set<String> messages,
-    ) = failures.entries.last;
+    var MapEntry<int, Set<String>>(key: int pos, value: Set<String> messages) =
+        failures.entries.last;
     var (int column, int row) = _columnRow(buffer, pos);
 
     return "($column:$row): Expected the following: $messages";
@@ -207,7 +203,8 @@ abstract base class _PegParser<R extends Object> {
   late String buffer;
   int pos = 0;
 
-  R? parse(String buffer) => (
+  R? parse(String buffer) =>
+      (
         this
           ..buffer = buffer
           ..reset(),
@@ -224,22 +221,14 @@ extension NullableExtension<T extends Object> on T {
 typedef _Rule<T extends Object> = T? Function();
 
 class _Head<T extends Object> {
-  const _Head({
-    required this.rule,
-    required this.involvedSet,
-    required this.evalSet,
-  });
+  const _Head({required this.rule, required this.involvedSet, required this.evalSet});
   final _Rule<T> rule;
   final Set<_Rule<void>> involvedSet;
   final Set<_Rule<void>> evalSet;
 }
 
 class _Lr<T extends Object> {
-  _Lr({
-    required this.seed,
-    required this.rule,
-    required this.head,
-  });
+  _Lr({required this.seed, required this.rule, required this.head});
 
   final _Rule<T> rule;
   T? seed;
@@ -259,7 +248,6 @@ final class Parser extends _PegParser<num> {
 
   @override
   get start => r0;
-
 
   /// `ROOT`
   num? f0() {
@@ -326,7 +314,7 @@ final class Parser extends _PegParser<num> {
       if (this.apply(this.r2) case var term?) {
         if (this.apply(this.r5)! case _) {
           if (this.apply(this.r3) case var factor?) {
-            return term  * factor;
+            return term * factor;
           }
         }
       }
@@ -336,7 +324,7 @@ final class Parser extends _PegParser<num> {
           if (this.matchPattern(_string.$3) case _?) {
             if (this.apply(this.r5)! case _) {
               if (this.apply(this.r3) case var factor?) {
-                return term  * factor;
+                return term * factor;
               }
             }
           }
@@ -348,7 +336,7 @@ final class Parser extends _PegParser<num> {
           if (this.matchPattern(_string.$4) case _?) {
             if (this.apply(this.r5)! case _) {
               if (this.apply(this.r3) case var factor?) {
-                return term  / factor;
+                return term / factor;
               }
             }
           }
@@ -360,7 +348,7 @@ final class Parser extends _PegParser<num> {
           if (this.matchPattern(_string.$5) case _?) {
             if (this.apply(this.r5)! case _) {
               if (this.apply(this.r3) case var factor?) {
-                return term  % factor;
+                return term % factor;
               }
             }
           }
@@ -507,20 +495,6 @@ final class Parser extends _PegParser<num> {
     }
   };
 
-  static final _regexp = (
-    RegExp("\\d"),
-    RegExp("\\s"),
-  );
-  static const _string = (
-    "+",
-    "-",
-    "*",
-    "/",
-    "%",
-    "~/",
-    "^",
-    ")",
-    "(",
-    ".",
-  );
+  static final _regexp = (RegExp("\\d"), RegExp("\\s"));
+  static const _string = ("+", "-", "*", "/", "%", "~/", "^", ")", "(", ".");
 }

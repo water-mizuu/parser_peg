@@ -55,23 +55,36 @@ Statement declaration =
 /// Shared code between declarations.
 @fragment {
   /// Rules related to types declarations.
-  String type = _ raw _ @1 | dart.type.main;
+  String type =
+    | _ raw _ @1
+    | dart.type.main;
 
   String namespaceReference = (identifier ("::" | !".." ".") !mac @0)* {
       $.join(ParserGenerator.separator)
     };
 
-  String name = namespacedRaw | namespacedIdentifier;
-  String namespacedRaw = namespaceReference literal.raw { $0.isEmpty ? $1 : "${$0}::${$1}" };
-  String namespacedIdentifier = namespaceReference identifier { $0.isEmpty ? $1 : "${$0}::${$1}" };
+  List<String> name =
+    | `(` `,`..singleName+ `)` @1
+    | singleName |> [$];
 
+  String singleName =
+    | namespacedRaw
+    | namespacedIdentifier;
+  
+  String namespacedRaw =
+    namespaceReference literal.raw { $0.isEmpty ? $1 : "${$0}::${$1}" };
+
+  String namespacedIdentifier =
+    namespaceReference identifier { $0.isEmpty ? $1 : "${$0}::${$1}" };
 
   Node body = (`=` | `<-` | `->`) :choice `;` { choice };
 }
 
 /// A choice parser is a parser that tries to match one of the options.
 /// Despite the syntax, the parser is ordered choice.
-Node choice = `|`? options:`|`..acted+ { options.length == 1 ? options.single : ChoiceNode(options) };
+Node choice = `|`? options:`|`..acted+ { 
+  options.length == 1 ? options.single : ChoiceNode(options)
+};
 
 /// A parser with a bound action.
 Node acted =
@@ -266,7 +279,7 @@ Node atom =
   | literal.range
   | literal.regexp { RegExpNode($) }
   | literal.string { StringLiteralNode($) }
-  | name { ReferenceNode($) }
+  | singleName { ReferenceNode($) }
   ;
 
 code {
@@ -319,9 +332,10 @@ code {
 
   Node range =  _ range.main _ @1;
   range {
-    @inline Node main = _ "[" elements:_..element+ "]" _ {
-        RangeNode(elements.reduce((a, b) => a.union(b)))
-      };
+    @inline main
+      = _ "[" elements:_..element+ "]" _
+      |> RangeNode(elements.reduce((a, b) => a.union(b)));
+    
     Set<(int, int)> element =
       | escape
       | l:atom "-" r:atom { `{(l.codeUnitAt(0), r.codeUnitAt(0))}` }
@@ -425,13 +439,17 @@ dart {
       | `(` positional:fields.positional `,` optional:parameters.optional `)`
           { "($positional, $optional)" }
       // (int a, int b)
-      | `(` positional:fields.positional `,`? `)` { "($positional)" }
+      | `(` positional:fields.positional `,`? `)`
+          { "($positional)" }
       // ({int a, int b})
-      | `(` named:parameters.named `)` { "($named)" }
+      | `(` named:parameters.named `)`
+          { "($named)" }
       // ([int a, int b])
-      | `(` optional:parameters.optional `)` { "($optional)" }
+      | `(` optional:parameters.optional `)`
+          { "($optional)" }
       // ()
-      | `(` `)` { "()" }
+      | `(` `)`
+          { "()" }
       ;
 
     @rule {

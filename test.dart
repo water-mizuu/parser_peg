@@ -5,15 +5,14 @@
 
 import "dart:collection";
 import "dart:math" as math;
+
+import "package:parser_peg/src/generator.dart";
 // PREAMBLE
 import "package:parser_peg/src/node.dart";
-import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
 
-final _regexps = (
-  from: RegExp(r"\bfrom\b"),
-  to: RegExp(r"\bto\b"),
-);
+final _regexps = (from: RegExp(r"\bfrom\b"), to: RegExp(r"\bto\b"));
+
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -123,7 +122,9 @@ abstract base class _PegParser<R extends Object> {
       involvedSet: <_Rule<void>>{},
     );
 
-    for (_Lr<void> lr in _lrStack.takeWhile((_Lr<void> lr) => lr.head != l.head)) {
+    for (_Lr<void> lr in _lrStack.takeWhile(
+      (_Lr<void> lr) => lr.head != l.head,
+    )) {
       l.head!.involvedSet.add(lr.rule);
       lr.head = l.head;
     }
@@ -149,7 +150,8 @@ abstract base class _PegParser<R extends Object> {
 
     if (isReported) {
       (failures[pos] ??= <String>{}).addAll(<String>[
-        for (var (int start, int end) in ranges) "${String.fromCharCode(start)}-${String.fromCharCode(end)}",
+        for (var (int start, int end) in ranges)
+          "${String.fromCharCode(start)}-${String.fromCharCode(end)}",
       ]);
     }
   }
@@ -161,7 +163,10 @@ abstract base class _PegParser<R extends Object> {
       return value;
     }
 
-    if (pattern.matchAsPrefix(this.buffer, this.pos) case Match(:int start, :int end)) {
+    if (pattern.matchAsPrefix(this.buffer, this.pos) case Match(
+      :int start,
+      :int end,
+    )) {
       String result = buffer.substring(start, end);
       _patternMemo[(pattern, start)] = (end, result);
       this.pos = end;
@@ -194,27 +199,30 @@ abstract base class _PegParser<R extends Object> {
   }
 
   String reportFailures() {
-    var MapEntry<int, Set<String>>(
-      key: int pos,
-      value: Set<String> messages,
-    ) = failures.entries.last;
+    var MapEntry<int, Set<String>>(key: int pos, value: Set<String> messages) =
+        failures.entries.last;
     var (int column, int row) = _columnRow(buffer, pos);
 
     return "($column:$row): Expected the following: $messages";
   }
 
-  static final (RegExp, RegExp) whitespaceRegExp = (RegExp(r"\s"), RegExp(r"(?!\n)\s"));
+  static final (RegExp, RegExp) whitespaceRegExp = (
+    RegExp(r"\s"),
+    RegExp(r"(?!\n)\s"),
+  );
 
   final Map<int, Set<String>> failures = <int, Set<String>>{};
   final Map<int, _Head<void>> _heads = <int, _Head<void>>{};
   final Queue<_Lr<void>> _lrStack = DoubleLinkedQueue<_Lr<void>>();
   final Map<(_Rule<void>, int), _Memo> _memo = <(_Rule<void>, int), _Memo>{};
-  final Map<(Pattern, int), (int, String)> _patternMemo = <(Pattern, int), (int, String)>{};
+  final Map<(Pattern, int), (int, String)> _patternMemo =
+      <(Pattern, int), (int, String)>{};
 
   late String buffer;
   int pos = 0;
 
-  R? parse(String buffer) => (
+  R? parse(String buffer) =>
+      (
         this
           ..buffer = buffer
           ..reset(),
@@ -242,11 +250,7 @@ class _Head<T extends Object> {
 }
 
 class _Lr<T extends Object> {
-  _Lr({
-    required this.seed,
-    required this.rule,
-    required this.head,
-  });
+  _Lr({required this.seed, required this.rule, required this.head});
 
   final _Rule<T> rule;
   T? seed;
@@ -266,7 +270,6 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
 
   @override
   get start => r0;
-
 
   /// `global::type`
   String? f0() {
@@ -2522,7 +2525,10 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
             }
             if (this.ft() case _) {
               if (this.pos >= this.buffer.length) {
-                return ParserGenerator.fromParsed(preamble: preamble, statements: statements);
+                return ParserGenerator.fromParsed(
+                  preamble: preamble,
+                  statements: statements,
+                );
               }
             }
           }
@@ -2580,7 +2586,11 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                   }
                 }
                 if (this.fj() case _?) {
-                  return NamespaceStatement(name, statements, tag: Tag.fragment);
+                  return NamespaceStatement(
+                    name,
+                    statements,
+                    tag: Tag.fragment,
+                  );
                 }
               }
             }
@@ -2673,7 +2683,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.fd() case _) {
           if (this.f2() case var name?) {
             if (this.f4() case var body?) {
-              return DeclarationStatement(null, name, body, tag: decorator);
+              return DeclarationStatement(null, [name], body, tag: decorator);
             }
           }
         }
@@ -2683,7 +2693,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.f0() case var type?) {
           if (this.f2() case var name?) {
             if (this.f4() case var body?) {
-              return DeclarationStatement(type, name, body, tag: decorator);
+              return DeclarationStatement(type, [name], body, tag: decorator);
             }
           }
         }
@@ -2695,7 +2705,12 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
             if (this.fx() case _?) {
               if (this.f0() case var type?) {
                 if (this.f4() case var body?) {
-                  return DeclarationStatement(type, name, body, tag: decorator);
+                  return DeclarationStatement(
+                    type,
+                    [name],
+                    body,
+                    tag: decorator,
+                  );
                 }
               }
             }
@@ -2739,10 +2754,12 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                 if (this.ft() case _) {
                   if (this.pos case var to) {
                     return InlineActionNode(
-                          sequence,
-                          code.trimRight(),
-                          areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
-                        );
+                      sequence,
+                      code.trimRight(),
+                      areIndicesProvided:
+                          code.contains(_regexps.from) &&
+                          code.contains(_regexps.to),
+                    );
                   }
                 }
               }
@@ -2760,10 +2777,12 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                 if (this.ft() case _) {
                   if (this.pos case var to) {
                     return InlineActionNode(
-                          sequence,
-                          raw.trimRight(),
-                          areIndicesProvided: raw.contains(_regexps.from) && raw.contains(_regexps.to),
-                        );
+                      sequence,
+                      raw.trimRight(),
+                      areIndicesProvided:
+                          raw.contains(_regexps.from) &&
+                          raw.contains(_regexps.to),
+                    );
                   }
                 }
               }
@@ -2782,10 +2801,12 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                   if (this.fj() case _?) {
                     if (this.pos case var to) {
                       return InlineActionNode(
-                            sequence,
-                            curly.trimRight(),
-                            areIndicesProvided: curly.contains(_regexps.from) && curly.contains(_regexps.to),
-                          );
+                        sequence,
+                        curly.trimRight(),
+                        areIndicesProvided:
+                            curly.contains(_regexps.from) &&
+                            curly.contains(_regexps.to),
+                      );
                     }
                   }
                 }
@@ -2807,10 +2828,12 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                       if (this.fj() case _?) {
                         if (this.pos case var to) {
                           return ActionNode(
-                                sequence,
-                                curly.trimRight(),
-                                areIndicesProvided: curly.contains(_regexps.from) && curly.contains(_regexps.to),
-                              );
+                            sequence,
+                            curly.trimRight(),
+                            areIndicesProvided:
+                                curly.contains(_regexps.from) &&
+                                curly.contains(_regexps.to),
+                          );
                         }
                       }
                     }
@@ -2846,7 +2869,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
           }
         }
         if (this.f10() case var chosen) {
-          return body.length == 1 ? body.single : SequenceNode(body, chosenIndex: chosen);
+          return body.length == 1
+              ? body.single
+              : SequenceNode(body, chosenIndex: chosen);
         }
       }
     }
@@ -2894,9 +2919,12 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.f3() case var id?) {
           if (this.fn() case _?) {
             return switch ((id, id.split(ParserGenerator.separator))) {
-                  (var ref, [..., var name]) => NamedNode(name, OptionalNode(ReferenceNode(ref))),
-                  _ => null,
-                };
+              (var ref, [..., var name]) => NamedNode(
+                name,
+                OptionalNode(ReferenceNode(ref)),
+              ),
+              _ => null,
+            };
           }
         }
       }
@@ -2905,9 +2933,12 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.f3() case var id?) {
           if (this.fo() case _?) {
             return switch ((id, id.split(ParserGenerator.separator))) {
-                  (var ref, [..., var name]) => NamedNode(name, StarNode(ReferenceNode(ref))),
-                  _ => null,
-                };
+              (var ref, [..., var name]) => NamedNode(
+                name,
+                StarNode(ReferenceNode(ref)),
+              ),
+              _ => null,
+            };
           }
         }
       }
@@ -2916,9 +2947,12 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.f3() case var id?) {
           if (this.fp() case _?) {
             return switch ((id, id.split(ParserGenerator.separator))) {
-                  (var ref, [..., var name]) => NamedNode(name, PlusNode(ReferenceNode(ref))),
-                  _ => null,
-                };
+              (var ref, [..., var name]) => NamedNode(
+                name,
+                PlusNode(ReferenceNode(ref)),
+              ),
+              _ => null,
+            };
           }
         }
       }
@@ -2926,9 +2960,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$29) case _?) {
         if (this.f3() case var id?) {
           return switch ((id, id.split(ParserGenerator.separator))) {
-                (var ref, [..., var name]) => NamedNode(name, ReferenceNode(ref)),
-                _ => null,
-              };
+            (var ref, [..., var name]) => NamedNode(name, ReferenceNode(ref)),
+            _ => null,
+          };
         }
       }
       this.pos = mark;
@@ -3046,7 +3080,10 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.f13() case var $0?) {
         if (this.apply(this.rc) case var $1?) {
           if ($1 case var $) {
-            return SequenceNode([NotPredicateNode($), const AnyCharacterNode()], chosenIndex: 1);
+            return SequenceNode([
+              NotPredicateNode($),
+              const AnyCharacterNode(),
+            ], chosenIndex: 1);
           }
         }
       }
@@ -3083,7 +3120,11 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
               if (this.fm() case _?) {
                 if (this.fl() case _?) {
                   if (this.pos case var to) {
-                    return InlineActionNode(target, "this.buffer.substring(from, to)", areIndicesProvided: true);
+                    return InlineActionNode(
+                      target,
+                      "this.buffer.substring(from, to)",
+                      areIndicesProvided: true,
+                    );
                   }
                 }
               }
@@ -3147,7 +3188,11 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                 if (this.fl() case _?) {
                   if (this.fp() case _?) {
                     if (this.fn() case _?) {
-                      return PlusSeparatedNode(sep, body, isTrailingAllowed: true);
+                      return PlusSeparatedNode(
+                        sep,
+                        body,
+                        isTrailingAllowed: true,
+                      );
                     }
                   }
                 }
@@ -3165,7 +3210,11 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                 if (this.fl() case _?) {
                   if (this.fo() case _?) {
                     if (this.fn() case _?) {
-                      return StarSeparatedNode(sep, body, isTrailingAllowed: true);
+                      return StarSeparatedNode(
+                        sep,
+                        body,
+                        isTrailingAllowed: true,
+                      );
                     }
                   }
                 }
@@ -3182,7 +3231,11 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
               if (this.apply(this.r5) case var body?) {
                 if (this.fl() case _?) {
                   if (this.fp() case _?) {
-                    return PlusSeparatedNode(sep, body, isTrailingAllowed: false);
+                    return PlusSeparatedNode(
+                      sep,
+                      body,
+                      isTrailingAllowed: false,
+                    );
                   }
                 }
               }
@@ -3198,7 +3251,11 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
               if (this.apply(this.r5) case var body?) {
                 if (this.fl() case _?) {
                   if (this.fo() case _?) {
-                    return StarSeparatedNode(sep, body, isTrailingAllowed: false);
+                    return StarSeparatedNode(
+                      sep,
+                      body,
+                      isTrailingAllowed: false,
+                    );
                   }
                 }
               }
@@ -3928,10 +3985,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
     RegExp("\\/{2}(?:(?!(?:(?:\\r?\\n)|(?:\$))).)*(?=(?:\\r?\\n)|(?:\$))"),
     RegExp("(?:\\/\\*(?:(?!\\*\\/).)*\\*\\/)"),
   );
-  static final _trie = (
-    Trie.from(["}",")","]"]),
-    Trie.from(["{","}"]),
-  );
+  static final _trie = (Trie.from(["}", ")", "]"]), Trie.from(["{", "}"]));
   static const _string = (
     "\\",
     "]",
@@ -3996,10 +4050,11 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
     "Function",
   );
   static const _range = (
-    { (97, 122), (65, 90), (48, 57), (95, 95), (36, 36) },
-    { (97, 122), (65, 90), (95, 95), (36, 36) },
+    {(97, 122), (65, 90), (48, 57), (95, 95), (36, 36)},
+    {(97, 122), (65, 90), (95, 95), (36, 36)},
   );
 }
+
 typedef _Union<A, B> = (A? a, B? b);
 typedef _Key<K> = _Union<K, Symbol>;
 
@@ -4013,7 +4068,10 @@ extension<R extends Object> on _PegParser<R> {
     }
 
     if (failures[pos] ??= <String>{} case Set<String> failures) {
-      trie._keys(trie._innerMap).map((List<String> v) => v.join()).forEach(failures.add);
+      trie
+          ._keys(trie._innerMap)
+          .map((List<String> v) => v.join())
+          .forEach(failures.add);
     }
     return null;
   }
@@ -4021,10 +4079,13 @@ extension<R extends Object> on _PegParser<R> {
 
 class Trie {
   Trie() : _innerMap = HashMap<_Key<String>, Object>();
-  factory Trie.from(Iterable<String> strings) => strings.fold(Trie(), (Trie t, String s) => t..add(s));
+  factory Trie.from(Iterable<String> strings) =>
+      strings.fold(Trie(), (Trie t, String s) => t..add(s));
   const Trie.complete(this._innerMap);
 
-  static final Symbol _safeGuard = Symbol(math.Random.secure().nextInt(32).toString());
+  static final Symbol _safeGuard = Symbol(
+    math.Random.secure().nextInt(32).toString(),
+  );
 
   final HashMap<_Key<String>, Object> _innerMap;
 
@@ -4035,9 +4096,9 @@ class Trie {
   }
 
   Trie? derive(String key) => switch (_innerMap[(key, null)]) {
-        HashMap<_Key<String>, Object> value => Trie.complete(value),
-        _ => null,
-      };
+    HashMap<_Key<String>, Object> value => Trie.complete(value),
+    _ => null,
+  };
 
   Trie? deriveAll(String value) => value //
       .split("")
@@ -4071,13 +4132,16 @@ class Trie {
   HashMap<_Key<String>, Object> _derived(List<String> keys) {
     HashMap<_Key<String>, Object> map = _innerMap;
     for (int i = 0; i < keys.length; ++i) {
-      map = map.putIfAbsent((keys[i], null), HashMap<_Key<String>, Object>.new) as HashMap<_Key<String>, Object>;
+      map =
+          map.putIfAbsent((keys[i], null), HashMap<_Key<String>, Object>.new)
+              as HashMap<_Key<String>, Object>;
     }
 
     return map;
   }
 
-  bool _set(List<String> keys, bool value) => _derived(keys)[(null, _safeGuard)] = value;
+  bool _set(List<String> keys, bool value) =>
+      _derived(keys)[(null, _safeGuard)] = value;
 
   Iterable<List<String>> _keys(HashMap<_Key<String>, Object> map) sync* {
     if (map.containsKey((null, _safeGuard))) {
@@ -4090,7 +4154,9 @@ class Trie {
 
       switch (map[(keys, null)]) {
         case HashMap<_Key<String>, Object> derivative:
-          yield* _keys(derivative).map((List<String> rest) => <String>[keys, ...rest]);
+          yield* _keys(
+            derivative,
+          ).map((List<String> rest) => <String>[keys, ...rest]);
         case null:
           yield <String>[keys];
       }

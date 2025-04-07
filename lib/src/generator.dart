@@ -88,15 +88,17 @@ final class ParserGenerator {
         switch (statement) {
           /// If it is a declaration:
           ///   rule declaration, fragment declaration, inline declaration
-          case DeclarationStatement(:var type, :var name, :var node, tag: var declaredTag):
-            var realName = [...prefix, name].join(separator);
-            var target = switch (declaredTag ?? tag) {
-              Tag.inline => inline,
-              Tag.fragment => fragments,
-              Tag.rule || null => rules,
-            };
+          case DeclarationStatement(:var type, :var names, :var node, tag: var declaredTag):
+            for (var name in names) {
+              var realName = [...prefix, name].join(separator);
+              var target = switch (declaredTag ?? tag) {
+                Tag.inline => inline,
+                Tag.fragment => fragments,
+                Tag.rule || null => rules,
+              };
 
-            target[realName] = (type, node);
+              target[realName] = (type, node);
+            }
 
           case NamespaceStatement(:var name?, :var children, tag: var declaredTag):
             for (var sub in children.reversed) {
@@ -120,17 +122,19 @@ final class ParserGenerator {
         var (statement, prefixes, tag) = stack.removeLast();
 
         switch (statement) {
-          case DeclarationStatement(:var type, :var name, :var node, tag: var declaredTag):
-            var realName = [...prefixes, name].join(separator);
-            var visitor = ResolveReferencesVisitor(realName, prefixes, rules, fragments, inline);
-            var resolvedNode = node.acceptSimpleVisitor(visitor);
+          case DeclarationStatement(:var type, :var names, :var node, tag: var declaredTag):
+            for (var name in names) {
+              var realName = [...prefixes, name].join(separator);
+              var visitor = ResolveReferencesVisitor(realName, prefixes, rules, fragments, inline);
+              var resolvedNode = node.acceptSimpleVisitor(visitor);
 
-            var target = switch (declaredTag ?? tag) {
-              Tag.inline => inline,
-              Tag.fragment => fragments,
-              Tag.rule || null => rules,
-            };
-            target[realName] = (type, resolvedNode);
+              var target = switch (declaredTag ?? tag) {
+                Tag.inline => inline,
+                Tag.fragment => fragments,
+                Tag.rule || null => rules,
+              };
+              target[realName] = (type, resolvedNode);
+            }
           case NamespaceStatement(:var name?, :var children, tag: var declaredTag):
             for (var sub in children.reversed) {
               stack.addLast((sub, [...prefixes, name], declaredTag ?? tag));
@@ -346,21 +350,21 @@ final class ParserGenerator {
     ///   }
     /// }
     NamespaceStatement("std", <Statement>[
-      DeclarationStatement.predefined("any", AnyCharacterNode()),
-      DeclarationStatement.predefined("epsilon", EpsilonNode()),
-      DeclarationStatement.predefined("start", StartOfInputNode(), type: "int"),
-      DeclarationStatement.predefined("end", EndOfInputNode(), type: "int"),
-      DeclarationStatement.predefined("whitespace", RegExpNode(r"\s")),
-      DeclarationStatement.predefined("digit", RegExpNode(r"\d")),
-      DeclarationStatement.predefined("hex", RegExpNode("[0-9A-Fa-f]")),
+      DeclarationStatement.predefined(["any"], AnyCharacterNode()),
+      DeclarationStatement.predefined(["epsilon"], EpsilonNode()),
+      DeclarationStatement.predefined(["start"], StartOfInputNode(), type: "int"),
+      DeclarationStatement.predefined(["end"], EndOfInputNode(), type: "int"),
+      DeclarationStatement.predefined(["whitespace"], RegExpNode(r"\s")),
+      DeclarationStatement.predefined(["digit"], RegExpNode(r"\d")),
+      DeclarationStatement.predefined(["hex"], RegExpNode("[0-9A-Fa-f]")),
       NamespaceStatement.predefined("hex", <Statement>[
-        DeclarationStatement.predefined("lower", RegExpNode("[0-9a-f]")),
-        DeclarationStatement.predefined("upper", RegExpNode("[0-9A-F]")),
+        DeclarationStatement.predefined(["lower"], RegExpNode("[0-9a-f]")),
+        DeclarationStatement.predefined(["upper"], RegExpNode("[0-9A-F]")),
       ]),
-      DeclarationStatement.predefined("alpha", RegExpNode("[a-zA-Z]")),
+      DeclarationStatement.predefined(["alpha"], RegExpNode("[a-zA-Z]")),
       NamespaceStatement.predefined("alpha", <Statement>[
-        DeclarationStatement.predefined("lower", RegExpNode("[a-z]")),
-        DeclarationStatement.predefined("upper", RegExpNode("[A-Z]")),
+        DeclarationStatement.predefined(["lower"], RegExpNode("[a-z]")),
+        DeclarationStatement.predefined(["upper"], RegExpNode("[A-Z]")),
       ]),
     ], tag: Tag.inline),
   ];

@@ -8,6 +8,7 @@ analyzer:
     - lib/*.*.dart
     - bin/**/*.*.dart
     - bin/*.*.dart
+    - "*.dart_grammar"
     - "**/*.dart_grammar"
   errors:
     pattern_never_matches_value_type: error

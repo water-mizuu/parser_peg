@@ -50,22 +50,16 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
   Node visitSequenceNode(SequenceNode node, int depth) {
     if (depth > 0) {
       return createFragment(
-        SequenceNode(
-          [
-            for (Node child in node.children) //
-              child.acceptParametrizedVisitor(this, 1),
-          ],
-          chosenIndex: node.chosenIndex,
-        ),
+        SequenceNode([
+          for (Node child in node.children) //
+            child.acceptParametrizedVisitor(this, 1),
+        ], chosenIndex: node.chosenIndex),
       );
     } else {
-      return SequenceNode(
-        [
-          for (Node child in node.children) //
-            child.acceptParametrizedVisitor(this, depth + 1),
-        ],
-        chosenIndex: node.chosenIndex,
-      );
+      return SequenceNode([
+        for (Node child in node.children) //
+          child.acceptParametrizedVisitor(this, depth + 1),
+      ], chosenIndex: node.chosenIndex);
     }
   }
 
@@ -75,39 +69,38 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
     if (stringNodes.length < 2) {
       if (depth > 0) {
         return createFragment(
-          ChoiceNode(
-            [for (var child in node.children) child.acceptParametrizedVisitor(this, 0)],
-          ),
+          ChoiceNode([for (var child in node.children) child.acceptParametrizedVisitor(this, 0)]),
         );
       } else {
-        return ChoiceNode(
-          [for (var child in node.children) child.acceptParametrizedVisitor(this, depth)],
-        );
+        return ChoiceNode([
+          for (var child in node.children) child.acceptParametrizedVisitor(this, depth),
+        ]);
       }
     } else {
-      var strings = stringNodes //
-          .map((node) => node.literal)
-          .toList();
-      var notStrings = node.children //
-          .where((node) => node is! StringLiteralNode)
-          .toList();
+      var strings =
+          stringNodes //
+              .map((node) => node.literal)
+              .toList();
+      var notStrings =
+          node
+              .children //
+              .where((node) => node is! StringLiteralNode)
+              .toList();
 
       if (notStrings.isEmpty) {
         return TriePatternNode(strings).acceptParametrizedVisitor(this, depth);
       } else {
-        return ChoiceNode(<Node>[...notStrings, TriePatternNode(strings)])
-            .acceptParametrizedVisitor(this, depth);
+        return ChoiceNode(<Node>[
+          ...notStrings,
+          TriePatternNode(strings),
+        ]).acceptParametrizedVisitor(this, depth);
       }
     }
   }
 
   @override
   Node visitCountedNode(CountedNode node, int depth) {
-    return CountedNode(
-      node.min,
-      node.max,
-      node.child.acceptParametrizedVisitor(this, depth + 1),
-    );
+    return CountedNode(node.min, node.max, node.child.acceptParametrizedVisitor(this, depth + 1));
   }
 
   @override

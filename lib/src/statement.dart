@@ -1,10 +1,6 @@
 import "package:parser_peg/src/node.dart";
 
-enum Tag {
-  rule,
-  fragment,
-  inline,
-}
+enum Tag { rule, fragment, inline }
 
 sealed class Statement {}
 
@@ -18,11 +14,11 @@ final class NamespaceStatement implements Statement {
 }
 
 final class DeclarationStatement implements Statement {
-  const DeclarationStatement(this.type, this.name, this.node, {required this.tag});
-  const DeclarationStatement.predefined(this.name, this.node, {this.type = "String"}) : tag = null;
+  const DeclarationStatement(this.type, this.names, this.node, {required this.tag});
+  const DeclarationStatement.predefined(this.names, this.node, {this.type = "String"}) : tag = null;
 
   final String? type;
-  final String name;
+  final List<String> names;
   final Node node;
   final Tag? tag;
 }

@@ -59,14 +59,18 @@ class CanInlineVisitor implements SimpleNodeVisitor<bool> {
   bool visitSequenceNode(SequenceNode node) {
     if (_cache[node] case bool b) return b;
 
-    return _cache[node] = node.children.every((Node child) => child.acceptSimpleVisitor<bool>(this));
+    return _cache[node] = node.children.every(
+      (Node child) => child.acceptSimpleVisitor<bool>(this),
+    );
   }
 
   @override
   bool visitChoiceNode(ChoiceNode node) {
     if (_cache[node] case bool b) return b;
 
-    return _cache[node] = node.children.every((Node child) => child.acceptSimpleVisitor<bool>(this));
+    return _cache[node] = node.children.every(
+      (Node child) => child.acceptSimpleVisitor<bool>(this),
+    );
   }
 
   @override
@@ -140,7 +144,8 @@ class CanInlineVisitor implements SimpleNodeVisitor<bool> {
     if (_cache[node] case bool b) return b;
 
     _cache[node] = false;
-    _cache[node] = fragments[node.fragmentName]?.$2.acceptSimpleVisitor<bool>(this) ??
+    _cache[node] =
+        fragments[node.fragmentName]?.$2.acceptSimpleVisitor<bool>(this) ??
         inline[node.fragmentName]?.$2.acceptSimpleVisitor<bool>(this) ??
         false;
 

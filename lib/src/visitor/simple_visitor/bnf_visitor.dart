@@ -14,7 +14,8 @@ class ImperativeVisitor implements SimpleNodeVisitor<String> {
   String visitStringLiteralNode(StringLiteralNode node) => jsonEncode(node.literal);
 
   @override
-  String visitRangeNode(RangeNode node) => "[${node.ranges.map(((int, int) v) => "${v.$1}-${v.$2}").join()}}]";
+  String visitRangeNode(RangeNode node) =>
+      "[${node.ranges.map(((int, int) v) => "${v.$1}-${v.$2}").join()}}]";
 
   @override
   String visitRegExpNode(RegExpNode node) => "/${node.value}/";
@@ -23,26 +24,31 @@ class ImperativeVisitor implements SimpleNodeVisitor<String> {
   String visitRegExpEscapeNode(RegExpEscapeNode node) => node.pattern;
 
   @override
-  String visitSequenceNode(SequenceNode node) => node.children //
+  String visitSequenceNode(SequenceNode node) => node
+      .children //
       .map((Node child) => child.acceptSimpleVisitor(this).delimit())
       .join(" ");
 
   @override
-  String visitChoiceNode(ChoiceNode node) => node.children //
+  String visitChoiceNode(ChoiceNode node) => node
+      .children //
       .map((Node child) => child.acceptSimpleVisitor(this).delimit())
       .join(" | ");
 
   @override
-  String visitCountedNode(CountedNode node) => "${node.min}..${node.max}"
+  String visitCountedNode(CountedNode node) =>
+      "${node.min}..${node.max}"
       ".${node.child.acceptSimpleVisitor(this).delimit()}";
 
   @override
-  String visitPlusSeparatedNode(PlusSeparatedNode node) => "${node.separator.acceptSimpleVisitor(this).delimit()}."
+  String visitPlusSeparatedNode(PlusSeparatedNode node) =>
+      "${node.separator.acceptSimpleVisitor(this).delimit()}."
       "${node.child.acceptSimpleVisitor(this).delimit()}+"
       "${node.isTrailingAllowed ? "?" : ""}";
 
   @override
-  String visitStarSeparatedNode(StarSeparatedNode node) => "${node.separator.acceptSimpleVisitor(this).delimit()}."
+  String visitStarSeparatedNode(StarSeparatedNode node) =>
+      "${node.separator.acceptSimpleVisitor(this).delimit()}."
       "${node.child.acceptSimpleVisitor(this).delimit()}*"
       "${node.isTrailingAllowed ? "?" : ""}";
 
@@ -53,13 +59,16 @@ class ImperativeVisitor implements SimpleNodeVisitor<String> {
   String visitStarNode(StarNode node) => "${node.child.acceptSimpleVisitor(this).delimit()}*";
 
   @override
-  String visitAndPredicateNode(AndPredicateNode node) => "&${node.child.acceptSimpleVisitor(this).delimit()}";
+  String visitAndPredicateNode(AndPredicateNode node) =>
+      "&${node.child.acceptSimpleVisitor(this).delimit()}";
 
   @override
-  String visitNotPredicateNode(NotPredicateNode node) => "!${node.child.acceptSimpleVisitor(this).delimit()}";
+  String visitNotPredicateNode(NotPredicateNode node) =>
+      "!${node.child.acceptSimpleVisitor(this).delimit()}";
 
   @override
-  String visitOptionalNode(OptionalNode node) => "${node.child.acceptSimpleVisitor(this).delimit()}?";
+  String visitOptionalNode(OptionalNode node) =>
+      "${node.child.acceptSimpleVisitor(this).delimit()}?";
 
   @override
   String visitReferenceNode(ReferenceNode node) => node.ruleName;
@@ -68,13 +77,16 @@ class ImperativeVisitor implements SimpleNodeVisitor<String> {
   String visitFragmentNode(FragmentNode node) => node.fragmentName;
 
   @override
-  String visitNamedNode(NamedNode node) => "${node.name}:${node.child.acceptSimpleVisitor(this).delimit()}";
+  String visitNamedNode(NamedNode node) =>
+      "${node.name}:${node.child.acceptSimpleVisitor(this).delimit()}";
 
   @override
-  String visitActionNode(ActionNode node) => "${node.child.acceptSimpleVisitor(this).delimit()} (){ ... }";
+  String visitActionNode(ActionNode node) =>
+      "${node.child.acceptSimpleVisitor(this).delimit()} (){ ... }";
 
   @override
-  String visitInlineActionNode(InlineActionNode node) => "${node.child.acceptSimpleVisitor(this).delimit()} { ... }";
+  String visitInlineActionNode(InlineActionNode node) =>
+      "${node.child.acceptSimpleVisitor(this).delimit()} { ... }";
 
   @override
   String visitStartOfInputNode(StartOfInputNode node) => "^";

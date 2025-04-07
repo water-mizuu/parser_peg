@@ -1,4 +1,4 @@
-// ignore_for_file: always_declare_return_types, always_put_control_body_on_new_line, always_specify_types, avoid_escaping_inner_quotes, avoid_redundant_argument_values, annotate_overrides, body_might_complete_normally_nullable, constant_pattern_never_matches_value_type, curly_braces_in_flow_control_structures, dead_code, directives_ordering, duplicate_ignore, inference_failure_on_function_return_type, constant_identifier_names, prefer_function_declarations_over_variables, prefer_interpolation_to_compose_strings, prefer_is_empty, no_leading_underscores_for_local_identifiers, non_constant_identifier_names, unnecessary_null_check_pattern, unnecessary_brace_in_string_interps, unnecessary_string_interpolations, unnecessary_this, unused_element, unused_import, prefer_double_quotes, unused_local_variable, unreachable_from_main, use_raw_strings, type_annotate_public_apis
+// ignore_for_file: type=lint, body_might_complete_normally_nullable, unused_local_variable, inference_failure_on_function_return_type, unused_import, duplicate_ignore
 
 // imports
 // ignore_for_file: collection_methods_unrelated_type
@@ -109,15 +109,9 @@ abstract base class _PegParser<R extends Object> {
   }
 
   void _setupLr<T extends Object>(_Rule<T> r, _Lr<void> l) {
-    l.head ??= _Head<T>(
-      rule: r,
-      evalSet: <_Rule<void>>{},
-      involvedSet: <_Rule<void>>{},
-    );
+    l.head ??= _Head<T>(rule: r, evalSet: <_Rule<void>>{}, involvedSet: <_Rule<void>>{});
 
-    for (_Lr<void> lr in _lrStack.takeWhile(
-      (_Lr<void> lr) => lr.head != l.head,
-    )) {
+    for (_Lr<void> lr in _lrStack.takeWhile((_Lr<void> lr) => lr.head != l.head)) {
       l.head!.involvedSet.add(lr.rule);
       lr.head = l.head;
     }
@@ -151,9 +145,17 @@ abstract base class _PegParser<R extends Object> {
 
   // ignore: body_might_complete_normally_nullable
   String? matchPattern(Pattern pattern, {bool isReported = true}) {
-    if (pattern.matchAsPrefix(buffer, pos) case Match(:int start, :int end)) {
+    if (_patternMemo[(pattern, this.pos)] case (int pos, String value)) {
+      this.pos = pos;
+      return value;
+    }
+
+    if (pattern.matchAsPrefix(this.buffer, this.pos) case Match(:int start, :int end)) {
+      String result = buffer.substring(start, end);
+      _patternMemo[(pattern, start)] = (end, result);
       this.pos = end;
-      return buffer.substring(start, end);
+
+      return result;
     }
 
     if (isReported) {
@@ -168,8 +170,11 @@ abstract base class _PegParser<R extends Object> {
 
   void reset() {
     this.pos = 0;
-    this._memo.clear();
+    this.failures.clear();
+    this._heads.clear();
     this._lrStack.clear();
+    this._memo.clear();
+    this._patternMemo.clear();
   }
 
   static (int column, int row) _columnRow(String buffer, int pos) {
@@ -185,15 +190,13 @@ abstract base class _PegParser<R extends Object> {
     return "($column:$row): Expected the following: $messages";
   }
 
-  static final (RegExp, RegExp) whitespaceRegExp = (
-    RegExp(r"\s"),
-    RegExp(r"(?!\n)\s"),
-  );
+  static final (RegExp, RegExp) whitespaceRegExp = (RegExp(r"\s"), RegExp(r"(?!\n)\s"));
 
   final Map<int, Set<String>> failures = <int, Set<String>>{};
   final Map<int, _Head<void>> _heads = <int, _Head<void>>{};
   final Queue<_Lr<void>> _lrStack = DoubleLinkedQueue<_Lr<void>>();
   final Map<(_Rule<void>, int), _Memo> _memo = <(_Rule<void>, int), _Memo>{};
+  final Map<(Pattern, int), (int, String)> _patternMemo = <(Pattern, int), (int, String)>{};
 
   late String buffer;
   int pos = 0;
@@ -208,14 +211,15 @@ abstract base class _PegParser<R extends Object> {
   _Rule<R> get start;
 }
 
+extension NullableExtension<T extends Object> on T {
+  @pragma("vm:prefer-inline")
+  T? asNullable() => this;
+}
+
 typedef _Rule<T extends Object> = T? Function();
 
 class _Head<T extends Object> {
-  const _Head({
-    required this.rule,
-    required this.involvedSet,
-    required this.evalSet,
-  });
+  const _Head({required this.rule, required this.involvedSet, required this.evalSet});
   final _Rule<T> rule;
   final Set<_Rule<void>> involvedSet;
   final Set<_Rule<void>> evalSet;
@@ -237,53 +241,26 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class PlaygroundParser extends _PegParser<Object> {
-  PlaygroundParser();
+final class Parser extends _PegParser<Object> {
+  Parser();
 
   @override
   get start => r0;
 
   /// `ROOT`
-  Object? f0() {
+  late final f0 = () {
     if (this.apply(this.r0) case var $?) {
       return $;
     }
-  }
+  };
 
-  /// `global::S`
-  Object? f1() {
-    if (this.pos case var mark) {
-      if (this.f1() case _?) {
-        if (matchPattern(_regexp.$1) case var $1?) {
-          if (pos < buffer.length) {
-            if (buffer[pos] case _) {
-              pos++;
-              if (matchPattern(_regexp.$1) case _?) {
-                return $1;
-              }
-            }
-          }
-        }
-      }
-      this.pos = mark;
-      if (pos < buffer.length) {
-        if (buffer[pos] case var $) {
-          pos++;
-          return $;
-        }
+  /// `global::expr`
+  late final r0 = () {
+    if (this.pos < this.buffer.length) {
+      if (this.buffer[this.pos] case var $) {
+        this.pos++;
+        return ();
       }
     }
-  }
-
-  /// `global::main`
-  Object? r0() {
-    if (this.matchPattern(_string.$1) case var $0?) {
-      if (this.f1() case var $1?) {
-        return ($0, $1);
-      }
-    }
-  }
-
-  static final _regexp = (RegExp("\\s"),);
-  static const _string = ("Hi",);
+  };
 }

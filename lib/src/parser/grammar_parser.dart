@@ -5,9 +5,10 @@
 
 import "dart:collection";
 import "dart:math" as math;
+
+import "package:parser_peg/src/generator.dart";
 // PREAMBLE
 import "package:parser_peg/src/node.dart";
-import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
 
 final _regexps = (from: RegExp(r"\bfrom\b"), to: RegExp(r"\bto\b"));
@@ -2507,7 +2508,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.fd() case _) {
           if (this.f2() case var name?) {
             if (this.f4() case var body?) {
-              return DeclarationStatement(null, name, body, tag: decorator);
+              return DeclarationStatement(null, [name], body, tag: decorator);
             }
           }
         }
@@ -2517,7 +2518,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.f0() case var type?) {
           if (this.f2() case var name?) {
             if (this.f4() case var body?) {
-              return DeclarationStatement(type, name, body, tag: decorator);
+              return DeclarationStatement(type, [name], body, tag: decorator);
             }
           }
         }
@@ -2529,7 +2530,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
             if (this.fx() case _?) {
               if (this.f0() case var type?) {
                 if (this.f4() case var body?) {
-                  return DeclarationStatement(type, name, body, tag: decorator);
+                  return DeclarationStatement(type, [name], body, tag: decorator);
                 }
               }
             }

@@ -5,15 +5,14 @@
 
 import "dart:collection";
 import "dart:math" as math;
+
+import "package:parser_peg/src/generator.dart";
 // PREAMBLE
 import "package:parser_peg/src/node.dart";
-import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
 
-final _regexps = (
-  from: RegExp(r"\bfrom\b"),
-  to: RegExp(r"\bto\b"),
-);
+final _regexps = (from: RegExp(r"\bfrom\b"), to: RegExp(r"\bto\b"));
+
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -117,11 +116,7 @@ abstract base class _PegParser<R extends Object> {
   }
 
   void _setupLr<T extends Object>(_Rule<T> r, _Lr<void> l) {
-    l.head ??= _Head<T>(
-      rule: r,
-      evalSet: <_Rule<void>>{},
-      involvedSet: <_Rule<void>>{},
-    );
+    l.head ??= _Head<T>(rule: r, evalSet: <_Rule<void>>{}, involvedSet: <_Rule<void>>{});
 
     for (_Lr<void> lr in _lrStack.takeWhile((_Lr<void> lr) => lr.head != l.head)) {
       l.head!.involvedSet.add(lr.rule);
@@ -149,7 +144,8 @@ abstract base class _PegParser<R extends Object> {
 
     if (isReported) {
       (failures[pos] ??= <String>{}).addAll(<String>[
-        for (var (int start, int end) in ranges) "${String.fromCharCode(start)}-${String.fromCharCode(end)}",
+        for (var (int start, int end) in ranges)
+          "${String.fromCharCode(start)}-${String.fromCharCode(end)}",
       ]);
     }
   }
@@ -194,10 +190,8 @@ abstract base class _PegParser<R extends Object> {
   }
 
   String reportFailures() {
-    var MapEntry<int, Set<String>>(
-      key: int pos,
-      value: Set<String> messages,
-    ) = failures.entries.last;
+    var MapEntry<int, Set<String>>(key: int pos, value: Set<String> messages) =
+        failures.entries.last;
     var (int column, int row) = _columnRow(buffer, pos);
 
     return "($column:$row): Expected the following: $messages";
@@ -214,7 +208,8 @@ abstract base class _PegParser<R extends Object> {
   late String buffer;
   int pos = 0;
 
-  R? parse(String buffer) => (
+  R? parse(String buffer) =>
+      (
         this
           ..buffer = buffer
           ..reset(),
@@ -231,22 +226,14 @@ extension NullableExtension<T extends Object> on T {
 typedef _Rule<T extends Object> = T? Function();
 
 class _Head<T extends Object> {
-  const _Head({
-    required this.rule,
-    required this.involvedSet,
-    required this.evalSet,
-  });
+  const _Head({required this.rule, required this.involvedSet, required this.evalSet});
   final _Rule<T> rule;
   final Set<_Rule<void>> involvedSet;
   final Set<_Rule<void>> evalSet;
 }
 
 class _Lr<T extends Object> {
-  _Lr({
-    required this.seed,
-    required this.rule,
-    required this.head,
-  });
+  _Lr({required this.seed, required this.rule, required this.head});
 
   final _Rule<T> rule;
   T? seed;
@@ -267,13 +254,12 @@ final class CstGrammarParser extends _PegParser<Object> {
   @override
   get start => r0;
 
-
   /// `global::type`
   Object? f0() {
     if (this.pos case var mark) {
-      if (this.fo() case var $0) {
-        if (this.f2b() case var $1?) {
-          if (this.fo() case var $2) {
+      if (this.fp() case var $0) {
+        if (this.f2c() case var $1?) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<type>", $);
             }
@@ -290,12 +276,12 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::namespaceReference`
   Object f1() {
     if (this.pos case var mark) {
-      if (this.f2e() case var _0) {
+      if (this.f2f() case var _0) {
         if ([if (_0 case var _0?) _0] case (var $ && var _l1)) {
           if (_l1.isNotEmpty) {
             for (;;) {
               if (this.pos case var mark) {
-                if (this.f2e() case var _0?) {
+                if (this.f2f() case var _0?) {
                   _l1.add(_0);
                   continue;
                 }
@@ -315,10 +301,26 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::name`
   Object? f2() {
     if (this.pos case var mark) {
-      if (this.f1() case var $0) {
-        if (this.f2g() case var $1?) {
-          if ([$0, $1] case var $) {
-            return ("<name>", $);
+      if (this.fi() case var $0?) {
+        if (this.f3() case var _0?) {
+          if ([_0] case (var $1 && var _l1)) {
+            for (;;) {
+              if (this.pos case var mark) {
+                if (this.fm() case _?) {
+                  if (this.f3() case var _0?) {
+                    _l1.add(_0);
+                    continue;
+                  }
+                }
+                this.pos = mark;
+                break;
+              }
+            }
+            if (this.fh() case var $2?) {
+              if ([$0, $1, $2] case var $) {
+                return ("<name>", $);
+              }
+            }
           }
         }
       }
@@ -329,10 +331,27 @@ final class CstGrammarParser extends _PegParser<Object> {
     }
   }
 
-  /// `global::namespacedIdentifier`
+  /// `global::singleName`
   Object? f3() {
+    if (this.pos case var mark) {
+      if (this.f1() case var $0) {
+        if (this.f2h() case var $1?) {
+          if ([$0, $1] case var $) {
+            return ("<singleName>", $);
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.f4() case var $?) {
+        return ("<singleName>", $);
+      }
+    }
+  }
+
+  /// `global::namespacedIdentifier`
+  Object? f4() {
     if (this.f1() case var $0) {
-      if (this.f6() case var $1?) {
+      if (this.f7() case var $1?) {
         if ([$0, $1] case var $) {
           return ("<namespacedIdentifier>", $);
         }
@@ -341,10 +360,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::body`
-  Object? f4() {
-    if (this.f2h() case var $0?) {
+  Object? f5() {
+    if (this.f2i() case var $0?) {
       if (this.apply(this.r5) case var choice?) {
-        if (this.f2i() case var $2?) {
+        if (this.f2j() case var $2?) {
           if ([$0, choice, $2] case var $) {
             return ("<body>", $);
           }
@@ -354,7 +373,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::literal::range::atom`
-  Object? f5() {
+  Object? f6() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$1) case var $0?) {
         if (this.pos < this.buffer.length) {
@@ -384,7 +403,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::identifier`
-  Object? f6() {
+  Object? f7() {
     if (this.matchRange(_range.$2) case var $0?) {
       if (this.pos case var mark) {
         if (this.matchRange(_range.$1) case var _0) {
@@ -413,7 +432,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::number`
-  Object? f7() {
+  Object? f8() {
     if (matchPattern(_regexp.$1) case var _0?) {
       if ([_0] case (var $ && var _l1)) {
         for (;;) {
@@ -432,11 +451,11 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::kw::decorator`
-  Object? f8() {
+  Object? f9() {
     if (this.pos case var mark) {
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.matchPattern(_string.$3) case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<kw::decorator>", $);
             }
@@ -444,9 +463,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.matchPattern(_string.$4) case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<kw::decorator>", $);
             }
@@ -454,9 +473,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.matchPattern(_string.$5) case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<kw::decorator>", $);
             }
@@ -467,10 +486,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::kw::var`
-  Object? f9() {
-    if (this.fo() case var $0) {
+  Object? fa() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$6) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<kw::var>", $);
           }
@@ -480,10 +499,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::mac::range`
-  Object? fa() {
-    if (this.fo() case var $0) {
+  Object? fb() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$7) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<mac::range>", $);
           }
@@ -493,10 +512,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::mac::flat`
-  Object? fb() {
-    if (this.fo() case var $0) {
+  Object? fc() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$8) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<mac::flat>", $);
           }
@@ -506,10 +525,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::mac::sep`
-  Object? fc() {
-    if (this.fo() case var $0) {
+  Object? fd() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$9) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<mac::sep>", $);
           }
@@ -519,10 +538,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::..`
-  Object? fd() {
-    if (this.fo() case var $0) {
+  Object? fe() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$10) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<..>", $);
           }
@@ -532,10 +551,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::}`
-  Object? fe() {
-    if (this.fo() case var $0) {
+  Object? ff() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$11) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<}>", $);
           }
@@ -545,10 +564,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::{`
-  Object? ff() {
-    if (this.fo() case var $0) {
+  Object? fg() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$12) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<{>", $);
           }
@@ -558,10 +577,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::)`
-  Object? fg() {
-    if (this.fo() case var $0) {
+  Object? fh() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$13) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<)>", $);
           }
@@ -571,10 +590,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::(`
-  Object? fh() {
-    if (this.fo() case var $0) {
+  Object? fi() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$14) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<(>", $);
           }
@@ -584,10 +603,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::?`
-  Object? fi() {
-    if (this.fo() case var $0) {
+  Object? fj() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$15) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<?>", $);
           }
@@ -597,10 +616,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::*`
-  Object? fj() {
-    if (this.fo() case var $0) {
+  Object? fk() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$16) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<*>", $);
           }
@@ -610,10 +629,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::+`
-  Object? fk() {
-    if (this.fo() case var $0) {
+  Object? fl() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$17) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<+>", $);
           }
@@ -623,10 +642,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::,`
-  Object? fl() {
-    if (this.fo() case var $0) {
+  Object? fm() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$18) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<,>", $);
           }
@@ -636,10 +655,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::|`
-  Object? fm() {
-    if (this.fo() case var $0) {
+  Object? fn() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$19) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<|>", $);
           }
@@ -649,10 +668,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::.`
-  Object? fn() {
-    if (this.fo() case var $0) {
+  Object? fo() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$20) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<.>", $);
           }
@@ -662,14 +681,14 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::_`
-  Object fo() {
+  Object fp() {
     if (this.pos case var mark) {
-      if (this.f2j() case var _0) {
+      if (this.f2k() case var _0) {
         if ([if (_0 case var _0?) _0] case (var $ && var _l1)) {
           if (_l1.isNotEmpty) {
             for (;;) {
               if (this.pos case var mark) {
-                if (this.f2j() case var _0?) {
+                if (this.f2k() case var _0?) {
                   _l1.add(_0);
                   continue;
                 }
@@ -687,24 +706,24 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `ROOT`
-  Object? fp() {
+  Object? fq() {
     if (this.apply(this.r0) case var $?) {
       return ("<ROOT>", $);
     }
   }
 
   /// `global::dart::literal::string::body`
-  Object? fq() {
+  Object? fr() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$22) case var $0?) {
         if (this.matchPattern(_string.$21) case var $1?) {
           if (this.pos case var mark) {
-            if (this.f2k() case var _0) {
+            if (this.f2l() case var _0) {
               if ([if (_0 case var _0?) _0] case (var $2 && var _l1)) {
                 if (_l1.isNotEmpty) {
                   for (;;) {
                     if (this.pos case var mark) {
-                      if (this.f2k() case var _0?) {
+                      if (this.f2l() case var _0?) {
                         _l1.add(_0);
                         continue;
                       }
@@ -729,12 +748,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       if (this.matchPattern(_string.$22) case var $0?) {
         if (this.matchPattern(_string.$23) case var $1?) {
           if (this.pos case var mark) {
-            if (this.f2l() case var _2) {
+            if (this.f2m() case var _2) {
               if ([if (_2 case var _2?) _2] case (var $2 && var _l3)) {
                 if (_l3.isNotEmpty) {
                   for (;;) {
                     if (this.pos case var mark) {
-                      if (this.f2l() case var _2?) {
+                      if (this.f2m() case var _2?) {
                         _l3.add(_2);
                         continue;
                       }
@@ -759,12 +778,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       if (this.matchPattern(_string.$22) case var $0?) {
         if (this.matchPattern(_string.$24) case var $1?) {
           if (this.pos case var mark) {
-            if (this.f2m() case var _4) {
+            if (this.f2n() case var _4) {
               if ([if (_4 case var _4?) _4] case (var $2 && var _l5)) {
                 if (_l5.isNotEmpty) {
                   for (;;) {
                     if (this.pos case var mark) {
-                      if (this.f2m() case var _4?) {
+                      if (this.f2n() case var _4?) {
                         _l5.add(_4);
                         continue;
                       }
@@ -789,12 +808,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       if (this.matchPattern(_string.$22) case var $0?) {
         if (this.matchPattern(_string.$25) case var $1?) {
           if (this.pos case var mark) {
-            if (this.f2n() case var _6) {
+            if (this.f2o() case var _6) {
               if ([if (_6 case var _6?) _6] case (var $2 && var _l7)) {
                 if (_l7.isNotEmpty) {
                   for (;;) {
                     if (this.pos case var mark) {
-                      if (this.f2n() case var _6?) {
+                      if (this.f2o() case var _6?) {
                         _l7.add(_6);
                         continue;
                       }
@@ -818,12 +837,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       this.pos = mark;
       if (this.matchPattern(_string.$21) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f2o() case var _8) {
+          if (this.f2p() case var _8) {
             if ([if (_8 case var _8?) _8] case (var $1 && var _l9)) {
               if (_l9.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f2o() case var _8?) {
+                    if (this.f2p() case var _8?) {
                       _l9.add(_8);
                       continue;
                     }
@@ -846,12 +865,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       this.pos = mark;
       if (this.matchPattern(_string.$23) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f2p() case var _10) {
+          if (this.f2q() case var _10) {
             if ([if (_10 case var _10?) _10] case (var $1 && var _l11)) {
               if (_l11.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f2p() case var _10?) {
+                    if (this.f2q() case var _10?) {
                       _l11.add(_10);
                       continue;
                     }
@@ -874,12 +893,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       this.pos = mark;
       if (this.matchPattern(_string.$24) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f2q() case var _12) {
+          if (this.f2r() case var _12) {
             if ([if (_12 case var _12?) _12] case (var $1 && var _l13)) {
               if (_l13.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f2q() case var _12?) {
+                    if (this.f2r() case var _12?) {
                       _l13.add(_12);
                       continue;
                     }
@@ -902,12 +921,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       this.pos = mark;
       if (this.matchPattern(_string.$25) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f2r() case var _14) {
+          if (this.f2s() case var _14) {
             if ([if (_14 case var _14?) _14] case (var $1 && var _l15)) {
               if (_l15.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f2r() case var _14?) {
+                    if (this.f2s() case var _14?) {
                       _l15.add(_14);
                       continue;
                     }
@@ -931,7 +950,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `global::dart::literal::string::interpolation`
-  Object? fr() {
+  Object? fs() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$26) case var $0?) {
         if (this.matchPattern(_string.$12) case var $1?) {
@@ -956,10 +975,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment0`
-  Object? fs() {
-    if (this.fo() case var $0) {
+  Object? ft() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$27) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -969,10 +988,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment1`
-  Object? ft() {
-    if (this.fo() case var $0) {
+  Object? fu() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$28) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -982,10 +1001,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment2`
-  Object? fu() {
-    if (this.fo() case var $0) {
+  Object? fv() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$29) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -995,9 +1014,9 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment3`
-  Object? fv() {
-    if (this.fu() case var $0?) {
-      if (this.f7() case var $1?) {
+  Object? fw() {
+    if (this.fv() case var $0?) {
+      if (this.f8() case var $1?) {
         if ([$0, $1] case var $) {
           return $;
         }
@@ -1006,10 +1025,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment4`
-  Object? fw() {
-    if (this.fo() case var $0) {
+  Object? fx() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$30) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -1019,10 +1038,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment5`
-  Object? fx() {
-    if (this.fo() case var $0) {
+  Object? fy() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$31) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -1032,10 +1051,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment6`
-  Object? fy() {
-    if (this.fo() case var $0) {
+  Object? fz() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$32) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -1045,10 +1064,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment7`
-  Object? fz() {
-    if (this.fo() case var $0) {
+  Object? f10() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$33) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -1058,10 +1077,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment8`
-  Object? f10() {
-    if (this.fo() case var $0) {
+  Object? f11() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$34) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -1071,7 +1090,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment9`
-  Object? f11() {
+  Object? f12() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$1) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1082,7 +1101,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment10`
-  Object? f12() {
+  Object? f13() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$35) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1093,7 +1112,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment11`
-  Object? f13() {
+  Object? f14() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$36) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1104,7 +1123,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment12`
-  Object? f14() {
+  Object? f15() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$37) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1115,7 +1134,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment13`
-  Object? f15() {
+  Object? f16() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$35) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1126,7 +1145,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment14`
-  Object? f16() {
+  Object? f17() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$36) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1137,7 +1156,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment15`
-  Object? f17() {
+  Object? f18() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$37) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1148,7 +1167,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment16`
-  Object? f18() {
+  Object? f19() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$38) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1159,7 +1178,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment17`
-  Object? f19() {
+  Object? f1a() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$39) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1170,7 +1189,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment18`
-  Object? f1a() {
+  Object? f1b() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$22) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1181,7 +1200,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment19`
-  Object? f1b() {
+  Object? f1c() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$40) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1192,7 +1211,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment20`
-  Object? f1c() {
+  Object? f1d() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$41) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1203,7 +1222,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment21`
-  Object? f1d() {
+  Object? f1e() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$35) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1214,7 +1233,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment22`
-  Object? f1e() {
+  Object? f1f() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$36) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1225,7 +1244,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment23`
-  Object? f1f() {
+  Object? f1g() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$37) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1236,7 +1255,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment24`
-  Object? f1g() {
+  Object? f1h() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$39) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1247,7 +1266,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment25`
-  Object? f1h() {
+  Object? f1i() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$22) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1258,7 +1277,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment26`
-  Object? f1i() {
+  Object? f1j() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$38) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1269,7 +1288,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment27`
-  Object? f1j() {
+  Object? f1k() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$1) case var $1?) {
         if ([$0, $1] case var $) {
@@ -1280,26 +1299,16 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment28`
-  Object? f1k() {
+  Object? f1l() {
     if (this.pos case var mark) {
       if (this.pos case var mark) {
         if (this.matchPattern(_string.$42) case var $?) {
           return $;
         }
         this.pos = mark;
-        if (this.fo() case var $0) {
-          if (this.f1d() case var $1?) {
-            if (this.fo() case var $2) {
-              if ([$0, $1, $2] case var $) {
-                return $;
-              }
-            }
-          }
-        }
-        this.pos = mark;
-        if (this.fo() case var $0) {
+        if (this.fp() case var $0) {
           if (this.f1e() case var $1?) {
-            if (this.fo() case var $2) {
+            if (this.fp() case var $2) {
               if ([$0, $1, $2] case var $) {
                 return $;
               }
@@ -1307,9 +1316,9 @@ final class CstGrammarParser extends _PegParser<Object> {
           }
         }
         this.pos = mark;
-        if (this.fo() case var $0) {
+        if (this.fp() case var $0) {
           if (this.f1f() case var $1?) {
-            if (this.fo() case var $2) {
+            if (this.fp() case var $2) {
               if ([$0, $1, $2] case var $) {
                 return $;
               }
@@ -1317,9 +1326,9 @@ final class CstGrammarParser extends _PegParser<Object> {
           }
         }
         this.pos = mark;
-        if (this.fo() case var $0) {
+        if (this.fp() case var $0) {
           if (this.f1g() case var $1?) {
-            if (this.fo() case var $2) {
+            if (this.fp() case var $2) {
               if ([$0, $1, $2] case var $) {
                 return $;
               }
@@ -1327,9 +1336,9 @@ final class CstGrammarParser extends _PegParser<Object> {
           }
         }
         this.pos = mark;
-        if (this.fo() case var $0) {
+        if (this.fp() case var $0) {
           if (this.f1h() case var $1?) {
-            if (this.fo() case var $2) {
+            if (this.fp() case var $2) {
               if ([$0, $1, $2] case var $) {
                 return $;
               }
@@ -1337,9 +1346,9 @@ final class CstGrammarParser extends _PegParser<Object> {
           }
         }
         this.pos = mark;
-        if (this.fo() case var $0) {
+        if (this.fp() case var $0) {
           if (this.f1i() case var $1?) {
-            if (this.fo() case var $2) {
+            if (this.fp() case var $2) {
               if ([$0, $1, $2] case var $) {
                 return $;
               }
@@ -1347,9 +1356,19 @@ final class CstGrammarParser extends _PegParser<Object> {
           }
         }
         this.pos = mark;
-        if (this.fo() case var $0) {
+        if (this.fp() case var $0) {
           if (this.f1j() case var $1?) {
-            if (this.fo() case var $2) {
+            if (this.fp() case var $2) {
+              if ([$0, $1, $2] case var $) {
+                return $;
+              }
+            }
+          }
+        }
+        this.pos = mark;
+        if (this.fp() case var $0) {
+          if (this.f1k() case var $1?) {
+            if (this.fp() case var $2) {
               if ([$0, $1, $2] case var $) {
                 return $;
               }
@@ -1358,9 +1377,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.f5() case var l?) {
+      if (this.f6() case var l?) {
         if (this.matchPattern(_string.$43) case var $1?) {
-          if (this.f5() case var r?) {
+          if (this.f6() case var r?) {
             if ([l, $1, r] case var $) {
               return $;
             }
@@ -1368,22 +1387,22 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.f5() case var $?) {
+      if (this.f6() case var $?) {
         return $;
       }
     }
   }
 
   /// `fragment29`
-  Object? f1l() {
-    if (this.fo() case var $0) {
+  Object? f1m() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$44) case var $1?) {
-        if (this.f1k() case var _0?) {
+        if (this.f1l() case var _0?) {
           if ([_0] case (var elements && var _l1)) {
             for (;;) {
               if (this.pos case var mark) {
-                if (this.fo() case _) {
-                  if (this.f1k() case var _0?) {
+                if (this.fp() case _) {
+                  if (this.f1l() case var _0?) {
                     _l1.add(_0);
                     continue;
                   }
@@ -1393,7 +1412,7 @@ final class CstGrammarParser extends _PegParser<Object> {
               }
             }
             if (this.matchPattern(_string.$2) case var $3?) {
-              if (this.fo() case var $4) {
+              if (this.fp() case var $4) {
                 if ([$0, $1, elements, $3, $4] case var $) {
                   return $;
                 }
@@ -1406,7 +1425,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment30`
-  Object? f1m() {
+  Object? f1n() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$1) case var $0?) {
         if (this.pos < this.buffer.length) {
@@ -1436,12 +1455,12 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment31`
-  Object? f1n() {
-    if (this.f1m() case var _0?) {
+  Object? f1o() {
+    if (this.f1n() case var _0?) {
       if ([_0] case (var $ && var _l1)) {
         for (;;) {
           if (this.pos case var mark) {
-            if (this.f1m() case var _0?) {
+            if (this.f1n() case var _0?) {
               _l1.add(_0);
               continue;
             }
@@ -1455,7 +1474,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment32`
-  Object? f1o() {
+  Object? f1p() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$21) case (var $0 && null)) {
         this.pos = mark;
@@ -1472,7 +1491,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment33`
-  Object? f1p() {
+  Object? f1q() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$23) case (var $0 && null)) {
         this.pos = mark;
@@ -1489,7 +1508,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment34`
-  Object? f1q() {
+  Object? f1r() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$24) case (var $0 && null)) {
         this.pos = mark;
@@ -1506,7 +1525,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment35`
-  Object? f1r() {
+  Object? f1s() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$25) case (var $0 && null)) {
         this.pos = mark;
@@ -1523,7 +1542,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment36`
-  Object? f1s() {
+  Object? f1t() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$1) case var $0?) {
         if (this.pos < this.buffer.length) {
@@ -1553,7 +1572,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment37`
-  Object? f1t() {
+  Object? f1u() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$1) case var $0?) {
         if (this.pos < this.buffer.length) {
@@ -1583,7 +1602,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment38`
-  Object? f1u() {
+  Object? f1v() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$1) case var $0?) {
         if (this.pos < this.buffer.length) {
@@ -1613,7 +1632,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment39`
-  Object? f1v() {
+  Object? f1w() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$1) case var $0?) {
         if (this.pos < this.buffer.length) {
@@ -1643,16 +1662,16 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment40`
-  Object? f1w() {
+  Object? f1x() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$46) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f1o() case var _0) {
+          if (this.f1p() case var _0) {
             if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
               if (_l1.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f1o() case var _0?) {
+                    if (this.f1p() case var _0?) {
                       _l1.add(_0);
                       continue;
                     }
@@ -1675,12 +1694,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       this.pos = mark;
       if (this.matchPattern(_string.$47) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f1p() case var _2) {
+          if (this.f1q() case var _2) {
             if ([if (_2 case var _2?) _2] case (var $1 && var _l3)) {
               if (_l3.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f1p() case var _2?) {
+                    if (this.f1q() case var _2?) {
                       _l3.add(_2);
                       continue;
                     }
@@ -1703,12 +1722,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       this.pos = mark;
       if (this.matchPattern(_string.$48) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f1q() case var _4) {
+          if (this.f1r() case var _4) {
             if ([if (_4 case var _4?) _4] case (var $1 && var _l5)) {
               if (_l5.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f1q() case var _4?) {
+                    if (this.f1r() case var _4?) {
                       _l5.add(_4);
                       continue;
                     }
@@ -1731,12 +1750,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       this.pos = mark;
       if (this.matchPattern(_string.$49) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f1r() case var _6) {
+          if (this.f1s() case var _6) {
             if ([if (_6 case var _6?) _6] case (var $1 && var _l7)) {
               if (_l7.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f1r() case var _6?) {
+                    if (this.f1s() case var _6?) {
                       _l7.add(_6);
                       continue;
                     }
@@ -1759,12 +1778,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       this.pos = mark;
       if (this.matchPattern(_string.$21) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f1s() case var _8) {
+          if (this.f1t() case var _8) {
             if ([if (_8 case var _8?) _8] case (var $1 && var _l9)) {
               if (_l9.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f1s() case var _8?) {
+                    if (this.f1t() case var _8?) {
                       _l9.add(_8);
                       continue;
                     }
@@ -1787,12 +1806,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       this.pos = mark;
       if (this.matchPattern(_string.$23) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f1t() case var _10) {
+          if (this.f1u() case var _10) {
             if ([if (_10 case var _10?) _10] case (var $1 && var _l11)) {
               if (_l11.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f1t() case var _10?) {
+                    if (this.f1u() case var _10?) {
                       _l11.add(_10);
                       continue;
                     }
@@ -1815,12 +1834,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       this.pos = mark;
       if (this.matchPattern(_string.$24) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f1u() case var _12) {
+          if (this.f1v() case var _12) {
             if ([if (_12 case var _12?) _12] case (var $1 && var _l13)) {
               if (_l13.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f1u() case var _12?) {
+                    if (this.f1v() case var _12?) {
                       _l13.add(_12);
                       continue;
                     }
@@ -1843,12 +1862,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       this.pos = mark;
       if (this.matchPattern(_string.$25) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f1v() case var _14) {
+          if (this.f1w() case var _14) {
             if ([if (_14 case var _14?) _14] case (var $1 && var _l15)) {
               if (_l15.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f1v() case var _14?) {
+                    if (this.f1w() case var _14?) {
                       _l15.add(_14);
                       continue;
                     }
@@ -1872,7 +1891,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment41`
-  Object? f1x() {
+  Object? f1y() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$50) case (var $0 && null)) {
         this.pos = mark;
@@ -1889,7 +1908,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment42`
-  Object? f1y() {
+  Object? f1z() {
     if (this.pos case var mark) {
       if (this.apply(this.ri) case var $?) {
         return $;
@@ -1942,7 +1961,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment43`
-  Object? f1z() {
+  Object? f20() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$50) case (var $0 && null)) {
         this.pos = mark;
@@ -1959,7 +1978,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment44`
-  Object? f20() {
+  Object? f21() {
     if (this.pos case var mark) {
       if (matchPattern(_regexp.$2) case var $?) {
         return $;
@@ -1972,7 +1991,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment45`
-  Object? f21() {
+  Object? f22() {
     if (this.pos case var mark) {
       if (this.apply(this.ri) case var $?) {
         return $;
@@ -2009,7 +2028,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.pos case var mark) {
-        if (this.f20() case (var $0 && null)) {
+        if (this.f21() case (var $0 && null)) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
             if (this.buffer[this.pos] case var $1) {
@@ -2025,7 +2044,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment46`
-  Object? f22() {
+  Object? f23() {
     if (this.pos case var mark) {
       if (this.apply(this.ri) case var $?) {
         return $;
@@ -2078,14 +2097,14 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment47`
-  Object? f23() {
-    if (this.fq() case var $?) {
+  Object? f24() {
+    if (this.fr() case var $?) {
       return $;
     }
   }
 
   /// `fragment48`
-  Object? f24() {
+  Object? f25() {
     if (this.pos case var mark) {
       if (this.apply(this.ri) case var $?) {
         return $;
@@ -2118,10 +2137,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment49`
-  Object? f25() {
-    if (this.fo() case var $0) {
+  Object? f26() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$52) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -2131,10 +2150,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment50`
-  Object? f26() {
-    if (this.fo() case var $0) {
+  Object? f27() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$53) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -2144,10 +2163,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment51`
-  Object? f27() {
-    if (this.fo() case var $0) {
+  Object? f28() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$54) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -2157,10 +2176,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment52`
-  Object? f28() {
-    if (this.fo() case var $0) {
+  Object? f29() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$44) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -2170,10 +2189,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment53`
-  Object? f29() {
-    if (this.fo() case var $0) {
+  Object? f2a() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$2) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -2183,7 +2202,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment54`
-  Object? f2a() {
+  Object? f2b() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$50) case (var $0 && null)) {
         this.pos = mark;
@@ -2200,15 +2219,15 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment55`
-  Object? f2b() {
+  Object? f2c() {
     if (this.matchPattern(_string.$50) case var $0?) {
       if (this.pos case var mark) {
-        if (this.f2a() case var _0) {
+        if (this.f2b() case var _0) {
           if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
             if (_l1.isNotEmpty) {
               for (;;) {
                 if (this.pos case var mark) {
-                  if (this.f2a() case var _0?) {
+                  if (this.f2b() case var _0?) {
                     _l1.add(_0);
                     continue;
                   }
@@ -2231,7 +2250,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment56`
-  Object? f2c() {
+  Object? f2d() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$55) case var $?) {
         return $;
@@ -2251,12 +2270,8 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment57`
-  Object? f2d() {
+  Object? f2e() {
     if (this.pos case var mark) {
-      if (this.fa() case var $?) {
-        return $;
-      }
-      this.pos = mark;
       if (this.fb() case var $?) {
         return $;
       }
@@ -2264,15 +2279,19 @@ final class CstGrammarParser extends _PegParser<Object> {
       if (this.fc() case var $?) {
         return $;
       }
+      this.pos = mark;
+      if (this.fd() case var $?) {
+        return $;
+      }
     }
   }
 
   /// `fragment58`
-  Object? f2e() {
-    if (this.f6() case var $0?) {
-      if (this.f2c() case var $1?) {
+  Object? f2f() {
+    if (this.f7() case var $0?) {
+      if (this.f2d() case var $1?) {
         if (this.pos case var mark) {
-          if (this.f2d() case (var $2 && null)) {
+          if (this.f2e() case (var $2 && null)) {
             this.pos = mark;
             if ([$0, $1, $2] case var $) {
               return $;
@@ -2284,7 +2303,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment59`
-  Object? f2f() {
+  Object? f2g() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$50) case (var $0 && null)) {
         this.pos = mark;
@@ -2301,15 +2320,15 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment60`
-  Object? f2g() {
+  Object? f2h() {
     if (this.matchPattern(_string.$50) case var $0?) {
       if (this.pos case var mark) {
-        if (this.f2f() case var _0) {
+        if (this.f2g() case var _0) {
           if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
             if (_l1.isNotEmpty) {
               for (;;) {
                 if (this.pos case var mark) {
-                  if (this.f2f() case var _0?) {
+                  if (this.f2g() case var _0?) {
                     _l1.add(_0);
                     continue;
                   }
@@ -2332,11 +2351,11 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment61`
-  Object? f2h() {
+  Object? f2i() {
     if (this.pos case var mark) {
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.matchPattern(_string.$56) case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return $;
             }
@@ -2344,9 +2363,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.matchPattern(_string.$57) case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return $;
             }
@@ -2354,9 +2373,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.matchPattern(_string.$58) case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return $;
             }
@@ -2367,10 +2386,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment62`
-  Object? f2i() {
-    if (this.fo() case var $0) {
+  Object? f2j() {
+    if (this.fp() case var $0) {
       if (this.matchPattern(_string.$51) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return $;
           }
@@ -2380,7 +2399,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment63`
-  Object? f2j() {
+  Object? f2k() {
     if (this.pos case var mark) {
       if (matchPattern(_regexp.$3) case var $?) {
         return $;
@@ -2397,7 +2416,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment64`
-  Object? f2k() {
+  Object? f2l() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$21) case (var $0 && null)) {
         this.pos = mark;
@@ -2414,7 +2433,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment65`
-  Object? f2l() {
+  Object? f2m() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$23) case (var $0 && null)) {
         this.pos = mark;
@@ -2431,7 +2450,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment66`
-  Object? f2m() {
+  Object? f2n() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$24) case (var $0 && null)) {
         this.pos = mark;
@@ -2448,7 +2467,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment67`
-  Object? f2n() {
+  Object? f2o() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$25) case (var $0 && null)) {
         this.pos = mark;
@@ -2465,7 +2484,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment68`
-  Object? f2o() {
+  Object? f2p() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$1) case var $0?) {
         if (this.pos < this.buffer.length) {
@@ -2481,7 +2500,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       if (this.pos case var mark) {
         if (this.matchPattern(_string.$26) case var $0?) {
           this.pos = mark;
-          if (this.fr() case var $1?) {
+          if (this.fs() case var $1?) {
             if ([$0, $1] case var $) {
               return $;
             }
@@ -2506,7 +2525,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment69`
-  Object? f2p() {
+  Object? f2q() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$1) case var $0?) {
         if (this.pos < this.buffer.length) {
@@ -2522,7 +2541,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       if (this.pos case var mark) {
         if (this.matchPattern(_string.$26) case var $0?) {
           this.pos = mark;
-          if (this.fr() case var $1?) {
+          if (this.fs() case var $1?) {
             if ([$0, $1] case var $) {
               return $;
             }
@@ -2547,7 +2566,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment70`
-  Object? f2q() {
+  Object? f2r() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$1) case var $0?) {
         if (this.pos < this.buffer.length) {
@@ -2563,7 +2582,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       if (this.pos case var mark) {
         if (this.matchPattern(_string.$26) case var $0?) {
           this.pos = mark;
-          if (this.fr() case var $1?) {
+          if (this.fs() case var $1?) {
             if ([$0, $1] case var $) {
               return $;
             }
@@ -2588,7 +2607,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   }
 
   /// `fragment71`
-  Object? f2r() {
+  Object? f2s() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$1) case var $0?) {
         if (this.pos < this.buffer.length) {
@@ -2604,7 +2623,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       if (this.pos case var mark) {
         if (this.matchPattern(_string.$26) case var $0?) {
           this.pos = mark;
-          if (this.fr() case var $1?) {
+          if (this.fs() case var $1?) {
             if ([$0, $1] case var $) {
               return $;
             }
@@ -2636,7 +2655,7 @@ final class CstGrammarParser extends _PegParser<Object> {
           if ([_0] case (var statements && var _l1)) {
             for (;;) {
               if (this.pos case var mark) {
-                if (this.fo() case _) {
+                if (this.fp() case _) {
                   if (this.apply(this.r2) case var _0?) {
                     _l1.add(_0);
                     continue;
@@ -2646,7 +2665,7 @@ final class CstGrammarParser extends _PegParser<Object> {
                 break;
               }
             }
-            if (this.fo() case var $3) {
+            if (this.fp() case var $3) {
               if (this.pos case var $4 when this.pos >= this.buffer.length) {
                 if ([$0, preamble, statements, $3, $4] case var $) {
                   return ("<document>", $);
@@ -2661,11 +2680,11 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   /// `global::preamble`
   Object? r1() {
-    if (this.ff() case var $0?) {
-      if (this.fo() case var $1) {
+    if (this.fg() case var $0?) {
+      if (this.fp() case var $1) {
         if (this.apply(this.rf)! case var code) {
-          if (this.fo() case var $3) {
-            if (this.fe() case var $4?) {
+          if (this.fp() case var $3) {
+            if (this.ff() case var $4?) {
               if ([$0, $1, code, $3, $4] case var $) {
                 return ("<preamble>", $);
               }
@@ -2691,14 +2710,14 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   /// `global::namespace`
   Object? r3() {
-    if (this.f8() case var decorator) {
-      if (this.f6() case var name) {
-        if (this.ff() case var $2?) {
+    if (this.f9() case var decorator) {
+      if (this.f7() case var name) {
+        if (this.fg() case var $2?) {
           if (this.apply(this.r2) case var _0?) {
             if ([_0] case (var statements && var _l1)) {
               for (;;) {
                 if (this.pos case var mark) {
-                  if (this.fo() case _) {
+                  if (this.fp() case _) {
                     if (this.apply(this.r2) case var _0?) {
                       _l1.add(_0);
                       continue;
@@ -2708,7 +2727,7 @@ final class CstGrammarParser extends _PegParser<Object> {
                   break;
                 }
               }
-              if (this.fe() case var $4?) {
+              if (this.ff() case var $4?) {
                 if ([decorator, name, $2, statements, $4] case var $) {
                   return ("<namespace>", $);
                 }
@@ -2723,10 +2742,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::declaration`
   Object? r4() {
     if (this.pos case var mark) {
-      if (this.f8() case var decorator) {
-        if (this.f9() case var $1) {
+      if (this.f9() case var decorator) {
+        if (this.fa() case var $1) {
           if (this.f2() case var name?) {
-            if (this.f4() case var body?) {
+            if (this.f5() case var body?) {
               if ([decorator, $1, name, body] case var $) {
                 return ("<declaration>", $);
               }
@@ -2735,10 +2754,10 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.f8() case var decorator) {
+      if (this.f9() case var decorator) {
         if (this.f0() case var type?) {
           if (this.f2() case var name?) {
-            if (this.f4() case var body?) {
+            if (this.f5() case var body?) {
               if ([decorator, type, name, body] case var $) {
                 return ("<declaration>", $);
               }
@@ -2747,12 +2766,12 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.f8() case var decorator) {
-        if (this.f9() case var $1) {
+      if (this.f9() case var decorator) {
+        if (this.fa() case var $1) {
           if (this.f2() case var name?) {
-            if (this.fs() case var $3?) {
+            if (this.ft() case var $3?) {
               if (this.f0() case var type?) {
-                if (this.f4() case var body?) {
+                if (this.f5() case var body?) {
                   if ([decorator, $1, name, $3, type, body] case var $) {
                     return ("<declaration>", $);
                   }
@@ -2767,12 +2786,12 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   /// `global::choice`
   Object? r5() {
-    if (this.fm() case var $0) {
+    if (this.fn() case var $0) {
       if (this.apply(this.r6) case var _0?) {
         if ([_0] case (var options && var _l1)) {
           for (;;) {
             if (this.pos case var mark) {
-              if (this.fm() case _?) {
+              if (this.fn() case _?) {
                 if (this.apply(this.r6) case var _0?) {
                   _l1.add(_0);
                   continue;
@@ -2794,10 +2813,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   Object? r6() {
     if (this.pos case var mark) {
       if (this.apply(this.r7) case var sequence?) {
-        if (this.ft() case var $1?) {
-          if (this.fo() case var $2) {
+        if (this.fu() case var $1?) {
+          if (this.fp() case var $2) {
             if (this.apply(this.rg)! case var code) {
-              if (this.fo() case var $4) {
+              if (this.fp() case var $4) {
                 if ([sequence, $1, $2, code, $4] case var $) {
                   return ("<acted>", $);
                 }
@@ -2808,11 +2827,11 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.r7) case var sequence?) {
-        if (this.ff() case var $1?) {
-          if (this.fo() case var $2) {
+        if (this.fg() case var $1?) {
+          if (this.fp() case var $2) {
             if (this.apply(this.rf)! case var curly) {
-              if (this.fo() case var $4) {
-                if (this.fe() case var $5?) {
+              if (this.fp() case var $4) {
+                if (this.ff() case var $5?) {
                   if ([sequence, $1, $2, curly, $4, $5] case var $) {
                     return ("<acted>", $);
                   }
@@ -2824,13 +2843,13 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.r7) case var sequence?) {
-        if (this.fh() case var $1?) {
-          if (this.fg() case var $2?) {
-            if (this.ff() case var $3?) {
-              if (this.fo() case var $4) {
+        if (this.fi() case var $1?) {
+          if (this.fh() case var $2?) {
+            if (this.fg() case var $3?) {
+              if (this.fp() case var $4) {
                 if (this.apply(this.rf)! case var curly) {
-                  if (this.fo() case var $6) {
-                    if (this.fe() case var $7?) {
+                  if (this.fp() case var $6) {
+                    if (this.ff() case var $7?) {
                       if ([sequence, $1, $2, $3, $4, curly, $6, $7] case var $) {
                         return ("<acted>", $);
                       }
@@ -2855,7 +2874,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       if ([_0] case (var body && var _l1)) {
         for (;;) {
           if (this.pos case var mark) {
-            if (this.fo() case _) {
+            if (this.fp() case _) {
               if (this.apply(this.r8) case var _0?) {
                 _l1.add(_0);
                 continue;
@@ -2865,7 +2884,7 @@ final class CstGrammarParser extends _PegParser<Object> {
             break;
           }
         }
-        if (this.fv() case var chosen) {
+        if (this.fw() case var chosen) {
           if ([body, chosen] case var $) {
             return ("<sequence>", $);
           }
@@ -2878,7 +2897,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   Object? r8() {
     if (this.pos case var mark) {
       if (this.apply(this.r8) case var captured?) {
-        if (this.fw() case var $1?) {
+        if (this.fx() case var $1?) {
           if (this.apply(this.ra) case var dropped?) {
             if ([captured, $1, dropped] case var $) {
               return ("<dropped>", $);
@@ -2888,7 +2907,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.ra) case var dropped?) {
-        if (this.fx() case var $1?) {
+        if (this.fy() case var $1?) {
           if (this.apply(this.r8) case var captured?) {
             if ([dropped, $1, captured] case var $) {
               return ("<dropped>", $);
@@ -2906,9 +2925,9 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::labeled`
   Object? r9() {
     if (this.pos case var mark) {
-      if (this.f6() case var identifier?) {
+      if (this.f7() case var identifier?) {
         if (this.matchPattern(_string.$27) case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if (this.apply(this.ra) case var special?) {
               if ([identifier, $1, $2, special] case var $) {
                 return ("<labeled>", $);
@@ -2919,17 +2938,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.matchPattern(_string.$27) case var $0?) {
-        if (this.f3() case var id?) {
-          if (this.fi() case var $2?) {
-            if ([$0, id, $2] case var $) {
-              return ("<labeled>", $);
-            }
-          }
-        }
-      }
-      this.pos = mark;
-      if (this.matchPattern(_string.$27) case var $0?) {
-        if (this.f3() case var id?) {
+        if (this.f4() case var id?) {
           if (this.fj() case var $2?) {
             if ([$0, id, $2] case var $) {
               return ("<labeled>", $);
@@ -2939,7 +2948,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.matchPattern(_string.$27) case var $0?) {
-        if (this.f3() case var id?) {
+        if (this.f4() case var id?) {
           if (this.fk() case var $2?) {
             if ([$0, id, $2] case var $) {
               return ("<labeled>", $);
@@ -2949,7 +2958,17 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.matchPattern(_string.$27) case var $0?) {
-        if (this.f3() case var id?) {
+        if (this.f4() case var id?) {
+          if (this.fl() case var $2?) {
+            if ([$0, id, $2] case var $) {
+              return ("<labeled>", $);
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.matchPattern(_string.$27) case var $0?) {
+        if (this.f4() case var id?) {
           if ([$0, id] case var $) {
             return ("<labeled>", $);
           }
@@ -2966,10 +2985,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   Object? ra() {
     if (this.pos case var mark) {
       if (this.apply(this.rd) case var sep?) {
-        if (this.fd() case var $1?) {
+        if (this.fe() case var $1?) {
           if (this.apply(this.rd) case var expr?) {
-            if (this.fk() case var $3?) {
-              if (this.fi() case var $4?) {
+            if (this.fl() case var $3?) {
+              if (this.fj() case var $4?) {
                 if ([sep, $1, expr, $3, $4] case var $) {
                   return ("<special>", $);
                 }
@@ -2980,10 +2999,10 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.rd) case var sep?) {
-        if (this.fd() case var $1?) {
+        if (this.fe() case var $1?) {
           if (this.apply(this.rd) case var expr?) {
-            if (this.fj() case var $3?) {
-              if (this.fi() case var $4?) {
+            if (this.fk() case var $3?) {
+              if (this.fj() case var $4?) {
                 if ([sep, $1, expr, $3, $4] case var $) {
                   return ("<special>", $);
                 }
@@ -2994,9 +3013,9 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.rd) case var sep?) {
-        if (this.fd() case var $1?) {
+        if (this.fe() case var $1?) {
           if (this.apply(this.rd) case var expr?) {
-            if (this.fk() case var $3?) {
+            if (this.fl() case var $3?) {
               if ([sep, $1, expr, $3] case var $) {
                 return ("<special>", $);
               }
@@ -3006,9 +3025,9 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.rd) case var sep?) {
-        if (this.fd() case var $1?) {
+        if (this.fe() case var $1?) {
           if (this.apply(this.rd) case var expr?) {
-            if (this.fj() case var $3?) {
+            if (this.fk() case var $3?) {
               if ([sep, $1, expr, $3] case var $) {
                 return ("<special>", $);
               }
@@ -3027,14 +3046,6 @@ final class CstGrammarParser extends _PegParser<Object> {
   Object? rb() {
     if (this.pos case var mark) {
       if (this.apply(this.rb) case var $0?) {
-        if (this.fi() case var $1?) {
-          if ([$0, $1] case var $) {
-            return ("<postfix>", $);
-          }
-        }
-      }
-      this.pos = mark;
-      if (this.apply(this.rb) case var $0?) {
         if (this.fj() case var $1?) {
           if ([$0, $1] case var $) {
             return ("<postfix>", $);
@@ -3050,6 +3061,14 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
+      if (this.apply(this.rb) case var $0?) {
+        if (this.fl() case var $1?) {
+          if ([$0, $1] case var $) {
+            return ("<postfix>", $);
+          }
+        }
+      }
+      this.pos = mark;
       if (this.apply(this.rc) case var $?) {
         return ("<postfix>", $);
       }
@@ -3059,9 +3078,9 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::prefix`
   Object? rc() {
     if (this.pos case var mark) {
-      if (this.f7() case var min?) {
-        if (this.fd() case var $1?) {
-          if (this.f7() case var max) {
+      if (this.f8() case var min?) {
+        if (this.fe() case var $1?) {
+          if (this.f8() case var max) {
             if (this.apply(this.re) case var body?) {
               if ([min, $1, max, body] case var $) {
                 return ("<prefix>", $);
@@ -3071,17 +3090,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.f7() case var number?) {
+      if (this.f8() case var number?) {
         if (this.apply(this.re) case var body?) {
           if ([number, body] case var $) {
-            return ("<prefix>", $);
-          }
-        }
-      }
-      this.pos = mark;
-      if (this.fy() case var $0?) {
-        if (this.apply(this.rc) case var $1?) {
-          if ([$0, $1] case var $) {
             return ("<prefix>", $);
           }
         }
@@ -3103,6 +3114,14 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
+      if (this.f11() case var $0?) {
+        if (this.apply(this.rc) case var $1?) {
+          if ([$0, $1] case var $) {
+            return ("<prefix>", $);
+          }
+        }
+      }
+      this.pos = mark;
       if (this.apply(this.rd) case var $?) {
         return ("<prefix>", $);
       }
@@ -3113,10 +3132,10 @@ final class CstGrammarParser extends _PegParser<Object> {
   Object? rd() {
     if (this.pos case var mark) {
       if (this.apply(this.rd) case var target?) {
-        if (this.fn() case var $1?) {
-          if (this.fb() case var $2?) {
-            if (this.fh() case var $3?) {
-              if (this.fg() case var $4?) {
+        if (this.fo() case var $1?) {
+          if (this.fc() case var $2?) {
+            if (this.fi() case var $3?) {
+              if (this.fh() case var $4?) {
                 if ([target, $1, $2, $3, $4] case var $) {
                   return ("<callLike>", $);
                 }
@@ -3127,13 +3146,13 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.rd) case var target?) {
-        if (this.fn() case var $1?) {
-          if (this.fa() case var $2?) {
-            if (this.fh() case var $3?) {
-              if (this.f7() case var min?) {
-                if (this.fl() case var $5?) {
-                  if (this.f7() case var max?) {
-                    if (this.fg() case var $7?) {
+        if (this.fo() case var $1?) {
+          if (this.fb() case var $2?) {
+            if (this.fi() case var $3?) {
+              if (this.f8() case var min?) {
+                if (this.fm() case var $5?) {
+                  if (this.f8() case var max?) {
+                    if (this.fh() case var $7?) {
                       if ([target, $1, $2, $3, min, $5, max, $7] case var $) {
                         return ("<callLike>", $);
                       }
@@ -3147,11 +3166,11 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.rd) case var target?) {
-        if (this.fn() case var $1?) {
-          if (this.fa() case var $2?) {
-            if (this.fh() case var $3?) {
-              if (this.f7() case var number?) {
-                if (this.fg() case var $5?) {
+        if (this.fo() case var $1?) {
+          if (this.fb() case var $2?) {
+            if (this.fi() case var $3?) {
+              if (this.f8() case var number?) {
+                if (this.fh() case var $5?) {
                   if ([target, $1, $2, $3, number, $5] case var $) {
                     return ("<callLike>", $);
                   }
@@ -3163,11 +3182,11 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.rd) case var target?) {
-        if (this.fn() case var $1?) {
-          if (this.fa() case var $2?) {
-            if (this.fo() case var $3) {
-              if (this.f7() case var number?) {
-                if (this.fo() case var $5) {
+        if (this.fo() case var $1?) {
+          if (this.fb() case var $2?) {
+            if (this.fp() case var $3) {
+              if (this.f8() case var number?) {
+                if (this.fp() case var $5) {
                   if ([target, $1, $2, $3, number, $5] case var $) {
                     return ("<callLike>", $);
                   }
@@ -3179,13 +3198,13 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.rd) case var sep?) {
-        if (this.fn() case var $1?) {
-          if (this.fc() case var $2?) {
-            if (this.fh() case var $3?) {
+        if (this.fo() case var $1?) {
+          if (this.fd() case var $2?) {
+            if (this.fi() case var $3?) {
               if (this.apply(this.r5) case var body?) {
-                if (this.fg() case var $5?) {
-                  if (this.fk() case var $6?) {
-                    if (this.fi() case var $7?) {
+                if (this.fh() case var $5?) {
+                  if (this.fl() case var $6?) {
+                    if (this.fj() case var $7?) {
                       if ([sep, $1, $2, $3, body, $5, $6, $7] case var $) {
                         return ("<callLike>", $);
                       }
@@ -3199,13 +3218,13 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.rd) case var sep?) {
-        if (this.fn() case var $1?) {
-          if (this.fc() case var $2?) {
-            if (this.fh() case var $3?) {
+        if (this.fo() case var $1?) {
+          if (this.fd() case var $2?) {
+            if (this.fi() case var $3?) {
               if (this.apply(this.r5) case var body?) {
-                if (this.fg() case var $5?) {
-                  if (this.fj() case var $6?) {
-                    if (this.fi() case var $7?) {
+                if (this.fh() case var $5?) {
+                  if (this.fk() case var $6?) {
+                    if (this.fj() case var $7?) {
                       if ([sep, $1, $2, $3, body, $5, $6, $7] case var $) {
                         return ("<callLike>", $);
                       }
@@ -3219,11 +3238,29 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.rd) case var sep?) {
-        if (this.fn() case var $1?) {
-          if (this.fc() case var $2?) {
-            if (this.fh() case var $3?) {
+        if (this.fo() case var $1?) {
+          if (this.fd() case var $2?) {
+            if (this.fi() case var $3?) {
               if (this.apply(this.r5) case var body?) {
-                if (this.fg() case var $5?) {
+                if (this.fh() case var $5?) {
+                  if (this.fl() case var $6?) {
+                    if ([sep, $1, $2, $3, body, $5, $6] case var $) {
+                      return ("<callLike>", $);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.apply(this.rd) case var sep?) {
+        if (this.fo() case var $1?) {
+          if (this.fd() case var $2?) {
+            if (this.fi() case var $3?) {
+              if (this.apply(this.r5) case var body?) {
+                if (this.fh() case var $5?) {
                   if (this.fk() case var $6?) {
                     if ([sep, $1, $2, $3, body, $5, $6] case var $) {
                       return ("<callLike>", $);
@@ -3237,29 +3274,11 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.rd) case var sep?) {
-        if (this.fn() case var $1?) {
-          if (this.fc() case var $2?) {
-            if (this.fh() case var $3?) {
+        if (this.fo() case var $1?) {
+          if (this.fd() case var $2?) {
+            if (this.fi() case var $3?) {
               if (this.apply(this.r5) case var body?) {
-                if (this.fg() case var $5?) {
-                  if (this.fj() case var $6?) {
-                    if ([sep, $1, $2, $3, body, $5, $6] case var $) {
-                      return ("<callLike>", $);
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      this.pos = mark;
-      if (this.apply(this.rd) case var sep?) {
-        if (this.fn() case var $1?) {
-          if (this.fc() case var $2?) {
-            if (this.fh() case var $3?) {
-              if (this.apply(this.r5) case var body?) {
-                if (this.fg() case var $5?) {
+                if (this.fh() case var $5?) {
                   if ([sep, $1, $2, $3, body, $5] case var $) {
                     return ("<callLike>", $);
                   }
@@ -3271,11 +3290,11 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.rd) case var sep?) {
-        if (this.fn() case var $1?) {
-          if (this.fc() case var $2?) {
-            if (this.fo() case var $3) {
+        if (this.fo() case var $1?) {
+          if (this.fd() case var $2?) {
+            if (this.fp() case var $3) {
               if (this.apply(this.re) case var body?) {
-                if (this.fo() case var $5) {
+                if (this.fp() case var $5) {
                   if ([sep, $1, $2, $3, body, $5] case var $) {
                     return ("<callLike>", $);
                   }
@@ -3295,9 +3314,9 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::atom`
   Object? re() {
     if (this.pos case var mark) {
-      if (this.fh() case var $0?) {
+      if (this.fi() case var $0?) {
         if (this.apply(this.r5) case var $1?) {
-          if (this.fg() case var $2?) {
+          if (this.fh() case var $2?) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3305,9 +3324,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.matchPattern(_string.$59) case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3315,9 +3334,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.matchPattern(_string.$26) case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3325,13 +3344,13 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fn() case var $?) {
+      if (this.fo() case var $?) {
         return ("<atom>", $);
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.matchPattern(_string.$60) case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3339,19 +3358,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
-        if (this.f11() case var $1?) {
-          if (this.fo() case var $2) {
-            if ([$0, $1, $2] case var $) {
-              return ("<atom>", $);
-            }
-          }
-        }
-      }
-      this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.f12() case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3359,9 +3368,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.f13() case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3369,9 +3378,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.f14() case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3379,9 +3388,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.f15() case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3389,9 +3398,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.f16() case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3399,9 +3408,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.f17() case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3409,9 +3418,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.f18() case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3419,9 +3428,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.f19() case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3429,9 +3438,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.f1a() case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3439,9 +3448,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.f1b() case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3449,9 +3458,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
+      if (this.fp() case var $0) {
         if (this.f1c() case var $1?) {
-          if (this.fo() case var $2) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3459,9 +3468,19 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
-        if (this.f1l() case var $1?) {
-          if (this.fo() case var $2) {
+      if (this.fp() case var $0) {
+        if (this.f1d() case var $1?) {
+          if (this.fp() case var $2) {
+            if ([$0, $1, $2] case var $) {
+              return ("<atom>", $);
+            }
+          }
+        }
+      }
+      this.pos = mark;
+      if (this.fp() case var $0) {
+        if (this.f1m() case var $1?) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3470,7 +3489,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.matchPattern(_string.$45) case var $0?) {
-        if (this.f1n() case var $1?) {
+        if (this.f1o() case var $1?) {
           if (this.matchPattern(_string.$45) case var $2?) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
@@ -3479,9 +3498,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fo() case var $0) {
-        if (this.f1w() case var $1?) {
-          if (this.fo() case var $2) {
+      if (this.fp() case var $0) {
+        if (this.f1x() case var $1?) {
+          if (this.fp() case var $2) {
             if ([$0, $1, $2] case var $) {
               return ("<atom>", $);
             }
@@ -3489,7 +3508,7 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.f2() case var $?) {
+      if (this.f3() case var $?) {
         return ("<atom>", $);
       }
     }
@@ -3500,12 +3519,12 @@ final class CstGrammarParser extends _PegParser<Object> {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$50) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f1x() case var _0) {
+          if (this.f1y() case var _0) {
             if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
               if (_l1.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f1x() case var _0?) {
+                    if (this.f1y() case var _0?) {
                       _l1.add(_0);
                       continue;
                     }
@@ -3527,12 +3546,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.pos case var mark) {
-        if (this.f1y() case var _2) {
+        if (this.f1z() case var _2) {
           if ([if (_2 case var _2?) _2] case (var $ && var code && var _l3)) {
             if (_l3.isNotEmpty) {
               for (;;) {
                 if (this.pos case var mark) {
-                  if (this.f1y() case var _2?) {
+                  if (this.f1z() case var _2?) {
                     _l3.add(_2);
                     continue;
                   }
@@ -3555,12 +3574,12 @@ final class CstGrammarParser extends _PegParser<Object> {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$50) case var $0?) {
         if (this.pos case var mark) {
-          if (this.f1z() case var _0) {
+          if (this.f20() case var _0) {
             if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
               if (_l1.isNotEmpty) {
                 for (;;) {
                   if (this.pos case var mark) {
-                    if (this.f1z() case var _0?) {
+                    if (this.f20() case var _0?) {
                       _l1.add(_0);
                       continue;
                     }
@@ -3582,12 +3601,12 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.pos case var mark) {
-        if (this.f21() case var _2) {
+        if (this.f22() case var _2) {
           if ([if (_2 case var _2?) _2] case (var $ && var code && var _l3)) {
             if (_l3.isNotEmpty) {
               for (;;) {
                 if (this.pos case var mark) {
-                  if (this.f21() case var _2?) {
+                  if (this.f22() case var _2?) {
                     _l3.add(_2);
                     continue;
                   }
@@ -3608,12 +3627,12 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::code::balanced`
   Object rh() {
     if (this.pos case var mark) {
-      if (this.f22() case var _0) {
+      if (this.f23() case var _0) {
         if ([if (_0 case var _0?) _0] case (var $ && var code && var _l1)) {
           if (_l1.isNotEmpty) {
             for (;;) {
               if (this.pos case var mark) {
-                if (this.f22() case var _0?) {
+                if (this.f23() case var _0?) {
                   _l1.add(_0);
                   continue;
                 }
@@ -3632,12 +3651,12 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   /// `global::dart::literal::string`
   Object? ri() {
-    if (this.f23() case var _0?) {
+    if (this.f24() case var _0?) {
       if ([_0] case (var $ && var _l1)) {
         for (;;) {
           if (this.pos case var mark) {
-            if (this.fo() case _) {
-              if (this.f23() case var _0?) {
+            if (this.fp() case _) {
+              if (this.f24() case var _0?) {
                 _l1.add(_0);
                 continue;
               }
@@ -3653,7 +3672,7 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   /// `global::dart::literal::identifier`
   Object? rj() {
-    if (this.f6() case var $?) {
+    if (this.f7() case var $?) {
       return ("<dart::literal::identifier>", $);
     }
   }
@@ -3661,12 +3680,12 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::dart::literal::string::balanced`
   Object rk() {
     if (this.pos case var mark) {
-      if (this.f24() case var _0) {
+      if (this.f25() case var _0) {
         if ([if (_0 case var _0?) _0] case (var $ && var code && var _l1)) {
           if (_l1.isNotEmpty) {
             for (;;) {
               if (this.pos case var mark) {
-                if (this.f24() case var _0?) {
+                if (this.f25() case var _0?) {
                   _l1.add(_0);
                   continue;
                 }
@@ -3685,9 +3704,9 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   /// `global::dart::type::main`
   Object? rl() {
-    if (this.fo() case var $0) {
+    if (this.fp() case var $0) {
       if (this.apply(this.rm) case var $1?) {
-        if (this.fo() case var $2) {
+        if (this.fp() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<dart::type::main>", $);
           }
@@ -3700,7 +3719,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   Object? rm() {
     if (this.pos case var mark) {
       if (this.apply(this.rq) case var parameters?) {
-        if (this.f25() case var $1?) {
+        if (this.f26() case var $1?) {
           if (this.apply(this.rm) case var type?) {
             if ([parameters, $1, type] case var $) {
               return ("<dart::type::type>", $);
@@ -3710,10 +3729,10 @@ final class CstGrammarParser extends _PegParser<Object> {
       }
       this.pos = mark;
       if (this.apply(this.rm) case var type?) {
-        if (this.fo() case var $1) {
+        if (this.fp() case var $1) {
           if (this.matchPattern(_string.$61) case var $2?) {
             if (this.apply(this.rq) case var parameters?) {
-              if (this.fi() case var $4) {
+              if (this.fj() case var $4) {
                 if ([type, $1, $2, parameters, $4] case var $) {
                   return ("<dart::type::type>", $);
                 }
@@ -3732,7 +3751,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::dart::type::nullable`
   Object? rn() {
     if (this.apply(this.ro) case var nonNullable?) {
-      if (this.fi() case var $1) {
+      if (this.fj() case var $1) {
         if ([nonNullable, $1] case var $) {
           return ("<dart::type::nullable>", $);
         }
@@ -3760,11 +3779,11 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::dart::type::record`
   Object? rp() {
     if (this.pos case var mark) {
-      if (this.fh() case var $0?) {
+      if (this.fi() case var $0?) {
         if (this.apply(this.rw) case var positional?) {
-          if (this.fl() case var $2?) {
+          if (this.fm() case var $2?) {
             if (this.apply(this.rv) case var named?) {
-              if (this.fg() case var $4?) {
+              if (this.fh() case var $4?) {
                 if ([$0, positional, $2, named, $4] case var $) {
                   return ("<dart::type::record>", $);
                 }
@@ -3774,10 +3793,10 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fh() case var $0?) {
+      if (this.fi() case var $0?) {
         if (this.apply(this.rw) case var positional?) {
-          if (this.fl() case var $2) {
-            if (this.fg() case var $3?) {
+          if (this.fm() case var $2) {
+            if (this.fh() case var $3?) {
               if ([$0, positional, $2, $3] case var $) {
                 return ("<dart::type::record>", $);
               }
@@ -3786,9 +3805,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fh() case var $0?) {
+      if (this.fi() case var $0?) {
         if (this.apply(this.rv) case var named?) {
-          if (this.fg() case var $2?) {
+          if (this.fh() case var $2?) {
             if ([$0, named, $2] case var $) {
               return ("<dart::type::record>", $);
             }
@@ -3796,8 +3815,8 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fh() case var $0?) {
-        if (this.fg() case var $1?) {
+      if (this.fi() case var $0?) {
+        if (this.fh() case var $1?) {
           if ([$0, $1] case var $) {
             return ("<dart::type::record>", $);
           }
@@ -3809,11 +3828,11 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::dart::type::function_parameters`
   Object? rq() {
     if (this.pos case var mark) {
-      if (this.fh() case var $0?) {
+      if (this.fi() case var $0?) {
         if (this.apply(this.rw) case var positional?) {
-          if (this.fl() case var $2?) {
+          if (this.fm() case var $2?) {
             if (this.apply(this.rv) case var named?) {
-              if (this.fg() case var $4?) {
+              if (this.fh() case var $4?) {
                 if ([$0, positional, $2, named, $4] case var $) {
                   return ("<dart::type::function_parameters>", $);
                 }
@@ -3823,11 +3842,11 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fh() case var $0?) {
+      if (this.fi() case var $0?) {
         if (this.apply(this.rw) case var positional?) {
-          if (this.fl() case var $2?) {
+          if (this.fm() case var $2?) {
             if (this.apply(this.ru) case var optional?) {
-              if (this.fg() case var $4?) {
+              if (this.fh() case var $4?) {
                 if ([$0, positional, $2, optional, $4] case var $) {
                   return ("<dart::type::function_parameters>", $);
                 }
@@ -3837,10 +3856,10 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fh() case var $0?) {
+      if (this.fi() case var $0?) {
         if (this.apply(this.rw) case var positional?) {
-          if (this.fl() case var $2) {
-            if (this.fg() case var $3?) {
+          if (this.fm() case var $2) {
+            if (this.fh() case var $3?) {
               if ([$0, positional, $2, $3] case var $) {
                 return ("<dart::type::function_parameters>", $);
               }
@@ -3849,9 +3868,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fh() case var $0?) {
+      if (this.fi() case var $0?) {
         if (this.apply(this.rv) case var named?) {
-          if (this.fg() case var $2?) {
+          if (this.fh() case var $2?) {
             if ([$0, named, $2] case var $) {
               return ("<dart::type::function_parameters>", $);
             }
@@ -3859,9 +3878,9 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fh() case var $0?) {
+      if (this.fi() case var $0?) {
         if (this.apply(this.ru) case var optional?) {
-          if (this.fg() case var $2?) {
+          if (this.fh() case var $2?) {
             if ([$0, optional, $2] case var $) {
               return ("<dart::type::function_parameters>", $);
             }
@@ -3869,8 +3888,8 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this.pos = mark;
-      if (this.fh() case var $0?) {
-        if (this.fg() case var $1?) {
+      if (this.fi() case var $0?) {
+        if (this.fh() case var $1?) {
           if ([$0, $1] case var $) {
             return ("<dart::type::function_parameters>", $);
           }
@@ -3882,9 +3901,9 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::dart::type::generic`
   Object? rr() {
     if (this.apply(this.rt) case var base?) {
-      if (this.f26() case var $1?) {
+      if (this.f27() case var $1?) {
         if (this.apply(this.rs) case var arguments?) {
-          if (this.f27() case var $3?) {
+          if (this.f28() case var $3?) {
             if ([base, $1, arguments, $3] case var $) {
               return ("<dart::type::generic>", $);
             }
@@ -3900,7 +3919,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       if ([_0] case (var $ && var _l1)) {
         for (;;) {
           if (this.pos case var mark) {
-            if (this.fl() case _?) {
+            if (this.fm() case _?) {
               if (this.apply(this.rm) case var _0?) {
                 _l1.add(_0);
                 continue;
@@ -3917,12 +3936,12 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   /// `global::dart::type::base`
   Object? rt() {
-    if (this.f6() case var _0?) {
+    if (this.f7() case var _0?) {
       if ([_0] case (var $ && var _l1)) {
         for (;;) {
           if (this.pos case var mark) {
-            if (this.fn() case _?) {
-              if (this.f6() case var _0?) {
+            if (this.fo() case _?) {
+              if (this.f7() case var _0?) {
                 _l1.add(_0);
                 continue;
               }
@@ -3938,10 +3957,10 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   /// `global::dart::type::parameters::optional`
   Object? ru() {
-    if (this.f28() case var $0?) {
+    if (this.f29() case var $0?) {
       if (this.apply(this.rw) case var $1?) {
-        if (this.fl() case var $2) {
-          if (this.f29() case var $3?) {
+        if (this.fm() case var $2) {
+          if (this.f2a() case var $3?) {
             if ([$0, $1, $2, $3] case var $) {
               return ("<dart::type::parameters::optional>", $);
             }
@@ -3953,10 +3972,10 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   /// `global::dart::type::parameters::named`
   Object? rv() {
-    if (this.ff() case var $0?) {
+    if (this.fg() case var $0?) {
       if (this.apply(this.rx) case var $1?) {
-        if (this.fl() case var $2) {
-          if (this.fe() case var $3?) {
+        if (this.fm() case var $2) {
+          if (this.ff() case var $3?) {
             if ([$0, $1, $2, $3] case var $) {
               return ("<dart::type::parameters::named>", $);
             }
@@ -3972,7 +3991,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       if ([_0] case (var $ && var _l1)) {
         for (;;) {
           if (this.pos case var mark) {
-            if (this.fl() case _?) {
+            if (this.fm() case _?) {
               if (this.apply(this.ry) case var _0?) {
                 _l1.add(_0);
                 continue;
@@ -3993,7 +4012,7 @@ final class CstGrammarParser extends _PegParser<Object> {
       if ([_0] case (var $ && var _l1)) {
         for (;;) {
           if (this.pos case var mark) {
-            if (this.fl() case _?) {
+            if (this.fm() case _?) {
               if (this.apply(this.rz) case var _0?) {
                 _l1.add(_0);
                 continue;
@@ -4011,8 +4030,8 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::dart::type::field::positional`
   Object? ry() {
     if (this.apply(this.rm) case var $0?) {
-      if (this.fo() case var $1) {
-        if (this.f6() case var $2) {
+      if (this.fp() case var $1) {
+        if (this.f7() case var $2) {
           if ([$0, $1, $2] case var $) {
             return ("<dart::type::field::positional>", $);
           }
@@ -4024,8 +4043,8 @@ final class CstGrammarParser extends _PegParser<Object> {
   /// `global::dart::type::field::named`
   Object? rz() {
     if (this.apply(this.rm) case var $0?) {
-      if (this.fo() case var $1) {
-        if (this.f6() case var $2?) {
+      if (this.fp() case var $1) {
+        if (this.f7() case var $2?) {
           if ([$0, $1, $2] case var $) {
             return ("<dart::type::field::named>", $);
           }
@@ -4041,9 +4060,7 @@ final class CstGrammarParser extends _PegParser<Object> {
     RegExp("\\/{2}(?:(?!(?:(?:\\r?\\n)|(?:\$))).)*(?=(?:\\r?\\n)|(?:\$))"),
     RegExp("(?:\\/\\*(?:(?!\\*\\/).)*\\*\\/)"),
   );
-  static final _trie = (
-    Trie.from(["}",")","]"]),
-  );
+  static final _trie = (Trie.from(["}", ")", "]"]),);
   static const _string = (
     "\\",
     "]",
@@ -4108,10 +4125,11 @@ final class CstGrammarParser extends _PegParser<Object> {
     "Function",
   );
   static const _range = (
-    { (97, 122), (65, 90), (48, 57), (95, 95), (36, 36) },
-    { (97, 122), (65, 90), (95, 95), (36, 36) },
+    {(97, 122), (65, 90), (48, 57), (95, 95), (36, 36)},
+    {(97, 122), (65, 90), (95, 95), (36, 36)},
   );
 }
+
 typedef _Union<A, B> = (A? a, B? b);
 typedef _Key<K> = _Union<K, Symbol>;
 
@@ -4133,7 +4151,8 @@ extension<R extends Object> on _PegParser<R> {
 
 class Trie {
   Trie() : _innerMap = HashMap<_Key<String>, Object>();
-  factory Trie.from(Iterable<String> strings) => strings.fold(Trie(), (Trie t, String s) => t..add(s));
+  factory Trie.from(Iterable<String> strings) =>
+      strings.fold(Trie(), (Trie t, String s) => t..add(s));
   const Trie.complete(this._innerMap);
 
   static final Symbol _safeGuard = Symbol(math.Random.secure().nextInt(32).toString());
@@ -4147,9 +4166,9 @@ class Trie {
   }
 
   Trie? derive(String key) => switch (_innerMap[(key, null)]) {
-        HashMap<_Key<String>, Object> value => Trie.complete(value),
-        _ => null,
-      };
+    HashMap<_Key<String>, Object> value => Trie.complete(value),
+    _ => null,
+  };
 
   Trie? deriveAll(String value) => value //
       .split("")
@@ -4183,7 +4202,9 @@ class Trie {
   HashMap<_Key<String>, Object> _derived(List<String> keys) {
     HashMap<_Key<String>, Object> map = _innerMap;
     for (int i = 0; i < keys.length; ++i) {
-      map = map.putIfAbsent((keys[i], null), HashMap<_Key<String>, Object>.new) as HashMap<_Key<String>, Object>;
+      map =
+          map.putIfAbsent((keys[i], null), HashMap<_Key<String>, Object>.new)
+              as HashMap<_Key<String>, Object>;
     }
 
     return map;

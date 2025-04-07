@@ -49,26 +49,19 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
 
   @override
   Node visitSequenceNode(SequenceNode node) {
-    return SequenceNode(
-      [for (var sub in node.children) sub.acceptSimpleVisitor(this)],
-      chosenIndex: node.chosenIndex,
-    );
+    return SequenceNode([
+      for (var sub in node.children) sub.acceptSimpleVisitor(this),
+    ], chosenIndex: node.chosenIndex);
   }
 
   @override
   Node visitChoiceNode(ChoiceNode node) {
-    return ChoiceNode(
-      [for (var sub in node.children) sub.acceptSimpleVisitor(this)],
-    );
+    return ChoiceNode([for (var sub in node.children) sub.acceptSimpleVisitor(this)]);
   }
 
   @override
   Node visitCountedNode(CountedNode node) {
-    return CountedNode(
-      node.min,
-      node.max,
-      node.child.acceptSimpleVisitor(this),
-    );
+    return CountedNode(node.min, node.max, node.child.acceptSimpleVisitor(this));
   }
 
   @override
