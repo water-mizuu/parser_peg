@@ -59,18 +59,14 @@ class CanInlineVisitor implements SimpleNodeVisitor<bool> {
   bool visitSequenceNode(SequenceNode node) {
     if (_cache[node] case bool b) return b;
 
-    return _cache[node] = node.children.every(
-      (Node child) => child.acceptSimpleVisitor<bool>(this),
-    );
+    return _cache[node] = node.children.every((child) => child.acceptSimpleVisitor<bool>(this));
   }
 
   @override
   bool visitChoiceNode(ChoiceNode node) {
     if (_cache[node] case bool b) return b;
 
-    return _cache[node] = node.children.every(
-      (Node child) => child.acceptSimpleVisitor<bool>(this),
-    );
+    return _cache[node] = node.children.every((child) => child.acceptSimpleVisitor<bool>(this));
   }
 
   @override

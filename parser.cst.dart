@@ -5,14 +5,15 @@
 
 import "dart:collection";
 import "dart:math" as math;
-
-import "package:parser_peg/src/generator.dart";
 // PREAMBLE
 import "package:parser_peg/src/node.dart";
+import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
 
-final _regexps = (from: RegExp(r"\bfrom\b"), to: RegExp(r"\bto\b"));
-
+final _regexps = (
+  from: RegExp(r"\bfrom\b"),
+  to: RegExp(r"\bto\b"),
+);
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -253,6 +254,7 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   @override
   get start => r0;
+
 
   /// `global::type`
   Object? f0() {
@@ -4060,7 +4062,9 @@ final class CstGrammarParser extends _PegParser<Object> {
     RegExp("\\/{2}(?:(?!(?:(?:\\r?\\n)|(?:\$))).)*(?=(?:\\r?\\n)|(?:\$))"),
     RegExp("(?:\\/\\*(?:(?!\\*\\/).)*\\*\\/)"),
   );
-  static final _trie = (Trie.from(["}", ")", "]"]),);
+  static final _trie = (
+    Trie.from(["}",")","]"]),
+  );
   static const _string = (
     "\\",
     "]",
@@ -4125,11 +4129,10 @@ final class CstGrammarParser extends _PegParser<Object> {
     "Function",
   );
   static const _range = (
-    {(97, 122), (65, 90), (48, 57), (95, 95), (36, 36)},
-    {(97, 122), (65, 90), (95, 95), (36, 36)},
+    { (97, 122), (65, 90), (48, 57), (95, 95), (36, 36) },
+    { (97, 122), (65, 90), (95, 95), (36, 36) },
   );
 }
-
 typedef _Union<A, B> = (A? a, B? b);
 typedef _Key<K> = _Union<K, Symbol>;
 

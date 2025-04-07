@@ -34,38 +34,6 @@ const List<String> ignores = [
   "unused_import",
   "duplicate_ignore",
 ];
-// const List<String> ignores = <String>[
-//   "always_declare_return_types",
-//   "always_put_control_body_on_new_line",
-//   "always_specify_types",
-//   "avoid_escaping_inner_quotes",
-//   "avoid_redundant_argument_values",
-//   "annotate_overrides",
-//   "body_might_complete_normally_nullable",
-//   "constant_pattern_never_matches_value_type",
-//   "curly_braces_in_flow_control_structures",
-//   "dead_code",
-//   "directives_ordering",
-//   "duplicate_ignore",
-//   "inference_failure_on_function_return_type",
-//   "constant_identifier_names",
-//   "prefer_function_declarations_over_variables",
-//   "prefer_interpolation_to_compose_strings",
-//   "prefer_is_empty",
-//   "no_leading_underscores_for_local_identifiers",
-//   "non_constant_identifier_names",
-//   "unnecessary_null_check_pattern",
-//   "unnecessary_brace_in_string_interps",
-//   "unnecessary_string_interpolations",
-//   "unnecessary_this",
-//   "unused_element",
-//   "unused_import",
-//   "prefer_double_quotes",
-//   "unused_local_variable",
-//   "unreachable_from_main",
-//   "use_raw_strings",
-//   "type_annotate_public_apis",
-// ];
 
 final class ParserGenerator {
   ParserGenerator.fromParsed({required List<Statement> statements, required this.preamble}) {
@@ -78,9 +46,9 @@ final class ParserGenerator {
     /// This basically resolves all of the declarations in the grammar,
     ///   flattening the namespaces into a single map.
     for (var statement in statements) {
-      var stack =
-          Queue<(Statement, List<String>, Tag?)>() //
-            ..add((statement, ["global"], null));
+      var stack = Queue<(Statement, List<String>, Tag?)>.from([
+        (statement, ["global"], null),
+      ]);
 
       while (stack.isNotEmpty) {
         var (statement, prefix, tag) = stack.removeLast();
@@ -114,9 +82,9 @@ final class ParserGenerator {
 
     /// Resolve the references from inside namespaces.
     for (var statement in statements) {
-      var stack =
-          Queue<(Statement, List<String>, Tag?)>() //
-            ..addLast((statement, ["global"], null));
+      var stack = Queue<(Statement, List<String>, Tag?)>.from([
+        (statement, ["global"], null),
+      ]);
 
       while (stack.isNotEmpty) {
         var (statement, prefixes, tag) = stack.removeLast();
@@ -386,10 +354,16 @@ final class ParserGenerator {
     String? start,
     String? type,
   }) {
-    String parserTypeString =
-        type ?? rules.values.firstOrNull?.$1 ?? fragments.values.firstOrNull?.$1 ?? "Object";
-    String parserStartRule = start ?? rules.keys.firstOrNull ?? fragments.keys.first;
-    StringBuffer fullBuffer = StringBuffer();
+    var parserTypeString =
+        type ?? //
+        rules.values.firstOrNull?.$1 ??
+        fragments.values.firstOrNull?.$1 ??
+        "Object";
+    var parserStartRule =
+        start ?? //
+        rules.keys.firstOrNull ??
+        fragments.keys.first;
+    var fullBuffer = StringBuffer();
 
     fullBuffer.writeln("// ignore_for_file: ${ignores.join(", ")}");
     fullBuffer.writeln();
@@ -600,15 +574,9 @@ final class ParserGenerator {
       CountedNode() => node.min <= 0 || isNullable(node.child, ruleName),
       StringLiteralNode() => node.literal.isEmpty,
       SequenceNode() =>
-        (
-          _isNullable[node] = true,
-          node.children.every((Node node) => isNullable(node, ruleName)),
-        ).$2,
+        (_isNullable[node] = true, node.children.every((node) => isNullable(node, ruleName))).$2,
       ChoiceNode() =>
-        (
-          _isNullable[node] = false,
-          node.children.any((Node node) => isNullable(node, ruleName)),
-        ).$2,
+        (_isNullable[node] = false, node.children.any((node) => isNullable(node, ruleName))).$2,
       PlusSeparatedNode() =>
         isNullable(node.child, ruleName) && isNullable(node.separator, ruleName),
       StarSeparatedNode() => true,
@@ -640,7 +608,7 @@ Never notFound(String name, Tag tag, [String? root]) {
 
 extension IndentationExtension on String {
   String indent([int count = 1]) =>
-      trimRight().split("\n").map((String v) => v.isEmpty ? v : "${"  " * count}$v").join("\n");
+      trimRight().split("\n").map((v) => v.isEmpty ? v : "${"  " * count}$v").join("\n");
 
   String unindent() {
     if (isEmpty) {
@@ -651,16 +619,16 @@ extension IndentationExtension on String {
     String removed = trimRight().replaceAll("\r", "").replaceAll("\t", "    ");
 
     // Remove trailing right space.
-    Iterable<String> lines = removed.split("\n").map((String line) => line.trimRight());
+    Iterable<String> lines = removed.split("\n").map((line) => line.trimRight());
 
     // Unindent the string.
     int commonIndentation = lines //
-        .where((String line) => line.isNotEmpty)
-        .map((String line) => line.length - line.trimLeft().length)
-        .reduce((int a, int b) => a < b ? a : b);
+        .where((line) => line.isNotEmpty)
+        .map((line) => line.length - line.trimLeft().length)
+        .reduce((a, b) => a < b ? a : b);
 
     String unindented = lines //
-        .map((String line) => line.isEmpty ? line : line.substring(commonIndentation))
+        .map((line) => line.isEmpty ? line : line.substring(commonIndentation))
         .join("\n");
 
     return unindented;
@@ -677,13 +645,13 @@ extension NameShortcuts on Set<String>? {
     Set<String>(length: 1, single: "null") => "null",
     Set<String>(length: 1, single: String name) => "var $name",
     Set<String> set => set //
-        .where((String v) => v != "_")
-        .map((String v) => v == "null" ? v : "var $v")
+        .where((v) => v != "_")
+        .map((v) => v == "null" ? v : "var $v")
         .toList()
         .apply(
-          (List<String> iter) => switch (iter) {
+          (iter) => switch (iter) {
             List<String>(length: 1, :String single) => single,
-            List<String>() => iter.join(" && ").apply((String v) => "($v)"),
+            List<String>() => iter.join(" && ").apply((v) => "($v)"),
           },
         ),
   };
@@ -694,7 +662,7 @@ extension MonadicTypeExtension<T extends Object> on T {
 }
 
 extension<K, V> on Map<K, V> {
-  Iterable<(K, V)> get pairs => entries.map((MapEntry<K, V> v) => (v.key, v.value));
+  Iterable<(K, V)> get pairs => entries.map((v) => (v.key, v.value));
 }
 
 extension on String {

@@ -109,15 +109,9 @@ abstract base class _PegParser<R extends Object> {
   }
 
   void _setupLr<T extends Object>(_Rule<T> r, _Lr<void> l) {
-    l.head ??= _Head<T>(
-      rule: r,
-      evalSet: <_Rule<void>>{},
-      involvedSet: <_Rule<void>>{},
-    );
+    l.head ??= _Head<T>(rule: r, evalSet: <_Rule<void>>{}, involvedSet: <_Rule<void>>{});
 
-    for (_Lr<void> lr in _lrStack.takeWhile(
-      (_Lr<void> lr) => lr.head != l.head,
-    )) {
+    for (_Lr<void> lr in _lrStack.takeWhile((lr) => lr.head != l.head)) {
       l.head!.involvedSet.add(lr.rule);
       lr.head = l.head;
     }
@@ -185,10 +179,7 @@ abstract base class _PegParser<R extends Object> {
     return "($column:$row): Expected the following: $messages";
   }
 
-  static final (RegExp, RegExp) whitespaceRegExp = (
-    RegExp(r"\s"),
-    RegExp(r"(?!\n)\s"),
-  );
+  static final (RegExp, RegExp) whitespaceRegExp = (RegExp(r"\s"), RegExp(r"(?!\n)\s"));
 
   final Map<int, Set<String>> failures = <int, Set<String>>{};
   final Map<int, _Head<void>> _heads = <int, _Head<void>>{};
@@ -211,11 +202,7 @@ abstract base class _PegParser<R extends Object> {
 typedef _Rule<T extends Object> = T? Function();
 
 class _Head<T extends Object> {
-  const _Head({
-    required this.rule,
-    required this.involvedSet,
-    required this.evalSet,
-  });
+  const _Head({required this.rule, required this.involvedSet, required this.evalSet});
   final _Rule<T> rule;
   final Set<_Rule<void>> involvedSet;
   final Set<_Rule<void>> evalSet;

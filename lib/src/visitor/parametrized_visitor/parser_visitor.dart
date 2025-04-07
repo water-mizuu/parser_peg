@@ -394,7 +394,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     late var trailingBody = node.separator
         .acceptParametrizedVisitor(this, (
           isNullAllowed: true,
-          withNames: <String>{"null"},
+          withNames: {"null"},
           inner: "this.pos = mark;",
           reported: reported,
           declarationName: declarationName,

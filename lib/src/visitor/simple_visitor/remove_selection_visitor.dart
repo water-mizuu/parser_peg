@@ -36,14 +36,14 @@ class RemoveSelectionVisitor implements SimpleNodeVisitor<Node> {
 
   @override
   Node visitSequenceNode(SequenceNode node) {
-    return SequenceNode(<Node>[
+    return SequenceNode([
       for (Node child in node.children) child.acceptSimpleVisitor(this),
     ], chosenIndex: null);
   }
 
   @override
   Node visitChoiceNode(ChoiceNode node) {
-    return ChoiceNode(<Node>[for (Node child in node.children) child.acceptSimpleVisitor(this)]);
+    return ChoiceNode([for (Node child in node.children) child.acceptSimpleVisitor(this)]);
   }
 
   @override

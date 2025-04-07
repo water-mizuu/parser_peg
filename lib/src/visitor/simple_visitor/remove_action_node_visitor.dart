@@ -1,6 +1,7 @@
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
+/// This visitor traverses the parse tree and removes all action nodes.
 class RemoveActionNodeVisitor implements SimpleNodeVisitor<Node> {
   const RemoveActionNodeVisitor();
 
@@ -36,14 +37,14 @@ class RemoveActionNodeVisitor implements SimpleNodeVisitor<Node> {
 
   @override
   Node visitSequenceNode(SequenceNode node) {
-    return SequenceNode(<Node>[
-      for (Node child in node.children) child.acceptSimpleVisitor(this),
+    return SequenceNode([
+      for (var child in node.children) child.acceptSimpleVisitor(this),
     ], chosenIndex: node.chosenIndex);
   }
 
   @override
   Node visitChoiceNode(ChoiceNode node) {
-    return ChoiceNode(<Node>[for (Node child in node.children) child.acceptSimpleVisitor(this)]);
+    return ChoiceNode([for (Node child in node.children) child.acceptSimpleVisitor(this)]);
   }
 
   @override

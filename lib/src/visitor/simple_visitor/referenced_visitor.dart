@@ -2,6 +2,10 @@ import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
+/// This visitor traverses the parse tree and collects all the referenced
+/// declarations (rules and fragments) in the grammar. It is used to
+/// determine the dependencies between rules and fragments, which is
+/// important for generating the final grammar.
 class ReferencedVisitor implements SimpleNodeVisitor<Iterable<(Tag, String)>> {
   const ReferencedVisitor();
 

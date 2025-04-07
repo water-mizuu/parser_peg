@@ -1,3 +1,6 @@
+formatter:
+  page_width: 100
+
 analyzer:
   language:
     strict-inference: true
@@ -54,7 +57,7 @@ linter:
     avoid_slow_async_io: true
     avoid_type_to_string: true
     avoid_types_as_parameter_names: true
-    avoid_types_on_closure_parameters: false
+    avoid_types_on_closure_parameters: true
     avoid_unnecessary_containers: true
     avoid_unused_constructor_parameters: true
     avoid_void_async: false

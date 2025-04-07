@@ -2,6 +2,9 @@ import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
+/// This visitor traverses the parse tree and resolves all references to rules,
+/// fragments, and inline actions. It replaces the nodes which are defaulted to [ReferenceNode]
+/// to more appropriate nodes such as [FragmentNode].
 class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
   const ResolveReferencesVisitor(
     this.declarationName,

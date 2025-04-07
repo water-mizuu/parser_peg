@@ -1,6 +1,9 @@
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
+/// This visitor traverses the parse tree and inlines the tags that should be inlined,
+///   such as fragment declarations that are used once, or
+///   rules that are declared to be inlined.
 class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
   const InlineVisitor(this.inline);
 

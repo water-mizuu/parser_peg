@@ -109,7 +109,7 @@ abstract base class _PegParser<R extends Object> {
   void _setupLr<T extends Object>(_Rule<T> r, _Lr<void> l) {
     l.head ??= _Head<T>(rule: r, evalSet: <_Rule<void>>{}, involvedSet: <_Rule<void>>{});
 
-    for (_Lr<void> lr in _lrStack.takeWhile((_Lr<void> lr) => lr.head != l.head)) {
+    for (_Lr<void> lr in _lrStack.takeWhile((lr) => lr.head != l.head)) {
       l.head!.involvedSet.add(lr.rule);
       lr.head = l.head;
     }
@@ -253,7 +253,7 @@ extension<R extends Object> on _PegParser<R> {
     }
 
     if (failures[pos] ??= <String>{} case Set<String> failures) {
-      trie._keys(trie._innerMap).map((List<String> v) => v.join()).forEach(failures.add);
+      trie._keys(trie._innerMap).map((v) => v.join()).forEach(failures.add);
     }
     return null;
   }
@@ -261,8 +261,7 @@ extension<R extends Object> on _PegParser<R> {
 
 class Trie {
   Trie() : _innerMap = HashMap<_Key<String>, Object>();
-  factory Trie.from(Iterable<String> strings) =>
-      strings.fold(Trie(), (Trie t, String s) => t..add(s));
+  factory Trie.from(Iterable<String> strings) => strings.fold(Trie(), (t, s) => t..add(s));
   const Trie.complete(this._innerMap);
 
   static final Symbol _safeGuard = Symbol(math.Random.secure().nextInt(32).toString());
@@ -282,7 +281,7 @@ class Trie {
 
   Trie? deriveAll(String value) => value //
       .split("")
-      .fold(this, (Trie? trie, String char) => trie?.derive(char));
+      .fold(this, (trie, char) => trie?.derive(char));
 
   (int, int)? matchLongest(String input, [int start = 0]) {
     List<int> ends = <int>[];
@@ -333,7 +332,7 @@ class Trie {
 
       switch (map[(keys, null)]) {
         case HashMap<_Key<String>, Object> derivative:
-          yield* _keys(derivative).map((List<String> rest) => <String>[keys, ...rest]);
+          yield* _keys(derivative).map((rest) => <String>[keys, ...rest]);
         case null:
           yield <String>[keys];
       }

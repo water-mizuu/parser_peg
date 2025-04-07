@@ -4,9 +4,9 @@
 // ignore_for_file: collection_methods_unrelated_type
 
 import "dart:collection";
-import "dart:math" as math;
 // PREAMBLE
 import "dart:math" as math show pow;
+import "dart:math" as math;
 
 // base.dart
 abstract base class _PegParser<R extends Object> {
@@ -111,15 +111,9 @@ abstract base class _PegParser<R extends Object> {
   }
 
   void _setupLr<T extends Object>(_Rule<T> r, _Lr<void> l) {
-    l.head ??= _Head<T>(
-      rule: r,
-      evalSet: <_Rule<void>>{},
-      involvedSet: <_Rule<void>>{},
-    );
+    l.head ??= _Head<T>(rule: r, evalSet: <_Rule<void>>{}, involvedSet: <_Rule<void>>{});
 
-    for (_Lr<void> lr in _lrStack.takeWhile(
-      (_Lr<void> lr) => lr.head != l.head,
-    )) {
+    for (_Lr<void> lr in _lrStack.takeWhile((lr) => lr.head != l.head)) {
       l.head!.involvedSet.add(lr.rule);
       lr.head = l.head;
     }
@@ -158,10 +152,7 @@ abstract base class _PegParser<R extends Object> {
       return value;
     }
 
-    if (pattern.matchAsPrefix(this.buffer, this.pos) case Match(
-      :int start,
-      :int end,
-    )) {
+    if (pattern.matchAsPrefix(this.buffer, this.pos) case Match(:int start, :int end)) {
       String result = buffer.substring(start, end);
       _patternMemo[(pattern, start)] = (end, result);
       this.pos = end;
@@ -201,17 +192,13 @@ abstract base class _PegParser<R extends Object> {
     return "($column:$row): Expected the following: $messages";
   }
 
-  static final (RegExp, RegExp) whitespaceRegExp = (
-    RegExp(r"\s"),
-    RegExp(r"(?!\n)\s"),
-  );
+  static final (RegExp, RegExp) whitespaceRegExp = (RegExp(r"\s"), RegExp(r"(?!\n)\s"));
 
   final Map<int, Set<String>> failures = <int, Set<String>>{};
   final Map<int, _Head<void>> _heads = <int, _Head<void>>{};
   final Queue<_Lr<void>> _lrStack = DoubleLinkedQueue<_Lr<void>>();
   final Map<(_Rule<void>, int), _Memo> _memo = <(_Rule<void>, int), _Memo>{};
-  final Map<(Pattern, int), (int, String)> _patternMemo =
-      <(Pattern, int), (int, String)>{};
+  final Map<(Pattern, int), (int, String)> _patternMemo = <(Pattern, int), (int, String)>{};
 
   late String buffer;
   int pos = 0;
@@ -234,11 +221,7 @@ extension NullableExtension<T extends Object> on T {
 typedef _Rule<T extends Object> = T? Function();
 
 class _Head<T extends Object> {
-  const _Head({
-    required this.rule,
-    required this.involvedSet,
-    required this.evalSet,
-  });
+  const _Head({required this.rule, required this.involvedSet, required this.evalSet});
   final _Rule<T> rule;
   final Set<_Rule<void>> involvedSet;
   final Set<_Rule<void>> evalSet;
