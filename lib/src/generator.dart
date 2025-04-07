@@ -10,6 +10,7 @@ import "package:parser_peg/src/visitor/simple_visitor/can_inline_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/inline_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/referenced_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/remove_action_node_visitor.dart";
+import "package:parser_peg/src/visitor/simple_visitor/remove_selection_visitor.dart";
 import "package:parser_peg/src/visitor/simple_visitor/rename_visitors.dart";
 import "package:parser_peg/src/visitor/simple_visitor/resolve_references_visitor.dart";
 
@@ -67,10 +68,7 @@ const List<String> ignores = [
 // ];
 
 final class ParserGenerator {
-  ParserGenerator.fromParsed({
-    required List<Statement> statements,
-    required this.preamble,
-  }) {
+  ParserGenerator.fromParsed({required List<Statement> statements, required this.preamble}) {
     /// We add all the special nodes :)
     statements.insertAll(0, predefined);
 
@@ -80,8 +78,9 @@ final class ParserGenerator {
     /// This basically resolves all of the declarations in the grammar,
     ///   flattening the namespaces into a single map.
     for (var statement in statements) {
-      var stack = Queue<(Statement, List<String>, Tag?)>() //
-        ..add((statement, ["global"], null));
+      var stack =
+          Queue<(Statement, List<String>, Tag?)>() //
+            ..add((statement, ["global"], null));
 
       while (stack.isNotEmpty) {
         var (statement, prefix, tag) = stack.removeLast();
@@ -113,8 +112,9 @@ final class ParserGenerator {
 
     /// Resolve the references from inside namespaces.
     for (var statement in statements) {
-      var stack = Queue<(Statement, List<String>, Tag?)>() //
-        ..addLast((statement, ["global"], null));
+      var stack =
+          Queue<(Statement, List<String>, Tag?)>() //
+            ..addLast((statement, ["global"], null));
 
       while (stack.isNotEmpty) {
         var (statement, prefixes, tag) = stack.removeLast();
@@ -179,7 +179,8 @@ final class ParserGenerator {
       var fragmentRefCount = {for (var fragment in fragments.keys) fragment: 0};
       var inlineRefCount = {for (var inline in inline.keys) inline: 0};
 
-      var declarations = fragments.pairs //
+      var declarations = fragments
+          .pairs //
           .followedBy(rules.pairs)
           .followedBy(inline.pairs);
 
@@ -344,38 +345,24 @@ final class ParserGenerator {
     ///     upper = /[A-Z]/;
     ///   }
     /// }
-    NamespaceStatement(
-      "std",
-      <Statement>[
-        DeclarationStatement.predefined("any", AnyCharacterNode()),
-        DeclarationStatement.predefined("epsilon", EpsilonNode()),
-        DeclarationStatement.predefined(
-          "start",
-          StartOfInputNode(),
-          type: "int",
-        ),
-        DeclarationStatement.predefined("end", EndOfInputNode(), type: "int"),
-        DeclarationStatement.predefined("whitespace", RegExpNode(r"\s")),
-        DeclarationStatement.predefined("digit", RegExpNode(r"\d")),
-        DeclarationStatement.predefined("hex", RegExpNode("[0-9A-Fa-f]")),
-        NamespaceStatement.predefined(
-          "hex",
-          <Statement>[
-            DeclarationStatement.predefined("lower", RegExpNode("[0-9a-f]")),
-            DeclarationStatement.predefined("upper", RegExpNode("[0-9A-F]")),
-          ],
-        ),
-        DeclarationStatement.predefined("alpha", RegExpNode("[a-zA-Z]")),
-        NamespaceStatement.predefined(
-          "alpha",
-          <Statement>[
-            DeclarationStatement.predefined("lower", RegExpNode("[a-z]")),
-            DeclarationStatement.predefined("upper", RegExpNode("[A-Z]")),
-          ],
-        ),
-      ],
-      tag: Tag.inline,
-    ),
+    NamespaceStatement("std", <Statement>[
+      DeclarationStatement.predefined("any", AnyCharacterNode()),
+      DeclarationStatement.predefined("epsilon", EpsilonNode()),
+      DeclarationStatement.predefined("start", StartOfInputNode(), type: "int"),
+      DeclarationStatement.predefined("end", EndOfInputNode(), type: "int"),
+      DeclarationStatement.predefined("whitespace", RegExpNode(r"\s")),
+      DeclarationStatement.predefined("digit", RegExpNode(r"\d")),
+      DeclarationStatement.predefined("hex", RegExpNode("[0-9A-Fa-f]")),
+      NamespaceStatement.predefined("hex", <Statement>[
+        DeclarationStatement.predefined("lower", RegExpNode("[0-9a-f]")),
+        DeclarationStatement.predefined("upper", RegExpNode("[0-9A-F]")),
+      ]),
+      DeclarationStatement.predefined("alpha", RegExpNode("[a-zA-Z]")),
+      NamespaceStatement.predefined("alpha", <Statement>[
+        DeclarationStatement.predefined("lower", RegExpNode("[a-z]")),
+        DeclarationStatement.predefined("upper", RegExpNode("[A-Z]")),
+      ]),
+    ], tag: Tag.inline),
   ];
 
   int redirectId = 0;
@@ -417,9 +404,7 @@ final class ParserGenerator {
 
     fullBuffer.writeln("// GENERATED CODE");
 
-    fullBuffer.writeln(
-      "final class $parserName extends _PegParser<$parserTypeString> {",
-    );
+    fullBuffer.writeln("final class $parserName extends _PegParser<$parserTypeString> {");
     fullBuffer.writeln("  $parserName();");
     fullBuffer.writeln();
     fullBuffer.writeln("  @override");
@@ -432,16 +417,14 @@ final class ParserGenerator {
 
         var inner = StringBuffer();
         var displayName = reverseRenames[rawName]!;
-        var body = node.acceptParametrizedVisitor(
-          compilerVisitor,
-          (
-            isNullAllowed: isNullable(node, displayName),
-            withNames: null as Set<String>?,
-            inner: null,
-            reported: true,
-            declarationName: displayName,
-          ),
-        ).indent();
+        var body =
+            node.acceptParametrizedVisitor(compilerVisitor, (
+              isNullAllowed: isNullable(node, displayName),
+              withNames: null as Set<String>?,
+              inner: null,
+              reported: true,
+              declarationName: displayName,
+            )).indent();
 
         inner.writeln();
         inner.writeln("/// `$displayName`");
@@ -450,9 +433,7 @@ final class ParserGenerator {
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln(
-            "$type${isNullable(node, rawName) ? "" : "?"} $rawName() {",
-          );
+          inner.writeln("$type${isNullable(node, rawName) ? "" : "?"} $rawName() {");
           inner.writeln(body);
           inner.writeln("}");
         }
@@ -465,16 +446,14 @@ final class ParserGenerator {
 
         var inner = StringBuffer();
         var displayName = reverseRenames[rawName]!;
-        var body = node.acceptParametrizedVisitor(
-          compilerVisitor,
-          (
-            isNullAllowed: isNullable(node, rawName),
-            withNames: null,
-            inner: null,
-            reported: true,
-            declarationName: displayName,
-          ),
-        ).indent();
+        var body =
+            node.acceptParametrizedVisitor(compilerVisitor, (
+              isNullAllowed: isNullable(node, rawName),
+              withNames: null,
+              inner: null,
+              reported: true,
+              declarationName: displayName,
+            )).indent();
 
         inner.writeln();
         inner.writeln("/// `$displayName`");
@@ -483,9 +462,7 @@ final class ParserGenerator {
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln(
-            "$type${isNullable(node, rawName) ? "" : "?"} $rawName() {",
-          );
+          inner.writeln("$type${isNullable(node, rawName) ? "" : "?"} $rawName() {");
           inner.writeln(body);
           inner.writeln("}");
         }
@@ -545,57 +522,42 @@ final class ParserGenerator {
     return fullBuffer.toString();
   }
 
-  String compileParserGenerator(
-    String parserName, {
-    String? start,
-    String? type,
-  }) {
-    return _compile(
-      parserName,
-      rules: rules,
-      fragments: fragments,
-      start: start,
-      type: type,
-    );
+  String compileParserGenerator(String parserName, {String? start, String? type}) {
+    return _compile(parserName, rules: rules, fragments: fragments, start: start, type: type);
   }
 
   String compileAstParserGenerator(String parserName, {String? start}) {
     RemoveActionNodeVisitor removeActionNodeVisitor = const RemoveActionNodeVisitor();
     Map<String, (String?, Node)> rules = <String, (String?, Node)>{
       for (var (String name, (_, Node node)) in this.rules.pairs)
-        name: (
-          "Object",
-          node.acceptSimpleVisitor(removeActionNodeVisitor),
-        ),
+        name: ("Object", node.acceptSimpleVisitor(removeActionNodeVisitor)),
     };
     Map<String, (String?, Node)> fragments = <String, (String?, Node)>{
       for (var (String name, (_, Node node)) in this.fragments.pairs)
-        name: (
-          "Object",
-          node.acceptSimpleVisitor(removeActionNodeVisitor),
-        ),
+        name: ("Object", node.acceptSimpleVisitor(removeActionNodeVisitor)),
     };
 
-    return _compile(
-      parserName,
-      rules: rules,
-      fragments: fragments,
-      start: start,
-      type: "Object",
-    );
+    return _compile(parserName, rules: rules, fragments: fragments, start: start, type: "Object");
   }
 
   String compileCstParserGenerator(String parserName, {String? start}) {
     RemoveActionNodeVisitor removeActionNodeVisitor = const RemoveActionNodeVisitor();
+    RemoveSelectionVisitor removeSelectionVisitor = const RemoveSelectionVisitor();
+
     Map<String, (String?, Node)> rules = <String, (String?, Node)>{
       for (var (String name, (_, Node node)) in this.rules.pairs)
         name: (
           "Object",
           InlineActionNode(
-            NamedNode(r"$", node.acceptSimpleVisitor(removeActionNodeVisitor)),
+            NamedNode(
+              r"$",
+              node
+                  .acceptSimpleVisitor(removeActionNodeVisitor)
+                  .acceptSimpleVisitor(removeSelectionVisitor),
+            ),
             r"$".wrappedName(reverseRenames[name]!.unwrappedName),
             areIndicesProvided: false,
-          )
+          ),
         ),
     };
     Map<String, (String?, Node)> fragments = <String, (String?, Node)>{
@@ -603,20 +565,19 @@ final class ParserGenerator {
         name: (
           "Object",
           InlineActionNode(
-            NamedNode(r"$", node.acceptSimpleVisitor(removeActionNodeVisitor)),
+            NamedNode(
+              r"$",
+              node
+                  .acceptSimpleVisitor(removeActionNodeVisitor)
+                  .acceptSimpleVisitor(removeSelectionVisitor),
+            ),
             r"$".wrappedName(reverseRenames[name]!),
             areIndicesProvided: false,
-          )
+          ),
         ),
     };
 
-    return _compile(
-      parserName,
-      rules: rules,
-      fragments: fragments,
-      start: start,
-      type: "Object",
-    );
+    return _compile(parserName, rules: rules, fragments: fragments, start: start, type: "Object");
   }
 
   final Expando<bool> _isNullable = Expando<bool>();
@@ -634,13 +595,15 @@ final class ParserGenerator {
       RegExpEscapeNode() => false,
       CountedNode() => node.min <= 0 || isNullable(node.child, ruleName),
       StringLiteralNode() => node.literal.isEmpty,
-      SequenceNode() => (
+      SequenceNode() =>
+        (
           _isNullable[node] = true,
-          node.children.every((Node node) => isNullable(node, ruleName))
+          node.children.every((Node node) => isNullable(node, ruleName)),
         ).$2,
-      ChoiceNode() => (
+      ChoiceNode() =>
+        (
           _isNullable[node] = false,
-          node.children.any((Node node) => isNullable(node, ruleName))
+          node.children.any((Node node) => isNullable(node, ruleName)),
         ).$2,
       PlusSeparatedNode() =>
         isNullable(node.child, ruleName) && isNullable(node.separator, ruleName),
@@ -651,15 +614,15 @@ final class ParserGenerator {
       NotPredicateNode() => isNullable(node.child, ruleName),
       OptionalNode() => isNullable(node.child, ruleName),
       ReferenceNode() => isNullable(
-          rules[node.ruleName]?.$2 ?? notFound(node.ruleName, Tag.rule, ruleName),
-          ruleName,
-        ),
+        rules[node.ruleName]?.$2 ?? notFound(node.ruleName, Tag.rule, ruleName),
+        ruleName,
+      ),
       FragmentNode() => isNullable(
-          fragments[node.fragmentName]?.$2 ??
-              inline[node.fragmentName]?.$2 ??
-              notFound(node.fragmentName, Tag.fragment, ruleName),
-          ruleName,
-        ),
+        fragments[node.fragmentName]?.$2 ??
+            inline[node.fragmentName]?.$2 ??
+            notFound(node.fragmentName, Tag.fragment, ruleName),
+        ruleName,
+      ),
       NamedNode() => isNullable(node.child, ruleName),
       ActionNode() => isNullable(node.child, ruleName),
       InlineActionNode() => isNullable(node.child, ruleName),
@@ -668,11 +631,7 @@ final class ParserGenerator {
 }
 
 Never notFound(String name, Tag tag, [String? root]) {
-  throw ArgumentError.value(
-    name,
-    "name",
-    "$tag not found${root == null ? "" : " in $root"}",
-  );
+  throw ArgumentError.value(name, "name", "$tag not found${root == null ? "" : " in $root"}");
 }
 
 extension IndentationExtension on String {
@@ -697,9 +656,7 @@ extension IndentationExtension on String {
         .reduce((int a, int b) => a < b ? a : b);
 
     String unindented = lines //
-        .map(
-          (String line) => line.isEmpty ? line : line.substring(commonIndentation),
-        )
+        .map((String line) => line.isEmpty ? line : line.substring(commonIndentation))
         .join("\n");
 
     return unindented;
@@ -711,21 +668,21 @@ extension NameShortcuts on Set<String>? {
   ///  If the set is null, it returns `$`.
   String get singleName => this == null ? r"$" : this!.first;
   String get varNames => switch (this) {
-        null => r"var $",
-        Set<String>(length: 1, single: "_") => "_",
-        Set<String>(length: 1, single: "null") => "null",
-        Set<String>(length: 1, single: String name) => "var $name",
-        Set<String> set => set //
-            .where((String v) => v != "_")
-            .map((String v) => v == "null" ? v : "var $v")
-            .toList()
-            .apply(
-              (List<String> iter) => switch (iter) {
-                List<String>(length: 1, :String single) => single,
-                List<String>() => iter.join(" && ").apply((String v) => "($v)")
-              },
-            )
-      };
+    null => r"var $",
+    Set<String>(length: 1, single: "_") => "_",
+    Set<String>(length: 1, single: "null") => "null",
+    Set<String>(length: 1, single: String name) => "var $name",
+    Set<String> set => set //
+        .where((String v) => v != "_")
+        .map((String v) => v == "null" ? v : "var $v")
+        .toList()
+        .apply(
+          (List<String> iter) => switch (iter) {
+            List<String>(length: 1, :String single) => single,
+            List<String>() => iter.join(" && ").apply((String v) => "($v)"),
+          },
+        ),
+  };
 }
 
 extension MonadicTypeExtension<T extends Object> on T {

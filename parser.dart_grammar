@@ -242,7 +242,7 @@ Node atom =
   | `(` choice `)` @1
   /// Special syntax for character classes.
   | `^` { const StartOfInputNode() }
-  | `$` { const EndOfInputNode() }  
+  | `$` { const EndOfInputNode() }
   | `.` { const AnyCharacterNode() }
   | `ε` { const EpsilonNode() }
   /// Regular Expression Literals
@@ -273,18 +273,25 @@ Node atom =
   ;
 
 code {
-  String curly =
-    | "`" ~"`"* "`" @1 { $.join() }
-    | curly.balanced
-    ;
+  curly: String
+    = "`" ~"`"* "`" @1 { $.join() }
+    | unbalanced;
 
-  curly {
-    String balanced = code:(
-        | dart.literal.string
-        | "{" balanced "}" @1 {"{" + $ + "}"}
-        | ~("{" | "}")
-      )* { code.join() };
-  }
+  String unbalanced = code:(
+    | dart.literal.string {buffer.substring(from, to)}
+    | "{" balanced "}" @1 {"{" + $ + "}"}
+    | "(" balanced ")" @1 {"(" + $ + ")"}
+    | "[" balanced "]" @1 {"[" + $ + "]"}
+    | .
+  )* { code.join() };
+
+  String balanced = code:(
+    | dart.literal.string {buffer.substring(from, to)}
+    | "{" balanced "}" @1 {"{" + $ + "}"}
+    | "(" balanced ")" @1 {"(" + $ + ")"}
+    | "[" balanced "]" @1 {"[" + $ + "]"}
+    | ~("}" | ")" | "]")
+  )* { code.join() };
 }
 
 @fragment literal {
