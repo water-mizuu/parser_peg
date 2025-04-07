@@ -29,30 +29,27 @@ Statement statement =
 /// A namespace is a block of statements which can apply a tag and/or be encapsulated
 ///   under a name.
 Statement namespace =
-  | kw.decorator.fragment name:identifier? `{` statements:_..statement+ `}` {
-      NamespaceStatement(name, statements, tag: Tag.fragment)
-    }
-  | kw.decorator.rule name:identifier? `{` statements:_..statement+ `}` {
-      NamespaceStatement(name, statements, tag: Tag.rule)
-    }
-  | kw.decorator.inline name:identifier? `{` statements:_..statement+ `}` {
-      NamespaceStatement(name, statements, tag: Tag.inline)
-    }
-  | name:identifier? `{` statements:_..statement+ `}` {
-      NamespaceStatement(name, statements, tag: null)
-    }
-  ;
+  :kw.decorator? name:identifier? `{` statements:_..statement+ `}`
+    |> NamespaceStatement(name, statements, tag: decorator);
 
 
 /// A declaration is a statement that can be referenced by other declarations.
 ///   Formally, it is a non-terminal.
 Statement declaration =
   /// `var`-prefixed declaration
-  | :kw.decorator? kw.var? :name :body { DeclarationStatement(null, name, body, tag: decorator) }
+  | :kw.decorator? kw.var? :name :body {
+      DeclarationStatement(null, name, body, tag: decorator)
+    }
+  
   /// A C-style declaration with <type> <name> = <body>;
-  | :kw.decorator? :type :name :body { DeclarationStatement(type, name, body, tag: decorator) }
+  | :kw.decorator? :type :name :body {
+      DeclarationStatement(type, name, body, tag: decorator)
+    }
+  
   /// A modern-style declaration with <name>: <type> = <body>;
-  | :kw.decorator? kw.var? :name `:` :type :body { DeclarationStatement(type, name, body, tag: decorator) }
+  | :kw.decorator? kw.var? :name `:` :type :body {
+      DeclarationStatement(type, name, body, tag: decorator)
+    }
   ;
 
 /// Shared code between declarations.
@@ -78,13 +75,13 @@ Node choice = `|`? options:`|`..acted+ { options.length == 1 ? options.single : 
 
 /// A parser with a bound action.
 Node acted =
-  | :sequence `=>` _ :literal.raw _ {
-    InlineActionNode(
-      sequence,
-      raw.trimRight(),
-      areIndicesProvided: raw.contains(_regexps.from) && raw.contains(_regexps.to),
-    )
-  }
+  | :sequence `|>` _ code:code.nl _ {
+      InlineActionNode(
+        sequence,
+        code.trimRight(),
+        areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
+      )
+    }
   | :sequence `{` _ :code.curly _ `}` {
       InlineActionNode(
         sequence,
@@ -273,20 +270,28 @@ Node atom =
   ;
 
 code {
-  curly: String
-    = "`" ~"`"* "`" @1 { $.join() }
-    | unbalanced;
-
-  String unbalanced = code:(
-    | dart.literal.string {buffer.substring(from, to)}
-    | "{" balanced "}" @1 {"{" + $ + "}"}
-    | "(" balanced ")" @1 {"(" + $ + ")"}
-    | "[" balanced "]" @1 {"[" + $ + "]"}
-    | .
-  )* { code.join() };
+  String curly = 
+    | "`" ~"`"* "`" @1 { $.join() }
+    | code:(
+        | dart.literal.string
+        | "{" balanced "}" @1 {"{" + $ + "}"}
+        | "(" balanced ")" @1 {"(" + $ + ")"}
+        | "[" balanced "]" @1 {"[" + $ + "]"}
+        | ~("}")
+      )* { code.join() };
+  
+  String nl = 
+    | "`" ~"`"* "`" @1 { $.join() }
+    | code: (
+        | dart.literal.string
+        | "{" balanced "}" @1 {"{" + $ + "}"}
+        | "(" balanced ")" @1 {"(" + $ + ")"}
+        | "[" balanced "]" @1 {"[" + $ + "]"}
+        | ~(\n | ";")
+      )* { code.join() };
 
   String balanced = code:(
-    | dart.literal.string {buffer.substring(from, to)}
+    | dart.literal.string
     | "{" balanced "}" @1 {"{" + $ + "}"}
     | "(" balanced ")" @1 {"(" + $ + ")"}
     | "[" balanced "]" @1 {"[" + $ + "]"}
@@ -367,16 +372,25 @@ dart {
         | r"$" "{" balanced "}"
         | r"$" identifier
         ;
-      Object balanced = code:("{" balanced "}" @1 | ~("{" | "}"))*;
+
+      String balanced = code:(
+        | string
+        | "{" balanced "}" @1 {"{" + $ + "}"}
+        | ~("}")
+      )* { code.join() };
     }
   }
 
   type {
     String main = _ type _ @1;
     String type =
-      | parameters:function_parameters `=>` :type { "$type Function$parameters" }
+      | parameters:function_parameters `=>` :type 
+        |> "$type Function$parameters"
+
       /// Dart function type.
-      | :type _ "Function" parameters:function_parameters `?`? { "$type Function$parameters${$4 ?? ""}" }
+      | :type _ "Function" parameters:function_parameters `?`? 
+        |> "$type Function$parameters${$4 ?? ""}"
+
       | nullable;
 
     String nullable = :nonNullable `?`? { $1 == null ? "$nonNullable" : "$nonNullable?" };
@@ -387,15 +401,20 @@ dart {
     ///   The fields are special by commas.
     String record =
       // (int, int b, {int a,})
-      | `(` positional:fields.positional `,` named:parameters.named `)` {
-          "(" + positional + ", " + named + ")"
-        }
+      | `(` positional:fields.positional `,` named:parameters.named `)`
+        |> "(" + positional + ", " + named + ")"
+      
       // (int, int b,)
-      | `(` positional:fields.positional `,`? `)` { "(" + positional + ")"}
+      | `(` positional:fields.positional `,`? `)`
+        |> "(" + positional + ")"
+      
       // ({int a,})
-      | `(` named:parameters.named `)` { "(" + named + ")"}
+      | `(` named:parameters.named `)`
+        |> "(" + named + ")"
+      
       // ()
-      | `(`  `)` { "()" }
+      | `(`  `)` 
+        |> "()"
       ;
 
     String function_parameters =
@@ -506,6 +525,7 @@ dart {
   String `->`  = _ "->" _ @1;
   String `~>`  = _ "~>" _ @1;
   String `<~`  = _ "<~" _ @1;
+  String `|>`  = _ "|>" _ @1;
 
   String `%` = _ "%" _ @1;
   String `@` = _ "@" _ @1;

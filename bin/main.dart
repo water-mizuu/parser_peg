@@ -130,10 +130,6 @@ void _testCompiler() async {
         var [sendPort as SendPort, grammar as String] = payload;
         var parser = GrammarParser();
         
-        if (parser.parse(innerInput) case var parser?) {
-          print(parser);
-        }
-
         if (parser.parse(grammar) case ParserGenerator generator) {
           sendPort.send(true);
         } else {
@@ -214,7 +210,6 @@ void _experiment() {
         stdout.writeln("Successfully parsed grammar!");
         stdout.writeln("Generating parser.");
 
-        print(result);
         File("playground.txt")
           ..createSync(recursive: true)
           ..writeAsStringSync(displayTree(result));

@@ -1,1 +1,8 @@
-expr = . { hi {hi} (};
+expr1 = . |>
+        MyConstructor(
+          name: "Hello there"
+        );
+expr2 =
+  | . |> hi { (a | b)
+      hi} )( ][
+  | ^ |> bye;
