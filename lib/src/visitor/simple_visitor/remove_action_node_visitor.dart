@@ -96,6 +96,11 @@ class RemoveActionNodeVisitor implements SimpleNodeVisitor<Node> {
   }
 
   @override
+  Node visitExceptNode(ExceptNode node) {
+    return ExceptNode(node.child.acceptSimpleVisitor(this));
+  }
+
+  @override
   Node visitReferenceNode(ReferenceNode node) {
     return node;
   }

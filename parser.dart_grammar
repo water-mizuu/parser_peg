@@ -52,37 +52,11 @@ Statement declaration =
     }
   ;
 
-/// Shared code between declarations.
-@fragment {
-  /// Rules related to types declarations.
-  String type =
-    | _ raw _ @1
-    | dart.type.main;
 
-  String namespaceReference = (identifier ("::" | !".." ".") !mac @0)* {
-      $.join(ParserGenerator.separator)
-    };
-
-  List<String> name =
-    | `(` `,`..singleName+ `)` @1
-    | singleName |> [$];
-
-  String singleName =
-    | namespacedRaw
-    | namespacedIdentifier;
-  
-  String namespacedRaw =
-    namespaceReference literal.raw { $0.isEmpty ? $1 : "${$0}::${$1}" };
-
-  String namespacedIdentifier =
-    namespaceReference identifier { $0.isEmpty ? $1 : "${$0}::${$1}" };
-
-  Node body = (`=` | `<-` | `->`) :choice `;` { choice };
-}
 
 /// A choice parser is a parser that tries to match one of the options.
 /// Despite the syntax, the parser is ordered choice.
-Node choice = `|`? options:`|`..acted+ { 
+Node choice = (`|` `|`?)? options:(`|` `|`?)..acted+ { 
   options.length == 1 ? options.single : ChoiceNode(options)
 };
 
@@ -193,7 +167,7 @@ Node prefix =
   | min:number `..` max:number? body:atom { CountedNode(min, max, body) }
   | :number body:atom                     { CountedNode(number, number, body) }
   /// A parser that is only matched if the following parser fails.
-  | `~` prefix @1 { SequenceNode([NotPredicateNode($), const AnyCharacterNode()], chosenIndex: 1) }
+  | `~` prefix @1 { ExceptNode($) }
   /// A parser that only returns a boolean, succeeding when the parser succeeds.
   | `&` prefix @1 { AndPredicateNode($) }
   /// A parser that only returns a boolean, succeeding when the parser fails.
@@ -475,6 +449,34 @@ dart {
   }
 }
 
+/// Shared code between declarations.
+@fragment {
+  /// Rules related to types declarations.
+  String type =
+    | _ raw _ @1
+    | dart.type.main;
+
+  String namespaceReference
+    := (identifier ("::" | !".." ".") !mac @0)*
+      |> $.join(ParserGenerator.separator);
+
+  List<String> name =
+    | `(` `,`..singleName+ `)` @1
+    | singleName |> [$];
+
+  String singleName =
+    | namespacedRaw
+    | namespacedIdentifier;
+  
+  String namespacedRaw =
+    namespaceReference literal.raw { $0.isEmpty ? $1 : "${$0}::${$1}" };
+
+  String namespacedIdentifier =
+    namespaceReference identifier { $0.isEmpty ? $1 : "${$0}::${$1}" };
+
+  Node body = ((`:`? `=`)| `<-` | `->`) :choice `;` { choice };
+}
+
 /// Tokens used in the grammar.
 ///   Since they are not recursive, they are not defined as rules.
 @fragment {
@@ -503,6 +505,7 @@ dart {
     | mac.flat
     | mac.sep
     ;
+
   /// Tokens used in "macro-like" rules.
   mac {
     String range = _ "range!" _ @1;

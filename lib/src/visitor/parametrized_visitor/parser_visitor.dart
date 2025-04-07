@@ -579,6 +579,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
           declarationName: declarationName,
         ))
         .indent(4);
+    print((node.child.runtimeType, isNullable(node.child, declarationName)));
     var question = isNullable(node.child, declarationName) ? "" : "?";
     var loopBuffer = StringBuffer();
     loopBuffer.writeln(
@@ -667,6 +668,39 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       reported: reported,
       declarationName: declarationName,
     ));
+  }
+
+  @override
+  String visitExceptNode(node, parameters) {
+    var Parameters(:withNames, :inner, :reported, :declarationName) = parameters;
+
+    var buffer = StringBuffer();
+
+    buffer.writeln("if (this.pos case var mark) {");
+    buffer.writeln(
+      node.child.acceptParametrizedVisitor(this, (
+        isNullAllowed: true,
+        withNames: {"null"},
+        inner:
+            (StringBuffer()
+                  ..writeln("this.pos = mark;")
+                  ..writeln(
+                    const AnyCharacterNode().acceptParametrizedVisitor(this, (
+                      isNullAllowed: false,
+                      withNames: withNames,
+                      inner: inner,
+                      reported: reported,
+                      declarationName: declarationName,
+                    )),
+                  ))
+                .toString(),
+        reported: reported,
+        declarationName: declarationName,
+      )).indent(),
+    );
+    buffer.writeln("}");
+
+    return buffer.toString();
   }
 
   @override

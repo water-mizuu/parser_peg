@@ -109,6 +109,11 @@ class RenameDeclarationVisitor implements SimpleNodeVisitor<Node> {
   }
 
   @override
+  Node visitExceptNode(ExceptNode node) {
+    return ExceptNode(node.child.acceptSimpleVisitor(this));
+  }
+
+  @override
   Node visitReferenceNode(ReferenceNode node) {
     return ReferenceNode(redirects[node.ruleName] ?? node.ruleName);
   }

@@ -5,7 +5,6 @@
 
 import "dart:collection";
 import "dart:math" as math;
-
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -111,7 +110,7 @@ abstract base class _PegParser<R extends Object> {
   void _setupLr<T extends Object>(_Rule<T> r, _Lr<void> l) {
     l.head ??= _Head<T>(rule: r, evalSet: <_Rule<void>>{}, involvedSet: <_Rule<void>>{});
 
-    for (_Lr<void> lr in _lrStack.takeWhile((_Lr<void> lr) => lr.head != l.head)) {
+    for (_Lr<void> lr in _lrStack.takeWhile((lr) => lr.head != l.head)) {
       l.head!.involvedSet.add(lr.rule);
       lr.head = l.head;
     }
@@ -241,11 +240,12 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class Parser extends _PegParser<Object> {
-  Parser();
+final class MyParser extends _PegParser<Object> {
+  MyParser();
 
   @override
   get start => r0;
+
 
   /// `ROOT`
   late final f0 = () {
@@ -254,13 +254,82 @@ final class Parser extends _PegParser<Object> {
     }
   };
 
-  /// `global::expr`
-  late final r0 = () {
-    if (this.pos < this.buffer.length) {
-      if (this.buffer[this.pos] case var $) {
-        this.pos++;
-        return ();
+  /// `fragment0`
+  late final f1 = () {
+    if (this.matchPattern(_string.$1) case var $?) {
+      return $;
+    }
+  };
+
+  /// `fragment1`
+  late final f2 = () {
+    if (this.pos case var mark) {
+      if (this.pos case var mark) {
+        if (this.f1() case null) {
+          this.pos = mark;
+          if (this.pos < this.buffer.length) {
+            if (this.buffer[this.pos] case var _0) {
+              this.pos++;
+              if ([if (_0 case var _0) _0] case (var $0 && var _l1)) {
+                if (_l1.isNotEmpty) {
+                  for (;;) {
+                    if (this.pos case var mark) {
+                      if (this.pos case var mark) {
+                        if (this.f1() case null) {
+                          this.pos = mark;
+                          if (this.pos < this.buffer.length) {
+                            if (this.buffer[this.pos] case var _0) {
+                              this.pos++;
+                              _l1.add(_0);
+                              continue;
+                            }
+                          }
+                        }
+                      }
+                      this.pos = mark;
+                      break;
+                    }
+                  }
+                } else {
+                  this.pos = mark;
+                }
+                if (this.matchPattern(_string.$1) case var $1?) {
+                  return ($0, $1);
+                }
+              }
+            }
+          }
+        }
       }
     }
   };
+
+  /// `global::my_test`
+  late final r0 = () {
+    if (this.pos case var from) {
+      if (this.matchPattern(_string.$1) case _?) {
+        if (this.f2() case var _0?) {
+          if ([_0] case var _l1) {
+            for (;;) {
+              if (this.pos case var mark) {
+                if (this.f2() case var _0?) {
+                  _l1.add(_0);
+                  continue;
+                }
+                this.pos = mark;
+                break;
+              }
+            }
+            if (this.pos case var to) {
+              return buffer.substring(from, to);
+            }
+          }
+        }
+      }
+    }
+  };
+
+  static const _string = (
+    "\"",
+  );
 }

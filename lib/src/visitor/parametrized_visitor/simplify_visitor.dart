@@ -158,6 +158,22 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
   }
 
   @override
+  Node visitExceptNode(ExceptNode node, int depth) {
+    // return SequenceNode([
+    //   NotPredicateNode(node.child),
+    //   const AnyCharacterNode(),
+    // ], chosenIndex: 1).acceptParametrizedVisitor(this, depth);
+
+    if (depth > 0) {
+      return ExceptNode(
+        createFragment(node.child.acceptParametrizedVisitor(this, 0)),
+      );
+    } else {
+      return ExceptNode(node.child.acceptParametrizedVisitor(this, depth));
+    }
+  }
+
+  @override
   Node visitReferenceNode(ReferenceNode node, int depth) {
     return node;
   }

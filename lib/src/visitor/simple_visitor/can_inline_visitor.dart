@@ -125,6 +125,14 @@ class CanInlineVisitor implements SimpleNodeVisitor<bool> {
     return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
 
+
+  @override
+  bool visitExceptNode(ExceptNode node) {
+    if (_cache[node] case bool b) return b;
+
+    return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
+  }
+
   @override
   bool visitReferenceNode(ReferenceNode node) {
     if (_cache[node] case bool b) return b;

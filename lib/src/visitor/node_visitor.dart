@@ -17,6 +17,7 @@ abstract class SimpleNodeVisitor<O> {
   O visitAndPredicateNode(AndPredicateNode node);
   O visitNotPredicateNode(NotPredicateNode node);
   O visitOptionalNode(OptionalNode node);
+  O visitExceptNode(ExceptNode node);
   O visitReferenceNode(ReferenceNode node);
   O visitFragmentNode(FragmentNode node);
   O visitNamedNode(NamedNode node);
@@ -44,6 +45,7 @@ abstract class ParametrizedNodeVisitor<O, I> {
   O visitAndPredicateNode(AndPredicateNode node, I parameters);
   O visitNotPredicateNode(NotPredicateNode node, I parameters);
   O visitOptionalNode(OptionalNode node, I parameters);
+  O visitExceptNode(ExceptNode node, I parameters);
   O visitReferenceNode(ReferenceNode node, I parameters);
   O visitFragmentNode(FragmentNode node, I parameters);
   O visitNamedNode(NamedNode node, I parameters);

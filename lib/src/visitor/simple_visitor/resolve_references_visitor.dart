@@ -110,6 +110,11 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
     return OptionalNode(node.child.acceptSimpleVisitor(this));
   }
 
+  @override
+  Node visitExceptNode(ExceptNode node) {
+    return ExceptNode(node.child.acceptSimpleVisitor(this));
+  }
+
   Node resolveReference(String name) {
     for (int i = prefixes.length; i >= 0; --i) {
       var potentialName = [...prefixes.sublist(0, i), name].join(ParserGenerator.separator);

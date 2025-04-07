@@ -1,7 +1,1 @@
-expr1 = . |>
-        MyConstructor(
-          name: "Hello there"
-        );
-(expr2, expr3) =
-  | . |> "this is nice."
-  | ^ |> bye;
+my_test = '"' ((~'"')* '"')+ |> buffer.substring(from, to);

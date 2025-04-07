@@ -584,6 +584,7 @@ final class ParserGenerator {
       StarNode() => true,
       AndPredicateNode() => isNullable(node.child, ruleName),
       NotPredicateNode() => isNullable(node.child, ruleName),
+      ExceptNode() => true,
       OptionalNode() => isNullable(node.child, ruleName),
       ReferenceNode() => isNullable(
         rules[node.ruleName]?.$2 ?? notFound(node.ruleName, Tag.rule, ruleName),

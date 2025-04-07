@@ -133,6 +133,13 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
     return (changed, OptionalNode(child));
   }
 
+  @override
+  (bool, Node) visitExceptNode(ExceptNode node) {
+    var (changed, child) = node.child.acceptSimpleVisitor(this);
+
+    return (changed, ExceptNode(child));
+  }
+
   (bool, Node)? resolveReference(String name) {
     if (inline.containsKey(name)) {
       return (true, inline[name]!.$2);

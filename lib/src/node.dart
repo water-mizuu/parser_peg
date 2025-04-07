@@ -243,6 +243,19 @@ class OptionalNode implements Node {
       visitor.visitOptionalNode(this, parameters);
 }
 
+class ExceptNode implements Node {
+  const ExceptNode(this.child);
+
+  final Node child;
+
+  @override
+  O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitExceptNode(this);
+
+  @override
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitExceptNode(this, parameters);
+}
+
 class ReferenceNode implements Node {
   const ReferenceNode(this.ruleName);
   final String ruleName;
