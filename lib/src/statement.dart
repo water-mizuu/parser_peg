@@ -1,8 +1,11 @@
 import "package:parser_peg/src/node.dart";
+import "package:parser_peg/src/visitor/statement_visitor.dart";
 
 enum Tag { rule, fragment, inline }
 
-sealed class Statement {}
+sealed class Statement {
+  O acceptVisitor<O, I>(StatementVisitor<O, I> visitor, I parameters);
+}
 
 final class NamespaceStatement implements Statement {
   const NamespaceStatement(this.name, this.children, {required this.tag});
@@ -11,6 +14,11 @@ final class NamespaceStatement implements Statement {
   final String? name;
   final List<Statement> children;
   final Tag? tag;
+
+  @override
+  O acceptVisitor<O, I>(StatementVisitor<O, I> visitor, I parameters) {
+    return visitor.visitNamespaceStatement(this, parameters);
+  }
 }
 
 final class DeclarationStatement implements Statement {
@@ -21,4 +29,33 @@ final class DeclarationStatement implements Statement {
   final List<String> names;
   final Node node;
   final Tag? tag;
+
+  @override
+  O acceptVisitor<O, I>(StatementVisitor<O, I> visitor, I parameters) {
+    return visitor.visitDeclarationStatement(this, parameters);
+  }
+}
+
+final class HybridNamespaceStatement implements Statement {
+  const HybridNamespaceStatement(
+    this.type,
+    this.name,
+    this.children, {
+    required this.outerTag,
+    required this.innerTag,
+  });
+  const HybridNamespaceStatement.predefined(this.type, this.name, this.children)
+    : outerTag = null,
+      innerTag = null;
+
+  final String? type;
+  final String name;
+  final List<Statement> children;
+  final Tag? outerTag;
+  final Tag? innerTag;
+
+  @override
+  O acceptVisitor<O, I>(StatementVisitor<O, I> visitor, I parameters) {
+    return visitor.visitHybridNamespaceStatement(this, parameters);
+  }
 }

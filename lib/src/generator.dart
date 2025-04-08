@@ -4,15 +4,26 @@ import "dart:io";
 
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
-import "package:parser_peg/src/visitor/parametrized_visitor/parser_visitor.dart";
-import "package:parser_peg/src/visitor/parametrized_visitor/simplify_visitor.dart";
-import "package:parser_peg/src/visitor/simple_visitor/can_inline_visitor.dart";
-import "package:parser_peg/src/visitor/simple_visitor/inline_visitor.dart";
-import "package:parser_peg/src/visitor/simple_visitor/referenced_visitor.dart";
-import "package:parser_peg/src/visitor/simple_visitor/remove_action_node_visitor.dart";
-import "package:parser_peg/src/visitor/simple_visitor/remove_selection_visitor.dart";
-import "package:parser_peg/src/visitor/simple_visitor/rename_visitors.dart";
-import "package:parser_peg/src/visitor/simple_visitor/resolve_references_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/"
+    "parametrized_visitor/parser_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/"
+    "parametrized_visitor/simplify_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/"
+    "simple_visitor/can_inline_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/"
+    "simple_visitor/inline_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/"
+    "simple_visitor/referenced_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/"
+    "simple_visitor/remove_action_node_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/"
+    "simple_visitor/remove_selection_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/"
+    "simple_visitor/rename_visitors.dart";
+import "package:parser_peg/src/visitor/node_visitor/"
+    "simple_visitor/resolve_references_visitor.dart";
+import "package:parser_peg/src/visitor/statement_visitor/"
+    "statement_translator_visitor.dart";
 
 typedef DeclarationEntry = MapEntry<(String?, String), Node>;
 
@@ -33,19 +44,30 @@ const List<String> ignores = [
   "inference_failure_on_function_return_type",
   "unused_import",
   "duplicate_ignore",
+  "unused_element",
 ];
 
 final class ParserGenerator {
-  ParserGenerator.fromParsed({required List<Statement> statements, required this.preamble}) {
+  ParserGenerator.fromParsed({required this.statements, required this.preamble}) {
+    var workingStatements = statements;
+
+    /// We translate all hybrid namespaces to appropriate nodes.
+    if (StatementTranslatorVisitor() case StatementTranslatorVisitor visitor) {
+      workingStatements = [
+        for (var statement in workingStatements) //
+          ...statement.acceptVisitor(visitor, null),
+      ];
+    }
+
     /// We add all the special nodes :)
-    statements.insertAll(0, predefined);
+    workingStatements.insertAll(0, predefined);
 
     /// We add ALL the rules in advance.
     ///   Why? Because we need ALL the rules to be able to resolve references.
     ///
     /// This basically resolves all of the declarations in the grammar,
     ///   flattening the namespaces into a single map.
-    for (var statement in statements) {
+    for (var statement in workingStatements) {
       var stack = Queue<(Statement, List<String>, Tag?)>.from([
         (statement, ["global"], null),
       ]);
@@ -60,9 +82,9 @@ final class ParserGenerator {
             for (var name in names) {
               var realName = [...prefix, name].join(separator);
               var target = switch (declaredTag ?? tag) {
-                Tag.inline => inline,
-                Tag.fragment => fragments,
-                Tag.rule || null => rules,
+                Tag.inline => _inline,
+                Tag.fragment => _fragments,
+                Tag.rule || null => _rules,
               };
 
               target[realName] = (type, node);
@@ -76,12 +98,14 @@ final class ParserGenerator {
             for (var sub in children.reversed) {
               stack.addLast((sub, prefix, declaredTag ?? tag));
             }
+          case HybridNamespaceStatement():
+            throw Error();
         }
       }
     }
 
     /// Resolve the references from inside namespaces.
-    for (var statement in statements) {
+    for (var statement in workingStatements) {
       var stack = Queue<(Statement, List<String>, Tag?)>.from([
         (statement, ["global"], null),
       ]);
@@ -93,13 +117,19 @@ final class ParserGenerator {
           case DeclarationStatement(:var type, :var names, :var node, tag: var declaredTag):
             for (var name in names) {
               var realName = [...prefixes, name].join(separator);
-              var visitor = ResolveReferencesVisitor(realName, prefixes, rules, fragments, inline);
+              var visitor = ResolveReferencesVisitor(
+                realName,
+                prefixes,
+                _rules,
+                _fragments,
+                _inline,
+              );
               var resolvedNode = node.acceptSimpleVisitor(visitor);
 
               var target = switch (declaredTag ?? tag) {
-                Tag.inline => inline,
-                Tag.fragment => fragments,
-                Tag.rule || null => rules,
+                Tag.inline => _inline,
+                Tag.fragment => _fragments,
+                Tag.rule || null => _rules,
               };
               target[realName] = (type, resolvedNode);
             }
@@ -111,28 +141,30 @@ final class ParserGenerator {
             for (var sub in children.reversed) {
               stack.addLast((sub, prefixes, declaredTag ?? tag));
             }
+          case HybridNamespaceStatement():
+            throw Error();
         }
       }
     }
 
     /// Simple guard against fully inline declarations.
-    if (rules.isNotEmpty) {
-      var (key, (type, _)) = rules.pairs.first;
+    if (_rules.isNotEmpty) {
+      var (key, (type, _)) = _rules.pairs.first;
 
-      fragments[rootKey] = (type, ReferenceNode(key));
-    } else if (fragments.isNotEmpty) {
-      var (key, (type, _)) = fragments.pairs.first;
+      _fragments[rootKey] = (type, ReferenceNode(key));
+    } else if (_fragments.isNotEmpty) {
+      var (key, (type, _)) = _fragments.pairs.first;
 
-      fragments[rootKey] = (type, FragmentNode(key));
+      _fragments[rootKey] = (type, FragmentNode(key));
     } else {
-      if (inline.isEmpty) {
+      if (_inline.isEmpty) {
         throw Exception("There are no declarations!");
       }
 
       /// Since there is no rule / fragment, we can add a fake rule.
-      var (key, (type, _)) = inline.pairs.first;
+      var (key, (type, _)) = _inline.pairs.first;
 
-      fragments[rootKey] = (type, FragmentNode(key));
+      _fragments[rootKey] = (type, FragmentNode(key));
     }
 
     /// We determine two things.
@@ -147,14 +179,14 @@ final class ParserGenerator {
     /// NOTE: This does not break the correctness of the grammar, since
     ///   recursive fragments can't be inlined as determined by the next visitor.
     if (const ReferencedVisitor() case var visitor) {
-      var rulesRefCount = {for (var rule in rules.keys) rule: 0};
-      var fragmentRefCount = {for (var fragment in fragments.keys) fragment: 0};
-      var inlineRefCount = {for (var inline in inline.keys) inline: 0};
+      var rulesRefCount = {for (var rule in _rules.keys) rule: 0};
+      var fragmentRefCount = {for (var fragment in _fragments.keys) fragment: 0};
+      var inlineRefCount = {for (var inline in _inline.keys) inline: 0};
 
-      var declarations = fragments
+      var declarations = _fragments
           .pairs //
-          .followedBy(rules.pairs)
-          .followedBy(inline.pairs);
+          .followedBy(_rules.pairs)
+          .followedBy(_inline.pairs);
 
       var refCount = {for (var (name, _) in declarations) name: 0};
 
@@ -185,13 +217,13 @@ final class ParserGenerator {
 
       /// Then, if the refCount of a fragment is 1, we choose to inline it.
       for (var (name, count) in refCount.pairs) {
-        if (count != 1 || fragments[name] == null) {
+        if (count != 1 || _fragments[name] == null) {
           continue;
         }
 
-        var (type, node) = fragments[name]!;
-        inline[name] = (type, node);
-        fragments.remove(name);
+        var (type, node) = _fragments[name]!;
+        _inline[name] = (type, node);
+        _fragments.remove(name);
       }
 
       /// Remove the unreferenced rules,
@@ -200,7 +232,7 @@ final class ParserGenerator {
           continue;
         }
 
-        rules.remove(name);
+        _rules.remove(name);
       }
 
       /// Remove the unreferenced fragments,
@@ -209,7 +241,7 @@ final class ParserGenerator {
           continue;
         }
 
-        fragments.remove(name);
+        _fragments.remove(name);
       }
 
       /// And the unused inline rules (optional, does not have any runtime bearing).
@@ -218,39 +250,39 @@ final class ParserGenerator {
           continue;
         }
 
-        inline.remove(name);
+        _inline.remove(name);
       }
     }
 
     /// We determine the inline-declared rules that can *actually* be inlined.
     ///   We shouldn't throw an error, because it may just be that a rule is
     ///   declared as inline, but it is not actually inline-able, like in a namespace.
-    if (CanInlineVisitor(rules, fragments, inline) case CanInlineVisitor visitor) {
-      for (var (name, (type, node)) in inline.pairs.toList()) {
+    if (CanInlineVisitor(_rules, _fragments, _inline) case CanInlineVisitor visitor) {
+      for (var (name, (type, node)) in _inline.pairs.toList()) {
         if (!visitor.canBeInlined(node)) {
-          inline.remove(name);
-          fragments[name] = (type, node);
+          _inline.remove(name);
+          _fragments[name] = (type, node);
         }
       }
     }
 
     /// We inline the rules that can be inlined.
-    if (InlineVisitor(inline) case InlineVisitor visitor) {
+    if (InlineVisitor(_inline) case InlineVisitor visitor) {
       bool runLoop;
 
       do {
         runLoop = false;
-        for (var (name, (type, node)) in rules.pairs.toList()) {
+        for (var (name, (type, node)) in _rules.pairs.toList()) {
           var (hasChanged, resolvedNode) = visitor.inlineReferences(node);
           runLoop |= hasChanged;
 
-          rules[name] = (type, resolvedNode);
+          _rules[name] = (type, resolvedNode);
         }
-        for (var (name, (type, node)) in fragments.pairs.toList()) {
+        for (var (name, (type, node)) in _fragments.pairs.toList()) {
           var (hasChanged, resolvedNode) = visitor.inlineReferences(node);
           runLoop |= hasChanged;
 
-          fragments[name] = (type, resolvedNode);
+          _fragments[name] = (type, resolvedNode);
         }
       } while (runLoop);
     }
@@ -259,44 +291,44 @@ final class ParserGenerator {
     /// Basically, we limit the depth of each node in the tree.
     /// This allows us to have more simple code.
     if (ParametrizedSimplifyVisitor() case ParametrizedSimplifyVisitor visitor) {
-      for (var (name, (type, node)) in rules.pairs) {
-        rules[name] = (type, visitor.simplify(node));
+      for (var (name, (type, node)) in _rules.pairs) {
+        _rules[name] = (type, visitor.simplify(node));
       }
-      for (var (name, (type, node)) in fragments.pairs) {
-        fragments[name] = (type, visitor.simplify(node));
+      for (var (name, (type, node)) in _fragments.pairs) {
+        _fragments[name] = (type, visitor.simplify(node));
       }
 
       /// Since the simplifier visitor can add new fragments, we need to add them.
-      fragments.addAll(visitor.addedFragments);
+      _fragments.addAll(visitor.addedFragments);
     }
 
     /// We rename the rules and fragments.
     redirectId = 0;
-    for (var (name, (type, node)) in rules.pairs.toList()) {
+    for (var (name, (type, node)) in _rules.pairs.toList()) {
       var simplifiedName = "r${(redirectId++).toRadixString(36)}";
 
-      rules.remove(name);
-      rules[simplifiedName] = (type, node);
-      renames[name] = simplifiedName;
-      reverseRenames[simplifiedName] = name;
+      _rules.remove(name);
+      _rules[simplifiedName] = (type, node);
+      _renames[name] = simplifiedName;
+      _reverseRenames[simplifiedName] = name;
     }
     redirectId = 0;
-    for (var (name, (type, node)) in fragments.pairs.toList()) {
+    for (var (name, (type, node)) in _fragments.pairs.toList()) {
       var simplifiedName = "f${(redirectId++).toRadixString(36)}";
 
-      fragments.remove(name);
-      fragments[simplifiedName] = (type, node);
-      renames[name] = simplifiedName;
-      reverseRenames[simplifiedName] = name;
+      _fragments.remove(name);
+      _fragments[simplifiedName] = (type, node);
+      _renames[name] = simplifiedName;
+      _reverseRenames[simplifiedName] = name;
     }
 
     /// We rename the references.
-    if (RenameDeclarationVisitor(renames) case RenameDeclarationVisitor visitor) {
-      for (var (name, (type, node)) in rules.pairs) {
-        rules[name] = (type, visitor.renameDeclarations(node));
+    if (RenameDeclarationVisitor(_renames) case RenameDeclarationVisitor visitor) {
+      for (var (name, (type, node)) in _rules.pairs) {
+        _rules[name] = (type, visitor.renameDeclarations(node));
       }
-      for (var (name, (type, node)) in fragments.pairs) {
-        fragments[name] = (type, visitor.renameDeclarations(node));
+      for (var (name, (type, node)) in _fragments.pairs) {
+        _fragments[name] = (type, visitor.renameDeclarations(node));
       }
     }
   }
@@ -339,13 +371,13 @@ final class ParserGenerator {
 
   int redirectId = 0;
 
-  final Map<String, String> renames = <String, String>{};
-  final Map<String, String> reverseRenames = <String, String>{};
-  final Map<String, (String?, Node)> rules = <String, (String?, Node)>{};
-  final Map<String, (String?, Node)> fragments = <String, (String?, Node)>{};
-  final Map<String, (String?, Node)> inline = <String, (String?, Node)>{};
-
   final String? preamble;
+  final List<Statement> statements;
+  final Map<String, String> _renames = <String, String>{};
+  final Map<String, String> _reverseRenames = <String, String>{};
+  final Map<String, (String?, Node)> _rules = <String, (String?, Node)>{};
+  final Map<String, (String?, Node)> _fragments = <String, (String?, Node)>{};
+  final Map<String, (String?, Node)> _inline = <String, (String?, Node)>{};
 
   String _compile(
     String parserName, {
@@ -394,15 +426,21 @@ final class ParserGenerator {
         compilerVisitor.ruleId = 0;
 
         var inner = StringBuffer();
-        var displayName = reverseRenames[rawName]!;
+        var displayName = _reverseRenames[rawName]!;
         var body =
-            node.acceptParametrizedVisitor(compilerVisitor, (
-              isNullAllowed: isNullable(node, displayName),
-              withNames: null as Set<String>?,
-              inner: null,
-              reported: true,
-              declarationName: displayName,
-            )).indent();
+            node
+                .acceptParametrizedVisitor(
+                  compilerVisitor,
+                  Parameters(
+                    isNullAllowed: isNullable(node, displayName),
+                    withNames: null,
+                    inner: null,
+                    reported: true,
+                    declarationName: displayName,
+                    markSaved: false,
+                  ),
+                )
+                .indent();
 
         inner.writeln();
         inner.writeln("/// `$displayName`");
@@ -423,15 +461,21 @@ final class ParserGenerator {
         compilerVisitor.ruleId = 0;
 
         var inner = StringBuffer();
-        var displayName = reverseRenames[rawName]!;
+        var displayName = _reverseRenames[rawName]!;
         var body =
-            node.acceptParametrizedVisitor(compilerVisitor, (
-              isNullAllowed: isNullable(node, rawName),
-              withNames: null,
-              inner: null,
-              reported: true,
-              declarationName: displayName,
-            )).indent();
+            node
+                .acceptParametrizedVisitor(
+                  compilerVisitor,
+                  Parameters(
+                    isNullAllowed: isNullable(node, rawName),
+                    withNames: null,
+                    inner: null,
+                    reported: true,
+                    declarationName: displayName,
+                    markSaved: false,
+                  ),
+                )
+                .indent();
 
         inner.writeln();
         inner.writeln("/// `$displayName`");
@@ -476,9 +520,9 @@ final class ParserGenerator {
 
       if (compilerVisitor.ranges.isNotEmpty) {
         fullBuffer.writeln("static const _range = (".indent());
-        for (Set<(int, int)> ranges in compilerVisitor.ranges) {
+        for (var ranges in compilerVisitor.ranges) {
           fullBuffer.write("    { ");
-          for (var (int i, (int low, int high)) in ranges.indexed) {
+          for (var (i, (low, high)) in ranges.indexed) {
             fullBuffer.write("($low, $high)");
 
             if (i < ranges.length - 1) {
@@ -501,17 +545,17 @@ final class ParserGenerator {
   }
 
   String compileParserGenerator(String parserName, {String? start, String? type}) {
-    return _compile(parserName, rules: rules, fragments: fragments, start: start, type: type);
+    return _compile(parserName, rules: _rules, fragments: _fragments, start: start, type: type);
   }
 
   String compileAstParserGenerator(String parserName, {String? start}) {
     RemoveActionNodeVisitor removeActionNodeVisitor = const RemoveActionNodeVisitor();
     Map<String, (String?, Node)> rules = <String, (String?, Node)>{
-      for (var (String name, (_, Node node)) in this.rules.pairs)
+      for (var (String name, (_, Node node)) in _rules.pairs)
         name: ("Object", node.acceptSimpleVisitor(removeActionNodeVisitor)),
     };
     Map<String, (String?, Node)> fragments = <String, (String?, Node)>{
-      for (var (String name, (_, Node node)) in this.fragments.pairs)
+      for (var (String name, (_, Node node)) in _fragments.pairs)
         name: ("Object", node.acceptSimpleVisitor(removeActionNodeVisitor)),
     };
 
@@ -519,43 +563,54 @@ final class ParserGenerator {
   }
 
   String compileCstParserGenerator(String parserName, {String? start}) {
-    RemoveActionNodeVisitor removeActionNodeVisitor = const RemoveActionNodeVisitor();
-    RemoveSelectionVisitor removeSelectionVisitor = const RemoveSelectionVisitor();
+    var removeActionNodeVisitor = const RemoveActionNodeVisitor();
+    var removeSelectionVisitor = const RemoveSelectionVisitor();
 
-    Map<String, (String?, Node)> rules = <String, (String?, Node)>{
-      for (var (String name, (_, Node node)) in this.rules.pairs)
+    var rules = <String, (String?, Node)>{
+      for (var (name, (_, node)) in _rules.pairs)
         name: (
-          "Object",
+          "Object" as String?,
           InlineActionNode(
-            NamedNode(
-              r"$",
-              node
-                  .acceptSimpleVisitor(removeActionNodeVisitor)
-                  .acceptSimpleVisitor(removeSelectionVisitor),
-            ),
-            r"$".wrappedName(reverseRenames[name]!.unwrappedName),
-            areIndicesProvided: false,
-          ),
+                NamedNode(
+                  r"$",
+                  node
+                      .acceptSimpleVisitor(removeActionNodeVisitor)
+                      .acceptSimpleVisitor(removeSelectionVisitor),
+                ),
+                r"$".wrappedName(_reverseRenames[name]!.unwrappedName),
+                areIndicesProvided: false,
+                isSpanUsed: false,
+              )
+              as Node,
         ),
     };
-    Map<String, (String?, Node)> fragments = <String, (String?, Node)>{
-      for (var (String name, (_, Node node)) in this.fragments.pairs)
+    var fragments = <String, (String?, Node)>{
+      for (var (name, (_, node)) in _fragments.pairs)
         name: (
-          "Object",
+          "Object" as String?,
           InlineActionNode(
-            NamedNode(
-              r"$",
-              node
-                  .acceptSimpleVisitor(removeActionNodeVisitor)
-                  .acceptSimpleVisitor(removeSelectionVisitor),
-            ),
-            r"$".wrappedName(reverseRenames[name]!),
-            areIndicesProvided: false,
-          ),
+                NamedNode(
+                  r"$",
+                  node
+                      .acceptSimpleVisitor(removeActionNodeVisitor)
+                      .acceptSimpleVisitor(removeSelectionVisitor),
+                ),
+                r"$".wrappedName(name),
+                areIndicesProvided: false,
+                isSpanUsed: false,
+              )
+              as Node,
         ),
     };
 
-    return _compile(parserName, rules: rules, fragments: fragments, start: start, type: "Object");
+    return _compile(
+      //
+      parserName,
+      rules: rules,
+      fragments: fragments,
+      start: start,
+      type: "Object",
+    );
   }
 
   final Expando<bool> _isNullable = Expando<bool>();
@@ -576,7 +631,7 @@ final class ParserGenerator {
       SequenceNode() =>
         (_isNullable[node] = true, node.children.every((node) => isNullable(node, ruleName))).$2,
       ChoiceNode() =>
-        (_isNullable[node] = false, node.children.any((node) => isNullable(node, ruleName))).$2,
+        (_isNullable[node] = false, node.children.every((node) => isNullable(node, ruleName))).$2,
       PlusSeparatedNode() =>
         isNullable(node.child, ruleName) && isNullable(node.separator, ruleName),
       StarSeparatedNode() => true,
@@ -587,12 +642,12 @@ final class ParserGenerator {
       ExceptNode() => false,
       OptionalNode() => isNullable(node.child, ruleName),
       ReferenceNode() => isNullable(
-        rules[node.ruleName]?.$2 ?? notFound(node.ruleName, Tag.rule, ruleName),
+        _rules[node.ruleName]?.$2 ?? notFound(node.ruleName, Tag.rule, ruleName),
         ruleName,
       ),
       FragmentNode() => isNullable(
-        fragments[node.fragmentName]?.$2 ??
-            inline[node.fragmentName]?.$2 ??
+        _fragments[node.fragmentName]?.$2 ??
+            _inline[node.fragmentName]?.$2 ??
             notFound(node.fragmentName, Tag.fragment, ruleName),
         ruleName,
       ),
@@ -608,8 +663,11 @@ Never notFound(String name, Tag tag, [String? root]) {
 }
 
 extension IndentationExtension on String {
-  String indent([int count = 1]) =>
-      trimRight().split("\n").map((v) => v.isEmpty ? v : "${"  " * count}$v").join("\n");
+  // ignore: avoid_positional_boolean_parameters
+  String indent([int count = 1, bool shouldIndent = true]) =>
+      shouldIndent
+          ? trimRight().split("\n").map((v) => v.isEmpty ? v : "${"  " * count}$v").join("\n")
+          : this;
 
   String unindent() {
     if (isEmpty) {

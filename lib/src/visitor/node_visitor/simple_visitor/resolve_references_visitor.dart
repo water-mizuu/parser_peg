@@ -151,6 +151,7 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
       node.child.acceptSimpleVisitor(this),
       node.action,
       areIndicesProvided: node.areIndicesProvided,
+      isSpanUsed: node.isSpanUsed,
     );
   }
 
@@ -160,6 +161,7 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
       node.child.acceptSimpleVisitor(this),
       node.action,
       areIndicesProvided: node.areIndicesProvided,
+      isSpanUsed: node.isSpanUsed,
     );
   }
 

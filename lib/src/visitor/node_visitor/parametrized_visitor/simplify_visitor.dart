@@ -189,6 +189,7 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
           node.child.acceptParametrizedVisitor(this, 0),
           node.action,
           areIndicesProvided: node.areIndicesProvided,
+          isSpanUsed: node.isSpanUsed,
         ),
       );
     } else {
@@ -196,6 +197,7 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
         node.child.acceptParametrizedVisitor(this, depth),
         node.action,
         areIndicesProvided: node.areIndicesProvided,
+        isSpanUsed: node.isSpanUsed,
       );
     }
   }
@@ -208,6 +210,7 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
           node.child.acceptParametrizedVisitor(this, 0),
           node.action,
           areIndicesProvided: node.areIndicesProvided,
+          isSpanUsed: node.isSpanUsed,
         ),
       );
     } else {
@@ -215,6 +218,7 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
         node.child.acceptParametrizedVisitor(this, depth),
         node.action,
         areIndicesProvided: node.areIndicesProvided,
+        isSpanUsed: node.isSpanUsed,
       );
     }
   }

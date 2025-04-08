@@ -11,7 +11,7 @@ import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
 
-final _regexps = (from: RegExp(r"\bfrom\b"), to: RegExp(r"\bto\b"));
+final _regexps = (from: RegExp(r"\bfrom\b"), to: RegExp(r"\bto\b"), span: RegExp(r"\b\$span\b"));
 
 // base.dart
 abstract base class _PegParser<R extends Object> {
@@ -2621,6 +2621,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                       code.trimRight(),
                       areIndicesProvided:
                           code.contains(_regexps.from) && code.contains(_regexps.to),
+                      isSpanUsed: code.contains(_regexps.span),
                     );
                   }
                 }
@@ -2644,6 +2645,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                         curly.trimRight(),
                         areIndicesProvided:
                             curly.contains(_regexps.from) && curly.contains(_regexps.to),
+                        isSpanUsed: false,
                       );
                     }
                   }
@@ -2670,6 +2672,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                             curly.trimRight(),
                             areIndicesProvided:
                                 curly.contains(_regexps.from) && curly.contains(_regexps.to),
+                            isSpanUsed: false,
                           );
                         }
                       }
@@ -2947,6 +2950,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                       target,
                       "this.buffer.substring(from, to)",
                       areIndicesProvided: true,
+                      isSpanUsed: false,
                     );
                   }
                 }

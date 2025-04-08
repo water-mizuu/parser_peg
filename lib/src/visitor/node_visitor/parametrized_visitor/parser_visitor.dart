@@ -6,25 +6,23 @@ import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
-typedef Parameters =
-    ({
-      /// This is a flag that indicates whether the node succeeds a null value.
-      ///   This is essential as there are some predicates that allow null matching,
-      ///   like `"hi"?`.
-      bool isNullAllowed,
+class Parameters {
+  const Parameters({
+    required this.isNullAllowed,
+    required this.withNames,
+    required this.inner,
+    required this.reported,
+    required this.declarationName,
+    required this.markSaved,
+  });
 
-      /// This is a set of names that are used to name the result of a match.
-      Set<String>? withNames,
-
-      /// This is the inner code that is used to generate the result of a match.
-      String? inner,
-
-      /// This is a flag that indicates whether the node has been reported.
-      bool reported,
-
-      /// This is the name of the declaration that is used to generate the result of a match.
-      String declarationName,
-    });
+  final bool isNullAllowed;
+  final Set<String>? withNames;
+  final String? inner;
+  final bool reported;
+  final String declarationName;
+  final bool markSaved;
+}
 
 String encode(Object object) => jsonEncode(object).replaceAll(r"$", r"\$");
 
@@ -241,12 +239,13 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
     /// We essentially "wrap" the body by each node in the sequence in reverse.
     for (var (index, node) in node.children.indexed.toList().reversed) {
-      var innerParameters = (
+      var innerParameters = Parameters(
         withNames: {names[index]},
         inner: body,
         isNullAllowed: isNullable.call(node, declarationName),
         reported: reported,
         declarationName: declarationName,
+        markSaved: false,
       );
       body = node.acceptParametrizedVisitor(this, innerParameters);
     }
@@ -256,23 +255,28 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitChoiceNode(node, parameters) {
-    var Parameters(:isNullAllowed, :withNames, :inner, :reported, :declarationName) = parameters;
+    var Parameters(:isNullAllowed, :withNames, :inner, :reported, :declarationName, :markSaved) =
+        parameters;
     var buffer = [
-      "if (this.pos case var mark) {",
+      if (!markSaved) "if (this.pos case var mark) {",
       [
         for (var (i, child) in node.children.indexed) ...[
           if (i > 0) "this.pos = mark;",
 
-          child.acceptParametrizedVisitor(this, (
-            isNullAllowed: isNullAllowed,
-            withNames: withNames,
-            inner: inner,
-            reported: reported,
-            declarationName: declarationName,
-          )), //
+          child.acceptParametrizedVisitor(
+            this,
+            Parameters(
+              isNullAllowed: isNullAllowed,
+              withNames: withNames,
+              inner: inner,
+              reported: reported,
+              declarationName: declarationName,
+              markSaved: true,
+            ),
+          ), //
         ],
-      ].join("\n").indent(),
-      "}",
+      ].join("\n").indent(1, !markSaved),
+      if (!markSaved) "}",
     ];
 
     return buffer.join("\n");
@@ -280,21 +284,11 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitCountedNode(node, parameters) {
-    var Parameters(:withNames, :inner, :reported, :declarationName) = parameters;
+    var Parameters(:withNames, :inner, :reported, :declarationName, :markSaved) = parameters;
     var variableName = "_${ruleId++}";
     var containerName = "_l${ruleId++}";
 
     if (node.min > 0) {
-      var loopBody = node.child
-          .acceptParametrizedVisitor(this, (
-            withNames: {variableName},
-            inner: "$containerName.add($variableName);\ncontinue;",
-            isNullAllowed: isNullable(node.child, declarationName),
-            reported: reported,
-            declarationName: declarationName,
-          ))
-          .indent(4);
-
       var loopBuffer = StringBuffer();
       loopBuffer.writeln("if ([$variableName].asNullable() case var $containerName) {");
       loopBuffer.writeln("  if ($containerName != null) {");
@@ -304,7 +298,21 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         loopBuffer.writeln("    while ($containerName.length < ${node.max}) {");
       }
       loopBuffer.writeln("      if (this.pos case var mark) {");
-      loopBuffer.writeln(loopBody);
+      loopBuffer.writeln(
+        node.child
+            .acceptParametrizedVisitor(
+              this,
+              Parameters(
+                withNames: {variableName},
+                inner: "$containerName.add($variableName);\ncontinue;",
+                isNullAllowed: isNullable(node.child, declarationName),
+                reported: reported,
+                declarationName: declarationName,
+                markSaved: true,
+              ),
+            )
+            .indent(4),
+      );
       loopBuffer.writeln("        this.pos = mark;");
       loopBuffer.writeln("        break;");
       loopBuffer.writeln("      }");
@@ -324,22 +332,30 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       loopBuffer.writeln("  }");
       loopBuffer.writeln("}");
 
-      return node.child.acceptParametrizedVisitor(this, (
-        withNames: {variableName},
-        inner: loopBuffer.toString(),
-        isNullAllowed: isNullable(node.child, declarationName),
-        reported: reported,
-        declarationName: declarationName,
-      ));
+      return node.child.acceptParametrizedVisitor(
+        this,
+        Parameters(
+          withNames: {variableName},
+          inner: loopBuffer.toString(),
+          isNullAllowed: isNullable(node.child, declarationName),
+          reported: reported,
+          declarationName: declarationName,
+          markSaved: markSaved,
+        ),
+      );
     } else {
       var loopBody = node.child
-          .acceptParametrizedVisitor(this, (
-            withNames: {variableName},
-            inner: "$containerName.add($variableName);\ncontinue;",
-            isNullAllowed: isNullable(node.child, declarationName),
-            reported: reported,
-            declarationName: declarationName,
-          ))
+          .acceptParametrizedVisitor(
+            this,
+            Parameters(
+              withNames: {variableName},
+              inner: "$containerName.add($variableName);\ncontinue;",
+              isNullAllowed: isNullable(node.child, declarationName),
+              reported: reported,
+              declarationName: declarationName,
+              markSaved: true,
+            ),
+          )
           .indent(5);
       var question = isNullable(node.child, declarationName) ? "" : "?";
       var loopBuffer = StringBuffer();
@@ -374,52 +390,69 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       loopBuffer.writeln("  }");
       loopBuffer.writeln("}");
 
-      return node.child.acceptParametrizedVisitor(this, (
-        withNames: {variableName},
-        isNullAllowed: true,
-        inner: loopBuffer.toString(),
-        reported: reported,
-        declarationName: declarationName,
-      ));
+      return node.child.acceptParametrizedVisitor(
+        this,
+        Parameters(
+          withNames: {variableName},
+          isNullAllowed: true,
+          inner: loopBuffer.toString(),
+          reported: reported,
+          declarationName: declarationName,
+          markSaved: markSaved,
+        ),
+      );
     }
   }
 
   @override
   String visitPlusSeparatedNode(node, parameters) {
-    var Parameters(:withNames, :inner, :reported, :declarationName) = parameters;
+    var Parameters(:withNames, :inner, :reported, :declarationName, :markSaved) = parameters;
     var variableName = "_${ruleId++}";
     var containerName = "_l${ruleId++}";
-    (withNames ??= {}).add(containerName);
+    (withNames ??= <String>{}).add(containerName);
 
     late var trailingBody = node.separator
-        .acceptParametrizedVisitor(this, (
-          isNullAllowed: true,
-          withNames: {"null"},
-          inner: "this.pos = mark;",
-          reported: reported,
-          declarationName: declarationName,
-        ))
-        .indent(2);
-    var loopBody = node.separator
-        .acceptParametrizedVisitor(this, (
-          isNullAllowed: isNullable(node.separator, declarationName),
-          withNames: {"_"},
-          inner: node.child.acceptParametrizedVisitor(this, (
-            withNames: {variableName},
-            inner: "$containerName.add($variableName);\ncontinue;",
-            isNullAllowed: isNullable(node.child, declarationName),
+        .acceptParametrizedVisitor(
+          this,
+          Parameters(
+            isNullAllowed: true,
+            withNames: {"null"},
+            inner: "this.pos = mark;",
             reported: reported,
             declarationName: declarationName,
-          )),
-          reported: reported,
-          declarationName: declarationName,
-        ))
-        .indent(3);
+            markSaved: true,
+          ),
+        )
+        .indent(2);
     var loopBuffer = StringBuffer();
     loopBuffer.writeln("if ([$variableName] case ${withNames.varNames}) {");
     loopBuffer.writeln("  for (;;) {");
     loopBuffer.writeln("    if (this.pos case var mark) {");
-    loopBuffer.writeln(loopBody);
+    loopBuffer.writeln(
+      node.separator
+          .acceptParametrizedVisitor(
+            this,
+            Parameters(
+              isNullAllowed: isNullable(node.separator, declarationName),
+              withNames: {"_"},
+              inner: node.child.acceptParametrizedVisitor(
+                this,
+                Parameters(
+                  withNames: {variableName},
+                  inner: "$containerName.add($variableName);\ncontinue;",
+                  isNullAllowed: isNullable(node.child, declarationName),
+                  reported: reported,
+                  declarationName: declarationName,
+                  markSaved: false,
+                ),
+              ),
+              reported: reported,
+              declarationName: declarationName,
+              markSaved: true,
+            ),
+          )
+          .indent(3),
+    );
     loopBuffer.writeln("      this.pos = mark;");
     loopBuffer.writeln("      break;");
     loopBuffer.writeln("    }");
@@ -436,37 +469,26 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     }
     loopBuffer.writeln("}");
 
-    return node.child.acceptParametrizedVisitor(this, (
-      withNames: {variableName},
-      inner: loopBuffer.toString(),
-      isNullAllowed: isNullable(node.child, declarationName),
-      reported: reported,
-      declarationName: declarationName,
-    ));
+    return node.child.acceptParametrizedVisitor(
+      this,
+      Parameters(
+        withNames: {variableName},
+        inner: loopBuffer.toString(),
+        isNullAllowed: isNullable(node.child, declarationName),
+        reported: reported,
+        declarationName: declarationName,
+        markSaved: markSaved,
+      ),
+    );
   }
 
   @override
   String visitStarSeparatedNode(node, parameters) {
-    var Parameters(:withNames, :inner, :reported, :declarationName) = parameters;
+    var Parameters(:withNames, :inner, :reported, :declarationName, :markSaved) = parameters;
     var variableName = "_${ruleId++}";
     var containerName = "_l${ruleId++}";
-    (withNames ??= {}).add(containerName);
+    (withNames ??= <String>{}).add(containerName);
 
-    var loopBody = node.separator
-        .acceptParametrizedVisitor(this, (
-          withNames: {"_"},
-          inner: node.child.acceptParametrizedVisitor(this, (
-            withNames: {variableName},
-            inner: "$containerName.add($variableName);\ncontinue;",
-            isNullAllowed: isNullable(node.child, declarationName),
-            reported: reported,
-            declarationName: declarationName,
-          )),
-          isNullAllowed: isNullable(node.separator, declarationName),
-          reported: reported,
-          declarationName: declarationName,
-        ))
-        .indent(5);
     var question = isNullable(node.child, declarationName) ? "" : "?";
     var loopBuffer = StringBuffer();
     loopBuffer.writeln(
@@ -476,7 +498,31 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     loopBuffer.writeln("  if (${withNames.singleName}.isNotEmpty) {");
     loopBuffer.writeln("    for (;;) {");
     loopBuffer.writeln("      if (this.pos case var mark) {");
-    loopBuffer.writeln(loopBody);
+    loopBuffer.writeln(
+      node.separator
+          .acceptParametrizedVisitor(
+            this,
+            Parameters(
+              withNames: {"_"},
+              inner: node.child.acceptParametrizedVisitor(
+                this,
+                Parameters(
+                  withNames: {variableName},
+                  inner: "$containerName.add($variableName);\ncontinue;",
+                  isNullAllowed: isNullable(node.child, declarationName),
+                  reported: reported,
+                  declarationName: declarationName,
+                  markSaved: false,
+                ),
+              ),
+              isNullAllowed: isNullable(node.separator, declarationName),
+              reported: reported,
+              declarationName: declarationName,
+              markSaved: true,
+            ),
+          )
+          .indent(5),
+    );
     loopBuffer.writeln("        this.pos = mark;");
     loopBuffer.writeln("        break;");
     loopBuffer.writeln("      }");
@@ -485,13 +531,17 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
       loopBuffer.writeln("    if (this.pos case var mark) {");
       loopBuffer.writeln(
         node.separator
-            .acceptParametrizedVisitor(this, (
-              isNullAllowed: true,
-              withNames: {"null"},
-              inner: "this.pos = mark;",
-              reported: reported,
-              declarationName: declarationName,
-            ))
+            .acceptParametrizedVisitor(
+              this,
+              Parameters(
+                isNullAllowed: true,
+                withNames: {"null"},
+                inner: "this.pos = mark;",
+                reported: reported,
+                declarationName: declarationName,
+                markSaved: true,
+              ),
+            )
             .indent(3),
       );
       loopBuffer.writeln("    }");
@@ -507,42 +557,57 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     loopBuffer.writeln("}");
 
     var fullBuffer = StringBuffer();
-    fullBuffer.writeln("if (this.pos case var mark) {");
+    if (!markSaved) {
+      fullBuffer.writeln("if (this.pos case var mark) {");
+    }
     fullBuffer.writeln(
-      node.child.acceptParametrizedVisitor(this, (
-        withNames: {variableName},
-        isNullAllowed: true,
-        inner: loopBuffer.toString(),
-        reported: reported,
-        declarationName: declarationName,
-      )).indent(),
+      node.child
+          .acceptParametrizedVisitor(
+            this,
+            Parameters(
+              withNames: {variableName},
+              isNullAllowed: true,
+              inner: loopBuffer.toString(),
+              reported: reported,
+              declarationName: declarationName,
+              markSaved: true,
+            ),
+          )
+          .indent(1, !markSaved),
     );
-    fullBuffer.writeln("}");
+    if (!markSaved) {
+      fullBuffer.writeln("}");
+    }
 
     return fullBuffer.toString();
   }
 
   @override
   String visitPlusNode(node, parameters) {
-    var Parameters(:withNames, :inner, :reported, :declarationName) = parameters;
+    var Parameters(:withNames, :inner, :reported, :declarationName, :markSaved) = parameters;
     var variableName = "_${ruleId++}";
     var containerName = "_l${ruleId++}";
     (withNames ??= {}).add(containerName);
 
-    var loopBody = node.child
-        .acceptParametrizedVisitor(this, (
-          withNames: {variableName},
-          inner: "$containerName.add($variableName);\ncontinue;",
-          isNullAllowed: isNullable(node.child, declarationName),
-          reported: reported,
-          declarationName: declarationName,
-        ))
-        .indent(3);
     var loopBuffer = StringBuffer();
     loopBuffer.writeln("if ([$variableName] case ${withNames.varNames}) {");
     loopBuffer.writeln("  for (;;) {");
     loopBuffer.writeln("    if (this.pos case var mark) {");
-    loopBuffer.writeln(loopBody);
+    loopBuffer.writeln(
+      node.child
+          .acceptParametrizedVisitor(
+            this,
+            Parameters(
+              withNames: {variableName},
+              inner: "$containerName.add($variableName);\ncontinue;",
+              isNullAllowed: isNullable(node.child, declarationName),
+              reported: reported,
+              declarationName: declarationName,
+              markSaved: true,
+            ),
+          )
+          .indent(3),
+    );
     loopBuffer.writeln("      this.pos = mark;");
     loopBuffer.writeln("      break;");
     loopBuffer.writeln("    }");
@@ -554,18 +619,22 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     }
     loopBuffer.writeln("}");
 
-    return node.child.acceptParametrizedVisitor(this, (
-      withNames: {variableName},
-      inner: loopBuffer.toString(),
-      isNullAllowed: isNullable(node.child, declarationName),
-      reported: reported,
-      declarationName: declarationName,
-    ));
+    return node.child.acceptParametrizedVisitor(
+      this,
+      Parameters(
+        withNames: {variableName},
+        inner: loopBuffer.toString(),
+        isNullAllowed: isNullable(node.child, declarationName),
+        reported: reported,
+        declarationName: declarationName,
+        markSaved: markSaved,
+      ),
+    );
   }
 
   @override
   String visitStarNode(node, parameters) {
-    var Parameters(:withNames, :inner, :reported, :declarationName) = parameters;
+    var Parameters(:withNames, :inner, :reported, :declarationName, :markSaved) = parameters;
     var variableName = "_${ruleId++}";
     var containerName = "_l${ruleId++}";
     (withNames ??= {}).add(containerName);
@@ -581,13 +650,17 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     loopBuffer.writeln("      if (this.pos case var mark) {");
     loopBuffer.writeln(
       node.child
-          .acceptParametrizedVisitor(this, (
-            withNames: {variableName},
-            inner: "$containerName.add($variableName);\ncontinue;",
-            isNullAllowed: isNullable(node.child, declarationName),
-            reported: reported,
-            declarationName: declarationName,
-          ))
+          .acceptParametrizedVisitor(
+            this,
+            Parameters(
+              withNames: {variableName},
+              inner: "$containerName.add($variableName);\ncontinue;",
+              isNullAllowed: isNullable(node.child, declarationName),
+              reported: reported,
+              declarationName: declarationName,
+              markSaved: true,
+            ),
+          )
           .indent(4),
     );
     loopBuffer.writeln("        this.pos = mark;");
@@ -605,34 +678,50 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     loopBuffer.writeln("}");
 
     var fullBuffer = StringBuffer();
-    fullBuffer.writeln("if (this.pos case var mark) {");
+    if (!markSaved) {
+      fullBuffer.writeln("if (this.pos case var mark) {");
+    }
     fullBuffer.writeln(
-      node.child.acceptParametrizedVisitor(this, (
-        withNames: {variableName},
-        isNullAllowed: true,
-        inner: loopBuffer.toString(),
-        reported: reported,
-        declarationName: declarationName,
-      )).indent(),
+      node.child
+          .acceptParametrizedVisitor(
+            this,
+            Parameters(
+              withNames: {variableName},
+              isNullAllowed: true,
+              inner: loopBuffer.toString(),
+              reported: reported,
+              declarationName: declarationName,
+              markSaved: true,
+            ),
+          )
+          .indent(1, !markSaved),
     );
-    fullBuffer.writeln("}");
+    if (!markSaved) {
+      fullBuffer.writeln("}");
+    }
 
     return fullBuffer.toString();
   }
 
   @override
   String visitAndPredicateNode(node, parameters) {
-    var Parameters(:withNames, :inner, :reported, :declarationName) = parameters;
+    var Parameters(:withNames, :inner, :reported, :declarationName, :markSaved) = parameters;
     var buffer = [
-      "if (this.pos case var mark) {",
-      node.child.acceptParametrizedVisitor(this, (
-        withNames: withNames,
-        inner: "this.pos = mark;\n${inner ?? ""}",
-        isNullAllowed: isNullable(node.child, declarationName),
-        reported: reported,
-        declarationName: declarationName,
-      )).indent(),
-      "}",
+      if (!markSaved) "if (this.pos case var mark) {",
+      node.child
+          .acceptParametrizedVisitor(
+            this,
+            Parameters(
+              withNames: withNames,
+              inner: "this.pos = mark;\n${inner ?? ""}",
+              isNullAllowed: isNullable(node.child, declarationName),
+              reported: reported,
+              declarationName: declarationName,
+              markSaved: true,
+            ),
+          )
+          .indent(1, !markSaved),
+      if (!markSaved) "}",
     ];
 
     return buffer.join("\n");
@@ -640,67 +729,95 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitNotPredicateNode(node, parameters) {
-    var Parameters(:withNames, :inner, :reported, :declarationName) = parameters;
+    var Parameters(:withNames, :inner, :reported, :declarationName, :markSaved) = parameters;
     var buffer = StringBuffer();
 
-    buffer.writeln("if (this.pos case var mark) {");
+    if (!markSaved) {
+      buffer.writeln("if (this.pos case var mark) {");
+    }
     buffer.writeln(
-      node.child.acceptParametrizedVisitor(this, (
-        isNullAllowed: true,
-        withNames: {...?withNames, "null"},
-        inner: "this.pos = mark;\n${inner ?? "return null;"}",
-        reported: reported,
-        declarationName: declarationName,
-      )).indent(),
+      node.child
+          .acceptParametrizedVisitor(
+            this,
+            Parameters(
+              isNullAllowed: true,
+              withNames: {...?withNames, "null"},
+              inner: "this.pos = mark;\n${inner ?? "return null;"}",
+              reported: reported,
+              declarationName: declarationName,
+              markSaved: true,
+            ),
+          )
+          .indent(1, !markSaved),
     );
-    buffer.writeln("}");
+
+    if (!markSaved) {
+      buffer.writeln("}");
+    }
 
     return buffer.toString();
   }
 
   @override
   String visitOptionalNode(node, parameters) {
-    var Parameters(:withNames, :inner, :reported, :declarationName) = parameters;
-    return node.child.acceptParametrizedVisitor(this, (
-      withNames: withNames,
-      inner: inner,
-      isNullAllowed: true,
-      reported: reported,
-      declarationName: declarationName,
-    ));
+    var Parameters(:withNames, :inner, :reported, :declarationName, :markSaved) = parameters;
+    return node.child.acceptParametrizedVisitor(
+      this,
+      Parameters(
+        withNames: withNames,
+        inner: inner,
+        isNullAllowed: true,
+        reported: reported,
+        declarationName: declarationName,
+        markSaved: markSaved,
+      ),
+    );
   }
 
   @override
   String visitExceptNode(node, parameters) {
-    var Parameters(:withNames, :inner, :reported, :declarationName) = parameters;
+    var Parameters(:withNames, :inner, :reported, :declarationName, :markSaved) = parameters;
     var buffer = StringBuffer();
-    buffer.writeln("if (this.pos case var mark) {");
+    if (!markSaved) {
+      buffer.writeln("if (this.pos case var mark) {");
+    }
     buffer.writeln(
-      node.child.acceptParametrizedVisitor(this, (
-        isNullAllowed: true,
-        withNames: {"null"},
-        inner:
-            (StringBuffer()
-                  ..writeln("this.pos = mark;")
-                  ..writeln("if (this.pos < this.buffer.length) {")
-                  ..writeAll(switch (withNames.varNames) {
-                    "_" => [
-                      "  this.pos++;",
-                      inner?.indent() ?? "  return this.buffer[this.pos - 1];",
-                    ],
-                    var names => [
-                      "  if (this.buffer[this.pos++] case $names) {",
-                      inner?.indent(2) ?? "    return ${withNames.singleName};",
-                      "  }",
-                    ],
-                  }, "\n")
-                  ..writeln("}"))
-                .toString(),
-        reported: reported,
-        declarationName: declarationName,
-      )).indent(),
+      node.child
+          .acceptParametrizedVisitor(
+            this,
+            Parameters(
+              isNullAllowed: true,
+              withNames: {"null"},
+              inner:
+                  (StringBuffer()
+                        ..writeln("this.pos = mark;")
+                        ..writeln("if (this.pos < this.buffer.length) {")
+                        ..writeAll(switch (withNames.varNames) {
+                          "_" => [
+                            "  this.pos++;",
+                            inner?.indent() ?? "  return this.buffer[this.pos - 1];",
+                            "",
+                          ],
+                          var names => [
+                            "  if (this.buffer[this.pos++] case $names) {",
+                            inner?.indent(2) ?? "    return ${withNames.singleName};",
+                            "  }",
+                            "",
+                          ],
+                        }, "\n")
+                        ..writeln("}"))
+                      .toString(),
+              reported: reported,
+              declarationName: declarationName,
+              markSaved: true,
+            ),
+          )
+          .indent(1, !markSaved),
     );
-    buffer.writeln("}");
+
+    if (!markSaved) {
+      buffer.writeln("}");
+    }
 
     return buffer.toString();
   }
@@ -740,90 +857,124 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitNamedNode(node, parameters) {
-    var Parameters(:isNullAllowed, :withNames, :inner, :reported, :declarationName) = parameters;
-    return node.child.acceptParametrizedVisitor(this, (
-      isNullAllowed: isNullAllowed,
-      withNames: {...?withNames, node.name},
-      inner: inner,
-      reported: reported,
-      declarationName: declarationName,
-    ));
+    var Parameters(:isNullAllowed, :withNames, :inner, :reported, :declarationName, :markSaved) =
+        parameters;
+
+    return node.child.acceptParametrizedVisitor(
+      this,
+      Parameters(
+        isNullAllowed: isNullAllowed,
+        withNames: {...?withNames, node.name},
+        inner: inner,
+        reported: reported,
+        declarationName: declarationName,
+        markSaved: markSaved,
+      ),
+    );
   }
 
   @override
   String visitActionNode(node, parameters) {
-    var Parameters(:withNames, :reported, :declarationName) = parameters;
+    var Parameters(:withNames, :reported, :declarationName, :markSaved) = parameters;
 
     if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
       (withNames ??= {}).add(r"$");
     }
 
-    if (node.areIndicesProvided) {
-      return (StringBuffer()
-            ..writeln("if (this.pos case var from) {")
-            ..writeln(
-              node.child.acceptParametrizedVisitor(this, (
-                withNames: withNames,
-                inner:
-                    (StringBuffer()
-                          ..writeln("if (this.pos case var to) {")
-                          ..writeln(node.action.indent())
-                          ..writeln("}"))
-                        .toString(),
-                isNullAllowed: isNullable(node.child, declarationName),
-                reported: reported,
-                declarationName: declarationName,
-              )).indent(),
-            )
-            ..writeln("}"))
-          .toString();
-    } else {
-      return node.child.acceptParametrizedVisitor(this, (
+    var inner = node.action;
+
+    if (node.isSpanUsed) {
+      inner =
+          (StringBuffer()
+                ..writeln("if (this.buffer.substring(from, to) case var ${withNames.varNames}) {")
+                ..writeln(inner.indent())
+                ..writeln("}"))
+              .toString();
+    }
+
+    if (node.areIndicesProvided || node.isSpanUsed) {
+      inner =
+          (StringBuffer()
+                ..writeln("if (this.pos case var to) {")
+                ..writeln(inner.indent())
+                ..writeln("}"))
+              .toString();
+    }
+
+    var body = node.child.acceptParametrizedVisitor(
+      this,
+      Parameters(
         withNames: withNames,
-        inner: node.action,
+        inner: inner,
         isNullAllowed: isNullable(node.child, declarationName),
         reported: reported,
         declarationName: declarationName,
-      ));
+        markSaved: markSaved,
+      ),
+    );
+
+    if (node.areIndicesProvided || node.isSpanUsed) {
+      body =
+          (StringBuffer()
+                ..writeln("if (this.pos case var from) {")
+                ..writeln(body.indent())
+                ..writeln("}"))
+              .toString();
     }
+
+    return body;
   }
 
   @override
   String visitInlineActionNode(node, parameters) {
-    var Parameters(:withNames, :reported, :declarationName) = parameters;
+    var Parameters(:withNames, :reported, :declarationName, :markSaved) = parameters;
 
     if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
       (withNames ??= {}).add(r"$");
     }
 
-    if (node.areIndicesProvided) {
-      return (StringBuffer()
-            ..writeln("if (this.pos case var from) {")
-            ..writeln(
-              node.child.acceptParametrizedVisitor(this, (
-                withNames: withNames,
-                inner:
-                    (StringBuffer()
-                          ..writeln("if (this.pos case var to) {")
-                          ..writeln("  return ${node.action};")
-                          ..writeln("}"))
-                        .toString(),
-                isNullAllowed: isNullable(node.child, declarationName),
-                reported: reported,
-                declarationName: declarationName,
-              )).indent(),
-            )
-            ..writeln("}"))
-          .toString();
-    } else {
-      return node.child.acceptParametrizedVisitor(this, (
+    var inner = "return ${node.action};";
+
+    if (node.isSpanUsed) {
+      inner =
+          (StringBuffer()
+                ..writeln("if (this.buffer.substring(from, to) case var span) {")
+                ..writeln(inner.indent())
+                ..writeln("}"))
+              .toString();
+    }
+
+    if (node.areIndicesProvided || node.isSpanUsed) {
+      inner =
+          (StringBuffer()
+                ..writeln("if (this.pos case var to) {")
+                ..writeln(inner.indent())
+                ..writeln("}"))
+              .toString();
+    }
+
+    var body = node.child.acceptParametrizedVisitor(
+      this,
+      Parameters(
         withNames: withNames,
-        inner: "return ${node.action};",
+        inner: inner,
         isNullAllowed: isNullable(node.child, declarationName),
         reported: reported,
         declarationName: declarationName,
-      ));
+        markSaved: markSaved,
+      ),
+    );
+
+    if (node.areIndicesProvided || node.isSpanUsed) {
+      body =
+          (StringBuffer()
+                ..writeln("if (this.pos case var from) {")
+                ..writeln(body.indent())
+                ..writeln("}"))
+              .toString();
     }
+
+    return body;
   }
 
   @override

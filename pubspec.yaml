@@ -5,4 +5,5 @@ environment:
 dependencies:
   analyzer: ^7.3.0
   args: ^2.7.0
+  dart_casing: ^3.0.1
   path: ^1.9.1

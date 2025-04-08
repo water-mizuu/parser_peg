@@ -2577,6 +2577,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                       sequence,
                       raw.trimRight(),
                       areIndicesProvided: raw.contains(_regexps.from) && raw.contains(_regexps.to),
+                      isSpanUsed: false,
                     );
                   }
                 }
@@ -2600,6 +2601,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                         curly.trimRight(),
                         areIndicesProvided:
                             curly.contains(_regexps.from) && curly.contains(_regexps.to),
+                        isSpanUsed: false,
                       );
                     }
                   }
@@ -2626,6 +2628,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                             curly.trimRight(),
                             areIndicesProvided:
                                 curly.contains(_regexps.from) && curly.contains(_regexps.to),
+                            isSpanUsed: false,
                           );
                         }
                       }
@@ -2903,6 +2906,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
                       target,
                       "this.buffer.substring(from, to)",
                       areIndicesProvided: true,
+                      isSpanUsed: false,
                     );
                   }
                 }

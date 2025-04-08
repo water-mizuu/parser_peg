@@ -10,11 +10,8 @@ import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
 
-final _regexps = (
-  from: RegExp(r"\bfrom\b"),
-  to: RegExp(r"\bto\b"),
-  span: RegExp(r"\bspan\b"),
-);
+final _regexps = (from: RegExp(r"\bfrom\b"), to: RegExp(r"\bto\b"), span: RegExp(r"\bspan\b"));
+
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -255,7 +252,6 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   @override
   get start => r0;
-
 
   /// `global::literal::range::atom`
   Object? f0() {
@@ -2649,7 +2645,19 @@ final class CstGrammarParser extends _PegParser<Object> {
                       }
                       if (this.fg() case var $8?) {
                         if (this.fk() case var $9) {
-                          if ([outer_decorator, type, name, $3, $4, inner_decorator, $6, statements, $8, $9] case var $) {
+                          if ([
+                                outer_decorator,
+                                type,
+                                name,
+                                $3,
+                                $4,
+                                inner_decorator,
+                                $6,
+                                statements,
+                                $8,
+                                $9,
+                              ]
+                              case var $) {
                             return ("<statement::hybridNamespace>", $);
                           }
                         }
@@ -4009,12 +4017,12 @@ final class CstGrammarParser extends _PegParser<Object> {
   static final _regexp = (
     RegExp("[a-zA-Z_\$][a-zA-Z0-9_\$]*"),
     RegExp("\\d"),
-    RegExp("((\\s+)|(\\/{2}((?!((\\r?\\n)|(\$))).)*(?=(\\r?\\n)|(\$)))|((\\/\\*((?!\\*\\/).)*\\*\\/)))*"),
+    RegExp(
+      "((\\s+)|(\\/{2}((?!((\\r?\\n)|(\$))).)*(?=(\\r?\\n)|(\$)))|((\\/\\*((?!\\*\\/).)*\\*\\/)))*",
+    ),
     RegExp("\\n"),
   );
-  static final _trie = (
-    Trie.from(["}",")","]"]),
-  );
+  static final _trie = (Trie.from(["}", ")", "]"]),);
   static const _string = (
     "\\",
     "]",
@@ -4081,6 +4089,7 @@ final class CstGrammarParser extends _PegParser<Object> {
     "Function",
   );
 }
+
 typedef _Union<A, B> = (A? a, B? b);
 typedef _Key<K> = _Union<K, Symbol>;
 

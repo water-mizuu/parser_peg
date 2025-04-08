@@ -294,10 +294,16 @@ class NamedNode implements Node {
 }
 
 class ActionNode implements Node {
-  const ActionNode(this.child, this.action, {required this.areIndicesProvided});
+  const ActionNode(
+    this.child,
+    this.action, {
+    required this.areIndicesProvided,
+    required this.isSpanUsed,
+  });
   final Node child;
   final String action;
   final bool areIndicesProvided;
+  final bool isSpanUsed;
 
   @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitActionNode(this);
@@ -308,10 +314,16 @@ class ActionNode implements Node {
 }
 
 class InlineActionNode implements Node {
-  const InlineActionNode(this.child, this.action, {required this.areIndicesProvided});
+  const InlineActionNode(
+    this.child,
+    this.action, {
+    required this.areIndicesProvided,
+    required this.isSpanUsed,
+  });
   final Node child;
   final String action;
   final bool areIndicesProvided;
+  final bool isSpanUsed;
 
   @override
   O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitInlineActionNode(this);

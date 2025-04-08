@@ -4,7 +4,7 @@ import "package:parser_peg/src/visitor/node_visitor.dart";
 /// This visitor traverses the parse tree and renames all rule and fragment
 /// declarations according to the provided [redirects] map. It replaces the
 /// names of the rules and fragments in the parse tree with their new names.
-/// 
+///
 /// The [redirects] map should contain the original names as keys and the
 /// new names as values. For example, if you want to rename a rule from
 /// "oldName" to "newName", you would add an entry to the map like this:
@@ -134,6 +134,7 @@ class RenameDeclarationVisitor implements SimpleNodeVisitor<Node> {
       node.child.acceptSimpleVisitor(this),
       node.action,
       areIndicesProvided: node.areIndicesProvided,
+      isSpanUsed: node.isSpanUsed,
     );
   }
 
@@ -143,6 +144,7 @@ class RenameDeclarationVisitor implements SimpleNodeVisitor<Node> {
       node.child.acceptSimpleVisitor(this),
       node.action,
       areIndicesProvided: node.areIndicesProvided,
+      isSpanUsed: node.isSpanUsed,
     );
   }
 

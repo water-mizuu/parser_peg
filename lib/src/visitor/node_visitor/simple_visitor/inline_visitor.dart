@@ -167,7 +167,15 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
   @override
   (bool, Node) visitActionNode(ActionNode node) {
     var (changed, child) = node.child.acceptSimpleVisitor(this);
-    return (changed, ActionNode(child, node.action, areIndicesProvided: node.areIndicesProvided));
+    return (
+      changed,
+      ActionNode(
+        child,
+        node.action,
+        areIndicesProvided: node.areIndicesProvided,
+        isSpanUsed: node.isSpanUsed,
+      ),
+    );
   }
 
   @override
@@ -175,7 +183,12 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
     var (changed, child) = node.child.acceptSimpleVisitor(this);
     return (
       changed,
-      InlineActionNode(child, node.action, areIndicesProvided: node.areIndicesProvided),
+      InlineActionNode(
+        child,
+        node.action,
+        areIndicesProvided: node.areIndicesProvided,
+        isSpanUsed: node.isSpanUsed,
+      ),
     );
   }
 
