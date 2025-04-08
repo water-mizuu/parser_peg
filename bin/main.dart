@@ -14,15 +14,16 @@ import "../playground.dart";
 
 String readFile(String path) => File(path).readAsStringSync().replaceAll("\r", "").trim();
 
-String displayTree(
+String displayTree(Object? node) => _displayTree(node);
+String _displayTree(
   Object? node, {
   String indent = "",
   bool isLast = true,
   bool shouldNotPrintIndent = false,
 }) {
   var buffer = StringBuffer();
-  String marker = isLast ? "└─" : "├─";
-  String newIndent = "$indent${isLast ? "  " : "│ "}";
+  var marker = isLast ? "└─" : "├─";
+  var newIndent = "$indent${isLast ? "  " : "│ "}";
 
   if (!shouldNotPrintIndent) {
     buffer
@@ -39,26 +40,32 @@ String displayTree(
       }
 
       for (var (i, object) in child.indexed) {
-        buffer.write(displayTree(object, indent: newIndent, isLast: i == child.length - 1));
+        buffer.write(_displayTree(object, indent: newIndent, isLast: i == child.length - 1));
+      }
+
+    case List<Object?> list:
+      buffer.writeln("┐");
+      for (var (i, object) in list.indexed) {
+        buffer.write(_displayTree(object, indent: newIndent, isLast: i == list.length - 1));
       }
 
     /// Iterables
-    case Iterable<Object?> objects when objects.isEmpty:
-      buffer.writeln("[]");
-    case Iterable<Object?> objects when objects.length == 1:
-      buffer.write("──");
-      buffer.write(displayTree(objects.single, indent: newIndent, shouldNotPrintIndent: true));
-    case (List<Object?>() || Set<Object?>()) && Iterable<Object?> objects:
-      var list = objects.toList();
+    // case Iterable<Object?> objects when objects.isEmpty:
+    //   buffer.writeln("[]");
+    // case Iterable<Object?> objects when objects.length == 1:
+    //   buffer.write("──");
+    //   buffer.write(_displayTree(objects.single, indent: newIndent, shouldNotPrintIndent: true));
+    // case (List<Object?>() || Set<Object?>()) && Iterable<Object?> objects:
+    //   var list = objects.toList();
 
-      buffer
-        ..write("┬─")
-        ..write(
-          displayTree(list.first, indent: newIndent, isLast: false, shouldNotPrintIndent: true),
-        );
-      for (var (i, object) in list.indexed.skip(1)) {
-        buffer.write(displayTree(object, indent: newIndent, isLast: i == objects.length - 1));
-      }
+    //   buffer
+    //     ..write("┬─")
+    //     ..write(
+    //       _displayTree(list.first, indent: newIndent, isLast: false, shouldNotPrintIndent: true),
+    //     );
+    //   for (var (i, object) in list.indexed.skip(1)) {
+    //     buffer.write(_displayTree(object, indent: newIndent, isLast: i == objects.length - 1));
+    //   }
 
     /// Maps
     ///   These are hacks.
@@ -67,7 +74,7 @@ String displayTree(
 
     case Map<Object?, Object?> map when map.length == 1:
       buffer.write(
-        displayTree(
+        _displayTree(
           map.entries.map((e) => [e.key, e.value]).single,
           indent: indent,
           isLast: isLast,
@@ -77,7 +84,7 @@ String displayTree(
 
     case Map<Object?, Object?> map:
       buffer.write(
-        displayTree(
+        _displayTree(
           map.entries.map((e) => [e.key, e.value]).toList(),
           indent: indent,
           isLast: isLast,
@@ -177,34 +184,34 @@ void _testCompiler() async {
 }
 
 void _experiment() {
-  // if (GrammarParser() case GrammarParser grammar) {
-  //   var inputPath = "parser.dart_grammar";
-  //   if (readFile(inputPath) case String input) {
-  //     switch (grammar.parse(input)) {
-  //       case ParserGenerator generator:
-  //         stdout.writeln("Successfully parsed grammar!");
-  //         stdout.writeln("Generating parser.");
+  if (GrammarParser() case GrammarParser grammar) {
+    var inputPath = "parser.dart_grammar";
+    if (readFile(inputPath) case String input) {
+      switch (grammar.parse(input)) {
+        case ParserGenerator generator:
+          stdout.writeln("Successfully parsed grammar!");
+          stdout.writeln("Generating parser.");
 
-  //         /// Default output file
-  //         var parentPath = path.dirname(inputPath);
-  //         var fileName = path.basenameWithoutExtension(inputPath);
+          /// Default output file
+          var parentPath = path.dirname(inputPath);
+          var fileName = path.basenameWithoutExtension(inputPath);
 
-  //         File(path.join(parentPath, "$fileName.dart"))
-  //           ..createSync(recursive: true)
-  //           ..writeAsStringSync(generator.compileParserGenerator("GrammarParser"));
+          File(path.join(parentPath, "$fileName.dart"))
+            ..createSync(recursive: true)
+            ..writeAsStringSync(generator.compileParserGenerator("GrammarParser"));
 
-  //         // File(path.join(parentPath, "$fileName.cst.dart"))
-  //         //   ..createSync(recursive: true)
-  //         //   ..writeAsStringSync(generator.compileCstParserGenerator("CstGrammarParser"));
+          File(path.join(parentPath, "$fileName.cst.dart"))
+            ..createSync(recursive: true)
+            ..writeAsStringSync(generator.compileCstParserGenerator("CstGrammarParser"));
 
-  //       case _:
-  //         stdout.writeln(grammar.reportFailures());
-  //     }
-  //   }
-  // }
+        case _:
+          stdout.writeln(grammar.reportFailures());
+      }
+    }
+  }
 
   if (MyParser() case MyParser grammar) {
-    print(grammar.parse('"one"'));
+    print(grammar.parse('"one""two"'));
   }
 
   if (GrammarParser() case GrammarParser grammar) {
@@ -223,6 +230,10 @@ void _experiment() {
         File(path.join(parentPath, "$fileName.dart"))
           ..createSync(recursive: true)
           ..writeAsStringSync(generator.compileParserGenerator("MyParser"));
+
+        File(path.join(parentPath, "$fileName.cst.dart"))
+          ..createSync(recursive: true)
+          ..writeAsStringSync(generator.compileCstParserGenerator("CstMyParser"));
       case _:
         stdout.writeln(grammar.reportFailures());
     }
@@ -239,7 +250,7 @@ void _experiment() {
 
         File("playground.txt")
           ..createSync(recursive: true)
-          ..writeAsStringSync(displayTree(result));
+          ..writeAsStringSync(_displayTree(result));
 
       case _:
         stdout.writeln(grammar.reportFailures());

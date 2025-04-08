@@ -3,15 +3,12 @@ import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
 
-final _regexps = (
-  from: RegExp(r"\bfrom\b"),
-  to: RegExp(r"\bto\b"),
-);
+final _regexps = (from: RegExp(r"\bfrom\b"), to: RegExp(r"\bto\b"));
 }
 
 /// A grammar file contains an optional preamble and statements.
-ParserGenerator document = ^ :preamble? statements:_..statement+ _? $ {
-  ParserGenerator.fromParsed(preamble: preamble, statements: statements)
+ParserGenerator document = ^ preamble? _..statement+ _? $ {
+  ParserGenerator.fromParsed(preamble: $1, statements: $2)
 };
 
 /// The preamble is simple.
@@ -31,7 +28,6 @@ Statement statement =
 Statement namespace =
   :kw.decorator? name:identifier? `{` statements:_..statement+ `}`
     |> NamespaceStatement(name, statements, tag: decorator);
-
 
 /// A declaration is a statement that can be referenced by other declarations.
 ///   Formally, it is a non-terminal.

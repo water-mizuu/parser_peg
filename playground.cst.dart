@@ -240,22 +240,22 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class MyParser extends _PegParser<Object> {
-  MyParser();
+final class CstMyParser extends _PegParser<Object> {
+  CstMyParser();
 
   @override
   get start => r0;
 
 
   /// `ROOT`
-  late final f0 = () {
+  Object? f0() {
     if (this.apply(this.r0) case var $?) {
-      return $;
+      return ("<ROOT>", $);
     }
-  };
+  }
 
   /// `fragment0`
-  late final f1 = () {
+  Object? f1() {
     if (this.pos case var mark) {
       if (this.matchPattern(_string.$1) case null) {
         this.pos = mark;
@@ -265,10 +265,10 @@ final class MyParser extends _PegParser<Object> {
           }}
       }
     }
-  };
+  }
 
   /// `fragment1`
-  late final f2 = () {
+  Object? f2() {
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.pos case var mark) {
         if (this.f1() case var _0) {
@@ -288,16 +288,18 @@ final class MyParser extends _PegParser<Object> {
               this.pos = mark;
             }
             if (this.matchPattern(_string.$1) case var $2?) {
-              return ($0, $1, $2);
+              if ([$0, $1, $2] case var $) {
+                return $;
+              }
             }
           }
         }
       }
     }
-  };
+  }
 
   /// `global::my_test`
-  late final r0 = () {
+  Object? r0() {
     if (this.f2() case var _0?) {
       if ([_0] case (var $ && var _l1)) {
         for (;;) {
@@ -310,13 +312,10 @@ final class MyParser extends _PegParser<Object> {
             break;
           }
         }
-        return switch ($) {
-          [var x] => x,
-          [...var x] => x,
-        };
+        return ("<my_test>", $);
       }
     }
-  };
+  }
 
   static const _string = (
     "\"",

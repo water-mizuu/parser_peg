@@ -269,9 +269,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchPattern(_string.$2) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -1393,9 +1393,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchPattern(_string.$45) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -1428,9 +1428,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$22) case null) {
         this.pos = mark;
         if (this.pos < this.buffer.length) {
-          if (this.buffer[this.pos] case var $1) {
+          if (this.buffer[this.pos] case var $) {
             this.pos++;
-            return $1;
+            return $;
           }
         }
       }
@@ -1443,9 +1443,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$24) case null) {
         this.pos = mark;
         if (this.pos < this.buffer.length) {
-          if (this.buffer[this.pos] case var $1) {
+          if (this.buffer[this.pos] case var $) {
             this.pos++;
-            return $1;
+            return $;
           }
         }
       }
@@ -1458,9 +1458,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$25) case null) {
         this.pos = mark;
         if (this.pos < this.buffer.length) {
-          if (this.buffer[this.pos] case var $1) {
+          if (this.buffer[this.pos] case var $) {
             this.pos++;
-            return $1;
+            return $;
           }
         }
       }
@@ -1473,9 +1473,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$26) case null) {
         this.pos = mark;
         if (this.pos < this.buffer.length) {
-          if (this.buffer[this.pos] case var $1) {
+          if (this.buffer[this.pos] case var $) {
             this.pos++;
-            return $1;
+            return $;
           }
         }
       }
@@ -1498,9 +1498,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchPattern(_string.$22) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -1524,9 +1524,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchPattern(_string.$24) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -1550,9 +1550,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchPattern(_string.$25) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -1576,9 +1576,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchPattern(_string.$26) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -1821,9 +1821,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$50) case null) {
         this.pos = mark;
         if (this.pos < this.buffer.length) {
-          if (this.buffer[this.pos] case var $1) {
+          if (this.buffer[this.pos] case var $) {
             this.pos++;
-            return $1;
+            return $;
           }
         }
       }
@@ -1871,9 +1871,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchPattern(_string.$11) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -1887,9 +1887,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$50) case null) {
         this.pos = mark;
         if (this.pos < this.buffer.length) {
-          if (this.buffer[this.pos] case var $1) {
+          if (this.buffer[this.pos] case var $) {
             this.pos++;
-            return $1;
+            return $;
           }
         }
       }
@@ -1950,9 +1950,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.f23() case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -2001,9 +2001,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchTrie(_trie.$1) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -2043,9 +2043,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchPattern(_string.$11) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -2114,9 +2114,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$50) case null) {
         this.pos = mark;
         if (this.pos < this.buffer.length) {
-          if (this.buffer[this.pos] case var $1) {
+          if (this.buffer[this.pos] case var $) {
             this.pos++;
-            return $1;
+            return $;
           }
         }
       }
@@ -2209,9 +2209,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$50) case null) {
         this.pos = mark;
         if (this.pos < this.buffer.length) {
-          if (this.buffer[this.pos] case var $1) {
+          if (this.buffer[this.pos] case var $) {
             this.pos++;
-            return $1;
+            return $;
           }
         }
       }
@@ -2321,9 +2321,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$22) case null) {
         this.pos = mark;
         if (this.pos < this.buffer.length) {
-          if (this.buffer[this.pos] case var $1) {
+          if (this.buffer[this.pos] case var $) {
             this.pos++;
-            return $1;
+            return $;
           }
         }
       }
@@ -2336,9 +2336,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$24) case null) {
         this.pos = mark;
         if (this.pos < this.buffer.length) {
-          if (this.buffer[this.pos] case var $1) {
+          if (this.buffer[this.pos] case var $) {
             this.pos++;
-            return $1;
+            return $;
           }
         }
       }
@@ -2351,9 +2351,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$25) case null) {
         this.pos = mark;
         if (this.pos < this.buffer.length) {
-          if (this.buffer[this.pos] case var $1) {
+          if (this.buffer[this.pos] case var $) {
             this.pos++;
-            return $1;
+            return $;
           }
         }
       }
@@ -2366,9 +2366,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
       if (this.matchPattern(_string.$26) case null) {
         this.pos = mark;
         if (this.pos < this.buffer.length) {
-          if (this.buffer[this.pos] case var $1) {
+          if (this.buffer[this.pos] case var $) {
             this.pos++;
-            return $1;
+            return $;
           }
         }
       }
@@ -2400,9 +2400,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchPattern(_string.$22) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -2435,9 +2435,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchPattern(_string.$24) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -2470,9 +2470,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchPattern(_string.$25) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }
@@ -2505,9 +2505,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         if (this.matchPattern(_string.$26) case null) {
           this.pos = mark;
           if (this.pos < this.buffer.length) {
-            if (this.buffer[this.pos] case var $1) {
+            if (this.buffer[this.pos] case var $) {
               this.pos++;
-              return $1;
+              return $;
             }
           }
         }

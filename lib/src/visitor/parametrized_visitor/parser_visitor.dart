@@ -570,16 +570,6 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     var containerName = "_l${ruleId++}";
     (withNames ??= {}).add(containerName);
 
-    var loopBody = node.child
-        .acceptParametrizedVisitor(this, (
-          withNames: {variableName},
-          inner: "$containerName.add($variableName);\ncontinue;",
-          isNullAllowed: isNullable(node.child, declarationName),
-          reported: reported,
-          declarationName: declarationName,
-        ))
-        .indent(4);
-    print((node.child.runtimeType, isNullable(node.child, declarationName)));
     var question = isNullable(node.child, declarationName) ? "" : "?";
     var loopBuffer = StringBuffer();
     loopBuffer.writeln(
@@ -589,7 +579,17 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     loopBuffer.writeln("  if ($containerName.isNotEmpty) {");
     loopBuffer.writeln("    for (;;) {");
     loopBuffer.writeln("      if (this.pos case var mark) {");
-    loopBuffer.writeln(loopBody);
+    loopBuffer.writeln(
+      node.child
+          .acceptParametrizedVisitor(this, (
+            withNames: {variableName},
+            inner: "$containerName.add($variableName);\ncontinue;",
+            isNullAllowed: isNullable(node.child, declarationName),
+            reported: reported,
+            declarationName: declarationName,
+          ))
+          .indent(4),
+    );
     loopBuffer.writeln("        this.pos = mark;");
     loopBuffer.writeln("        break;");
     loopBuffer.writeln("      }");
@@ -608,7 +608,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     fullBuffer.writeln("if (this.pos case var mark) {");
     fullBuffer.writeln(
       node.child.acceptParametrizedVisitor(this, (
-        withNames: <String>{variableName},
+        withNames: {variableName},
         isNullAllowed: true,
         inner: loopBuffer.toString(),
         reported: reported,
@@ -673,9 +673,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   @override
   String visitExceptNode(node, parameters) {
     var Parameters(:withNames, :inner, :reported, :declarationName) = parameters;
-
     var buffer = StringBuffer();
-
     buffer.writeln("if (this.pos case var mark) {");
     buffer.writeln(
       node.child.acceptParametrizedVisitor(this, (
@@ -684,15 +682,19 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         inner:
             (StringBuffer()
                   ..writeln("this.pos = mark;")
-                  ..writeln(
-                    const AnyCharacterNode().acceptParametrizedVisitor(this, (
-                      isNullAllowed: false,
-                      withNames: withNames,
-                      inner: inner,
-                      reported: reported,
-                      declarationName: declarationName,
-                    )),
-                  ))
+                  ..writeln("if (this.pos < this.buffer.length) {")
+                  ..writeAll(switch (withNames.varNames) {
+                    "_" => [
+                      "  this.pos++;",
+                      inner?.indent() ?? "  return this.buffer[this.pos - 1];",
+                    ],
+                    var names => [
+                      "  if (this.buffer[this.pos++] case $names) {",
+                      inner?.indent(2) ?? "    return ${withNames.singleName};",
+                      "  }",
+                    ],
+                  }, "\n")
+                  ..writeln("}"))
                 .toString(),
         reported: reported,
         declarationName: declarationName,
@@ -888,8 +890,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
             "  return this.buffer[this.pos - 1];",
         ],
         String names => [
-          "  if (this.buffer[this.pos] case $names) {",
-          "    this.pos++;",
+          "  if (this.buffer[this.pos++] case $names) {",
           if (inner != null) //
             inner.indent(2)
           else
