@@ -1,4 +1,4 @@
-// ignore_for_file: collection_methods_unrelated_type
+// ignore_for_file: collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
 
 import "dart:collection";
 import "dart:math" as math;
@@ -116,7 +116,7 @@ abstract base class _PegParser<R extends Object> {
   }
 
   void consumeWhitespace({bool includeNewlines = false}) {
-    RegExp regex = includeNewlines ? whitespaceRegExp.$1 : whitespaceRegExp.$2;
+    var regex = includeNewlines ? whitespaceRegExp.$1 : whitespaceRegExp.$2;
     if (regex.matchAsPrefix(buffer, pos) case Match(:int end)) {
       this.pos = end;
     }
@@ -166,6 +166,14 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
+  int _mark() {
+    return this.pos;
+  }
+
+  void _recover(int pos) {
+    this.pos = pos;
+  }
+
   void reset() {
     this.pos = 0;
     this.failures.clear();
@@ -211,7 +219,7 @@ abstract base class _PegParser<R extends Object> {
 
 extension NullableExtension<T extends Object> on T {
   @pragma("vm:prefer-inline")
-  T? asNullable() => this;
+  T? nullable() => this;
 }
 
 typedef _Rule<T extends Object> = T? Function();
@@ -244,7 +252,6 @@ typedef _Union<A, B> = (A? a, B? b);
 typedef _Key<K> = _Union<K, Symbol>;
 
 extension<R extends Object> on _PegParser<R> {
-  // ignore: unused_element
   String? matchTrie(Trie trie) {
     if (trie.matchLongest(buffer, pos) case (int start, int end)) {
       pos = end;

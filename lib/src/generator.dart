@@ -4,8 +4,7 @@ import "dart:io";
 
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
-import "package:parser_peg/src/visitor/node_visitor/"
-    "parametrized_visitor/parser_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/parametrized_visitor/parser_compiler_visitor.dart";
 import "package:parser_peg/src/visitor/node_visitor/"
     "parametrized_visitor/simplify_visitor.dart";
 import "package:parser_peg/src/visitor/node_visitor/"
@@ -45,6 +44,9 @@ const List<String> ignores = [
   "unused_import",
   "duplicate_ignore",
   "unused_element",
+  "collection_methods_unrelated_type",
+  "unused_element",
+  "use_setters_to_change_properties",
 ];
 
 final class ParserGenerator {
@@ -421,7 +423,7 @@ final class ParserGenerator {
     fullBuffer.writeln("  get start => $parserStartRule;");
     fullBuffer.writeln();
 
-    if (ParserCompilerVisitor(isNullable: isNullable) case ParserCompilerVisitor compilerVisitor) {
+    if (ParserCompilerVisitor(isNullable: isNullable, reported: true) case ParserCompilerVisitor compilerVisitor) {
       for (var (rawName, (type, node)) in fragments.pairs) {
         compilerVisitor.ruleId = 0;
 
@@ -435,7 +437,6 @@ final class ParserGenerator {
                     isNullAllowed: isNullable(node, displayName),
                     withNames: null,
                     inner: null,
-                    reported: true,
                     declarationName: displayName,
                     markSaved: false,
                   ),
@@ -470,7 +471,6 @@ final class ParserGenerator {
                     isNullAllowed: isNullable(node, rawName),
                     withNames: null,
                     inner: null,
-                    reported: true,
                     declarationName: displayName,
                     markSaved: false,
                   ),
@@ -595,7 +595,7 @@ final class ParserGenerator {
                       .acceptSimpleVisitor(removeActionNodeVisitor)
                       .acceptSimpleVisitor(removeSelectionVisitor),
                 ),
-                r"$".wrappedName(name),
+                r"$".wrappedName(_reverseRenames[name]!),
                 areIndicesProvided: false,
                 isSpanUsed: false,
               )

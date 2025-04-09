@@ -19,18 +19,21 @@ class StatementTranslatorVisitor implements StatementVisitor<List<Statement>, St
   @override
   List<Statement> visitHybridNamespaceStatement(HybridNamespaceStatement statement, String? type) {
     return [
-      DeclarationStatement(
-        statement.type,
-        [statement.name],
-        ChoiceNode([
-          for (var innerStatement in statement.children)
-            if (innerStatement case DeclarationStatement(:var names))
-              ReferenceNode([statement.name, names.first].join(ParserGenerator.separator))
-            else if (innerStatement case HybridNamespaceStatement(:var name))
-              ReferenceNode([statement.name, name].join(ParserGenerator.separator)),
-        ]),
-        tag: statement.outerTag,
-      ),
+      /// If there is a name, then we create a new declaration statement.
+      /// Else we just treat it as a statement statement with types.
+      if (statement.name case var name?)
+        DeclarationStatement(
+          statement.type,
+          [name],
+          ChoiceNode([
+            for (var innerStatement in statement.children)
+              if (innerStatement case DeclarationStatement(:var names))
+                ReferenceNode([name, names.first].join(ParserGenerator.separator))
+              else if (innerStatement case HybridNamespaceStatement(:var name))
+                ReferenceNode([name, name].join(ParserGenerator.separator)),
+          ]),
+          tag: statement.outerTag,
+        ),
       NamespaceStatement(
         statement.name,
         statement.children.expand((s) => s.acceptVisitor(this, statement.type ?? type)).toList(),

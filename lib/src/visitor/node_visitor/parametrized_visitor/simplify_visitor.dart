@@ -84,7 +84,10 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
   @override
   Node visitChoiceNode(ChoiceNode node, int depth) {
     var stringNodes = node.children.whereType<StringLiteralNode>().toList();
-    if (stringNodes.length < 2) {
+    late var strings = stringNodes.map((n) => n.literal).toList();
+    late var averageLength = strings.map((s) => s.length).reduce((a, b) => a + b) / strings.length;
+
+    if (stringNodes.length < 4 || averageLength < 8) {
       if (depth > 0) {
         return createFragment(
           ChoiceNode([for (var child in node.children) child.acceptParametrizedVisitor(this, 0)]),
@@ -95,13 +98,12 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
         ]);
       }
     } else {
-      var strings = stringNodes.map((n) => n.literal).toList();
       var notStrings = node.children.where((n) => n is! StringLiteralNode).toList();
 
       if (notStrings.isEmpty) {
         return TriePatternNode(strings).acceptParametrizedVisitor(this, depth);
       } else {
-        return ChoiceNode(<Node>[
+        return ChoiceNode([
           ...notStrings,
           TriePatternNode(strings),
         ]).acceptParametrizedVisitor(this, depth);

@@ -49,7 +49,7 @@ final class HybridNamespaceStatement implements Statement {
       innerTag = null;
 
   final String? type;
-  final String name;
+  final String? name;
   final List<Statement> children;
   final Tag? outerTag;
   final Tag? innerTag;
