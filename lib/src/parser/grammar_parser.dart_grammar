@@ -11,8 +11,7 @@ final _regexps = (
 }
 
 /// A grammar file contains an optional preamble and statements.
-ParserGenerator document;
-document = ^ preamble? _..statement+ _? $
+ParserGenerator document = ^ preamble? _..statement+ _? $
   |> ParserGenerator.fromParsed(preamble: $1, statements: $2);
 
 /// The preamble is simple.
@@ -49,11 +48,10 @@ Statement statement =
 
 /// A type declaration is a separate statement from the declaration
 ///   that can be used as a basis for types or tags.
-
-  | :kw.decorator? :type? :name `;`
-    |> DeclarationTypeStatement(type, name, tag: decorator)
-  | :kw.decorator? kw.var? :type? :name `;`
-    |> DeclarationTypeStatement(type, name, tag: decorator)
+  | :kw.decorator? :type? names:`,`..name+ `;`
+    |> DeclarationTypeStatement(type, names, tag: decorator)
+  | :kw.decorator? kw.var? :name `:` :type `;`
+    |> DeclarationTypeStatement(type, [name], tag: decorator)
 
 /// A declaration is a statement that can be referenced by other declarations.
 ///   Formally, it is a non-terminal.
@@ -67,9 +65,8 @@ Statement statement =
 
 /// A choice parser is a parser that tries to match one of the options.
 /// Despite the syntax, the parser is ordered choice.
-Node choice = (`|` `|`?)? options:(`|` `|`?)..acted+ {
-  options.length == 1 ? options.single : ChoiceNode(options)
-};
+Node choice = (`|` `|`?)? options:(`|` `|`?)..acted+
+  |> options.length == 1 ? options.single : ChoiceNode(options);
 
 /// A parser with a bound action.
 Node acted =
@@ -98,7 +95,7 @@ Node acted =
       )
     }
   | sequence
-  ;
+;
 
 /// A parser that parses a sequence of parsers.
 ///   By default, a sequence parser returns a [Record] of the results of the parsers.
@@ -106,14 +103,15 @@ Node acted =
 Node sequence =
   | body:_..dropped+ chosen:(`@` number @1)? {
       body.length == 1 ? body.single : SequenceNode(body, chosenIndex: chosen)
-    };
+    }
+;
 
 /// A parser that is prefixed or suffixed by another parser.
 Node dropped =
   | captured:dropped `<~` dropped:special { SequenceNode([captured, dropped], chosenIndex: 0) }
   | dropped:special `~>` captured:dropped { SequenceNode([dropped, captured], chosenIndex: 1) }
   | labeled
-  ;
+;
 
 /// A parser that adds the label to the declaration of the value.
 Node labeled =
@@ -141,7 +139,7 @@ Node labeled =
       return NamedNode(name, ReferenceNode(id));
     }
   | special
-  ;
+;
 
 /// Pegen style separators.
 ///   Difference here, is that we can use `+` or `*` as quantifiers.
@@ -154,7 +152,7 @@ Node special =
   | sep:call `..` expr:call `+`     |> PlusSeparatedNode(sep, expr, isTrailingAllowed: false)
   | sep:call `..` expr:call `*`     |> StarSeparatedNode(sep, expr, isTrailingAllowed: false)
   | postfix
-  ;
+;
 
 /// A parser that is quantified.
 ///   Can be nested, but shouldn't be used in practice.
@@ -163,7 +161,7 @@ Node postfix =
   | postfix `*` @0 |> StarNode($)
   | postfix `+` @0 |> PlusNode($)
   | prefix
-  ;
+;
 
 /// A parser that is prefixed.
 ///   Usually with disambiguators such as `and-predicate` and `not-predicate`.
@@ -174,7 +172,7 @@ Node prefix =
   | `&` prefix @1 |> AndPredicateNode($)
   | `!` prefix @1 |> NotPredicateNode($)
   | call
-  ;
+;
 
 /// "Call"-like because they technically look like a call, but this is special syntax.
 ///   (Calls don't exist.)
@@ -217,10 +215,8 @@ Node call =
   | sep:call `.` mac.sep  _  body:atom  _ {
       PlusSeparatedNode(sep, body, isTrailingAllowed: false)
     }
-
   | atom
-  ;
-
+;
 
 /// A parser that can be qualified as a group.
 ///   These are usually parsers that are delimited.
@@ -259,7 +255,7 @@ Node atom =
   | literal.regexp             |> RegExpNode($)
   | literal.string             |> StringLiteralNode($)
   | name                       |> ReferenceNode($)
-  ;
+;
 
 code {
   String curly =
@@ -376,11 +372,13 @@ dart {
   type {
     String main = _ type _ @1;
     String type =
-      | function.type
-      | nullable
-      ;
+      | :type _ "Function" _ :fn.parameters `?`? |> "$type Function$parameters${$5 ?? ""}"
+      | nullable;
 
-    String nullable = :nonNullable `?`? { $1 == null ? "$nonNullable" : "$nonNullable?" };
+    String nullable =
+      | :nonNullable `?` {"$nonNullable?"}
+      | nonNullable;
+
     String nonNullable = generic | record | base;
 
     /// A record type.
@@ -407,11 +405,8 @@ dart {
     // ({int a, int b})
     // ([int a, int b])
     // ()
-    function {
-      String type = type:type.main _ "Function" _ :fnParameters `?`?
-        |> "$type Function$fnParameters${$5 ?? ""}";
-
-      String fnParameters =
+    fn {
+      String parameters =
         | `(` positional:fields.positional `,` named:parameters.named `)`
             { "($positional, $named)" }
         | `(` positional:fields.positional `,` optional:parameters.optional `)`
@@ -423,8 +418,7 @@ dart {
         | `(` optional:parameters.optional `)`
             { "($optional)" }
         | `(` `)`
-            { "()" }
-        ;
+            { "()" };
     }
 
     @rule {

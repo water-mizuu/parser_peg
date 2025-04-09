@@ -287,27 +287,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"ParserGenerator"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"ParserGenerator"
   │ │ │   └─<_>
-  │ │ │     └─""
-  │ │ ├─<name>
-  │ │ │ └─<namespacedIdentifier>
-  │ │ │   ├─<namespaceReference>
-  │ │ │   └─<identifier>
-  │ │ │     └─"document"
-  │ │ └─<;>
-  │ │   ├─<_>
-  │ │   │ └─""
-  │ │   ├─";"
-  │ │   └─<_>
-  │ │     └─"\n"
-  │ ├─<statement>
-  │ │ ├─null
-  │ │ ├─null
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -498,13 +483,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"String"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"String"
   │ │ │   └─<_>
-  │ │ │     └─""
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -613,13 +597,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"Statement"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"Statement"
   │ │ │   └─<_>
-  │ │ │     └─""
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -1469,7 +1452,7 @@
   │ │   │   │ │   │ └─"r"
   │ │   │   │ │   └─")"
   │ │   │   │ └─<_>
-  │ │   │   │   └─"\n\n/// A type declaration is a separate statement from the declaration\n///   that can be used as a basis for types or tags.\n\n  "
+  │ │   │   │   └─"\n\n/// A type declaration is a separate statement from the declaration\n///   that can be used as a basis for types or tags.\n  "
   │ │   │   ├─<acted>
   │ │   │   │ ├─<sequence>
   │ │   │   │ │ ├─┬─<dropped>
@@ -1505,11 +1488,38 @@
   │ │   │   │ │ │ │       └─" "
   │ │   │   │ │ │ ├─<dropped>
   │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   ├─<identifier>
+  │ │   │   │ │ │ │   │ └─"names"
   │ │   │   │ │ │ │   ├─":"
-  │ │   │   │ │ │ │   └─<namespacedIdentifier>
-  │ │   │   │ │ │ │     ├─<namespaceReference>
-  │ │   │   │ │ │ │     └─<identifier>
-  │ │   │   │ │ │ │       └─"name"
+  │ │   │   │ │ │ │   ├─<_>
+  │ │   │   │ │ │ │   │ └─""
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     ├─<call>
+  │ │   │   │ │ │ │     │ └─<atom>
+  │ │   │   │ │ │ │     │   └─<name>
+  │ │   │   │ │ │ │     │     ├─<namespaceReference>
+  │ │   │   │ │ │ │     │     └─┬─"`"
+  │ │   │   │ │ │ │     │       ├───","
+  │ │   │   │ │ │ │     │       └─"`"
+  │ │   │   │ │ │ │     ├─<..>
+  │ │   │   │ │ │ │     │ ├─<_>
+  │ │   │   │ │ │ │     │ │ └─""
+  │ │   │   │ │ │ │     │ ├─".."
+  │ │   │   │ │ │ │     │ └─<_>
+  │ │   │   │ │ │ │     │   └─""
+  │ │   │   │ │ │ │     ├─<call>
+  │ │   │   │ │ │ │     │ └─<atom>
+  │ │   │   │ │ │ │     │   └─<name>
+  │ │   │   │ │ │ │     │     └─<namespacedIdentifier>
+  │ │   │   │ │ │ │     │       ├─<namespaceReference>
+  │ │   │   │ │ │ │     │       └─<identifier>
+  │ │   │   │ │ │ │     │         └─"name"
+  │ │   │   │ │ │ │     └─<+>
+  │ │   │   │ │ │ │       ├─<_>
+  │ │   │   │ │ │ │       │ └─""
+  │ │   │   │ │ │ │       ├─"+"
+  │ │   │   │ │ │ │       └─<_>
+  │ │   │   │ │ │ │         └─" "
   │ │   │   │ │ │ └─<dropped>
   │ │   │   │ │ │   └─<labeled>
   │ │   │   │ │ │     └─<special>
@@ -1567,6 +1577,7 @@
   │ │   │   │ │   │ ├─"a"
   │ │   │   │ │   │ ├─"m"
   │ │   │   │ │   │ ├─"e"
+  │ │   │   │ │   │ ├─"s"
   │ │   │   │ │   │ ├─","
   │ │   │   │ │   │ ├─" "
   │ │   │   │ │   │ ├─"t"
@@ -1633,23 +1644,29 @@
   │ │   │   │ │ │ ├─<dropped>
   │ │   │   │ │ │ │ └─<labeled>
   │ │   │   │ │ │ │   ├─":"
-  │ │   │   │ │ │ │   ├─<namespacedIdentifier>
-  │ │   │   │ │ │ │   │ ├─<namespaceReference>
-  │ │   │   │ │ │ │   │ └─<identifier>
-  │ │   │   │ │ │ │   │   └─"type"
-  │ │   │   │ │ │ │   └─<?>
-  │ │   │   │ │ │ │     ├─<_>
-  │ │   │   │ │ │ │     │ └─""
-  │ │   │   │ │ │ │     ├─"?"
-  │ │   │   │ │ │ │     └─<_>
-  │ │   │   │ │ │ │       └─" "
+  │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │   │   │ │ │ │     └─<identifier>
+  │ │   │   │ │ │ │       └─"name"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               ├─<namespaceReference>
+  │ │   │   │ │ │ │               └─┬─"`"
+  │ │   │   │ │ │ │                 ├───":"
+  │ │   │   │ │ │ │                 └─"`"
   │ │   │   │ │ │ ├─<dropped>
   │ │   │   │ │ │ │ └─<labeled>
   │ │   │   │ │ │ │   ├─":"
   │ │   │   │ │ │ │   └─<namespacedIdentifier>
   │ │   │   │ │ │ │     ├─<namespaceReference>
   │ │   │   │ │ │ │     └─<identifier>
-  │ │   │   │ │ │ │       └─"name"
+  │ │   │   │ │ │ │       └─"type"
   │ │   │   │ │ │ └─<dropped>
   │ │   │   │ │ │   └─<labeled>
   │ │   │   │ │ │     └─<special>
@@ -1703,10 +1720,13 @@
   │ │   │   │ │   │ ├─"e"
   │ │   │   │ │   │ ├─","
   │ │   │   │ │   │ ├─" "
-  │ │   │   │ │   │ ├─"n"
-  │ │   │   │ │   │ ├─"a"
-  │ │   │   │ │   │ ├─"m"
-  │ │   │   │ │   │ ├─"e"
+  │ │   │   │ │   │ ├─┬─"["
+  │ │   │   │ │   │ │ ├─<code::balanced>
+  │ │   │   │ │   │ │ │ ├─"n"
+  │ │   │   │ │   │ │ │ ├─"a"
+  │ │   │   │ │   │ │ │ ├─"m"
+  │ │   │   │ │   │ │ │ └─"e"
+  │ │   │   │ │   │ │ └─"]"
   │ │   │   │ │   │ ├─","
   │ │   │   │ │   │ ├─" "
   │ │   │   │ │   │ ├─"t"
@@ -2114,13 +2134,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"Node"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"Node"
   │ │ │   └─<_>
-  │ │ │     └─""
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -2276,17 +2295,16 @@
   │ │   │     │ │         │ └─""
   │ │   │     │ │         ├─"+"
   │ │   │     │ │         └─<_>
-  │ │   │     │ │           └─" "
+  │ │   │     │ │           └─"\n  "
   │ │   │     │ └─null
-  │ │   │     ├─<{>
-  │ │   │     │ ├─<_>
+  │ │   │     ├─┬─<_>
   │ │   │     │ │ └─""
-  │ │   │     │ ├─"{"
+  │ │   │     │ ├─"|>"
   │ │   │     │ └─<_>
-  │ │   │     │   └─"\n  "
+  │ │   │     │   └─" "
   │ │   │     ├─<_>
   │ │   │     │ └─""
-  │ │   │     ├─<code::curly>
+  │ │   │     ├─<code::nl>
   │ │   │     │ ├─"o"
   │ │   │     │ ├─"p"
   │ │   │     │ ├─"t"
@@ -2336,25 +2354,18 @@
   │ │   │     │ ├─"o"
   │ │   │     │ ├─"d"
   │ │   │     │ ├─"e"
-  │ │   │     │ ├─┬─"("
-  │ │   │     │ │ ├─<code::balanced>
-  │ │   │     │ │ │ ├─"o"
-  │ │   │     │ │ │ ├─"p"
-  │ │   │     │ │ │ ├─"t"
-  │ │   │     │ │ │ ├─"i"
-  │ │   │     │ │ │ ├─"o"
-  │ │   │     │ │ │ ├─"n"
-  │ │   │     │ │ │ └─"s"
-  │ │   │     │ │ └─")"
-  │ │   │     │ └─"\n"
-  │ │   │     ├─<_>
-  │ │   │     │ └─""
-  │ │   │     └─<}>
-  │ │   │       ├─<_>
-  │ │   │       │ └─""
-  │ │   │       ├─"}"
-  │ │   │       └─<_>
-  │ │   │         └─""
+  │ │   │     │ └─┬─"("
+  │ │   │     │   ├─<code::balanced>
+  │ │   │     │   │ ├─"o"
+  │ │   │     │   │ ├─"p"
+  │ │   │     │   │ ├─"t"
+  │ │   │     │   │ ├─"i"
+  │ │   │     │   │ ├─"o"
+  │ │   │     │   │ ├─"n"
+  │ │   │     │   │ └─"s"
+  │ │   │     │   └─")"
+  │ │   │     └─<_>
+  │ │   │       └─""
   │ │   └─<;>
   │ │     ├─<_>
   │ │     │ └─""
@@ -2369,13 +2380,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"Node"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"Node"
   │ │ │   └─<_>
-  │ │ │     └─""
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -3375,13 +3385,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"Node"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"Node"
   │ │ │   └─<_>
-  │ │ │     └─""
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -3600,7 +3609,7 @@
   │ │   │       │ └─""
   │ │   │       ├─"}"
   │ │   │       └─<_>
-  │ │   │         └─""
+  │ │   │         └─"\n"
   │ │   └─<;>
   │ │     ├─<_>
   │ │     │ └─""
@@ -3615,13 +3624,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"Node"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"Node"
   │ │ │   └─<_>
-  │ │ │     └─""
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -3910,13 +3918,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"Node"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"Node"
   │ │ │   └─<_>
-  │ │ │     └─""
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -4848,13 +4855,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"Node"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"Node"
   │ │ │   └─<_>
-  │ │ │     └─""
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -5435,13 +5441,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"Node"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"Node"
   │ │ │   └─<_>
-  │ │ │     └─""
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -5661,13 +5666,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"Node"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"Node"
   │ │ │   └─<_>
-  │ │ │     └─""
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -6084,13 +6088,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"Node"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"Node"
   │ │ │   └─<_>
-  │ │ │     └─""
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -7796,7 +7799,7 @@
   │ │   │   │   │ └─""
   │ │   │   │   ├─"}"
   │ │   │   │   └─<_>
-  │ │   │   │     └─"\n\n  "
+  │ │   │   │     └─"\n  "
   │ │   │   └─<acted>
   │ │   │     └─<sequence>
   │ │   │       ├───<dropped>
@@ -7817,7 +7820,7 @@
   │ │     │ └─""
   │ │     ├─";"
   │ │     └─<_>
-  │ │       └─"\n\n\n/// A parser that can be qualified as a group.\n///   These are usually parsers that are delimited.\n"
+  │ │       └─"\n\n/// A parser that can be qualified as a group.\n///   These are usually parsers that are delimited.\n"
   │ ├─<statement>
   │ │ ├─null
   │ │ ├─<type>
@@ -7826,13 +7829,12 @@
   │ │ │   │ └─""
   │ │ │   ├─<dart::type::type>
   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │   └─<identifier>
-  │ │ │   │   │     └─"Node"
-  │ │ │   │   └─null
+  │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │     └─<dart::type::base>
+  │ │ │   │       └─<identifier>
+  │ │ │   │         └─"Node"
   │ │ │   └─<_>
-  │ │ │     └─""
+  │ │ │     └─" "
   │ │ ├─<name>
   │ │ │ └─<namespacedIdentifier>
   │ │ │   ├─<namespaceReference>
@@ -8985,7 +8987,7 @@
   │ │   │     │   │ └─"$"
   │ │   │     │   └─")"
   │ │   │     └─<_>
-  │ │   │       └─"\n  "
+  │ │   │       └─"\n"
   │ │   └─<;>
   │ │     ├─<_>
   │ │     │ └─""
@@ -9010,13 +9012,12 @@
   │ │ │ │ │   │ └─""
   │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   └─<identifier>
-  │ │ │ │ │   │   │     └─"String"
-  │ │ │ │ │   │   └─null
+  │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │ │ │   │       └─<identifier>
+  │ │ │ │ │   │         └─"String"
   │ │ │ │ │   └─<_>
-  │ │ │ │ │     └─""
+  │ │ │ │ │     └─" "
   │ │ │ │ ├─<name>
   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │ │ │   ├─<namespaceReference>
@@ -9536,13 +9537,12 @@
   │ │ │ │ │   │ └─""
   │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   └─<identifier>
-  │ │ │ │ │   │   │     └─"String"
-  │ │ │ │ │   │   └─null
+  │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │ │ │   │       └─<identifier>
+  │ │ │ │ │   │         └─"String"
   │ │ │ │ │   └─<_>
-  │ │ │ │ │     └─""
+  │ │ │ │ │     └─" "
   │ │ │ │ ├─<name>
   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │ │ │   ├─<namespaceReference>
@@ -10088,13 +10088,12 @@
   │ │ │   │   │ └─""
   │ │ │   │   ├─<dart::type::type>
   │ │ │   │   │ └─<dart::type::nullable>
-  │ │ │   │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │   │ └─<dart::type::base>
-  │ │ │   │   │   │   └─<identifier>
-  │ │ │   │   │   │     └─"String"
-  │ │ │   │   │   └─null
+  │ │ │   │   │   └─<dart::type::nonNullable>
+  │ │ │   │   │     └─<dart::type::base>
+  │ │ │   │   │       └─<identifier>
+  │ │ │   │   │         └─"String"
   │ │ │   │   └─<_>
-  │ │ │   │     └─""
+  │ │ │   │     └─" "
   │ │ │   ├─<name>
   │ │ │   │ └─<namespacedIdentifier>
   │ │ │   │   ├─<namespaceReference>
@@ -10564,13 +10563,12 @@
   │ │ │ │ │   │ └─""
   │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   └─<identifier>
-  │ │ │ │ │   │   │     └─"String"
-  │ │ │ │ │   │   └─null
+  │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │ │ │   │       └─<identifier>
+  │ │ │ │ │   │         └─"String"
   │ │ │ │ │   └─<_>
-  │ │ │ │ │     └─""
+  │ │ │ │ │     └─" "
   │ │ │ │ ├─<name>
   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │ │ │   ├─<namespaceReference>
@@ -10803,13 +10801,12 @@
   │ │ │ │ │   │ └─""
   │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   └─<identifier>
-  │ │ │ │ │   │   │     └─"String"
-  │ │ │ │ │   │   └─null
+  │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │ │ │   │       └─<identifier>
+  │ │ │ │ │   │         └─"String"
   │ │ │ │ │   └─<_>
-  │ │ │ │ │     └─""
+  │ │ │ │ │     └─" "
   │ │ │ │ ├─<name>
   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │ │ │   ├─<namespaceReference>
@@ -10904,13 +10901,12 @@
   │ │ │ │ │   │   │ └─""
   │ │ │ │ │   │   ├─<dart::type::type>
   │ │ │ │ │   │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   │   └─<identifier>
-  │ │ │ │ │   │   │   │     └─"String"
-  │ │ │ │ │   │   │   └─null
+  │ │ │ │ │   │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │   │     └─<dart::type::base>
+  │ │ │ │ │   │   │       └─<identifier>
+  │ │ │ │ │   │   │         └─"String"
   │ │ │ │ │   │   └─<_>
-  │ │ │ │ │   │     └─""
+  │ │ │ │ │   │     └─" "
   │ │ │ │ │   ├─<name>
   │ │ │ │ │   │ └─<namespacedIdentifier>
   │ │ │ │ │   │   ├─<namespaceReference>
@@ -11924,13 +11920,12 @@
   │ │ │ │ │   │ └─""
   │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   └─<identifier>
-  │ │ │ │ │   │   │     └─"Node"
-  │ │ │ │ │   │   └─null
+  │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │ │ │   │       └─<identifier>
+  │ │ │ │ │   │         └─"Node"
   │ │ │ │ │   └─<_>
-  │ │ │ │ │     └─""
+  │ │ │ │ │     └─" "
   │ │ │ │ ├─<name>
   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │ │ │   ├─<namespaceReference>
@@ -12202,64 +12197,60 @@
   │ │ │ │ │ │ │   │ └─""
   │ │ │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │ │ │   │   │ └─<dart::type::generic>
-  │ │ │ │ │ │ │   │   │   ├─<dart::type::base>
-  │ │ │ │ │ │ │   │   │   │ └─<identifier>
-  │ │ │ │ │ │ │   │   │   │   └─"Set"
-  │ │ │ │ │ │ │   │   │   ├─┬─<_>
-  │ │ │ │ │ │ │   │   │   │ │ └─""
-  │ │ │ │ │ │ │   │   │   │ ├─"<"
-  │ │ │ │ │ │ │   │   │   │ └─<_>
-  │ │ │ │ │ │ │   │   │   │   └─""
-  │ │ │ │ │ │ │   │   │   ├─<dart::type::arguments>
-  │ │ │ │ │ │ │   │   │   │ └─<dart::type::type>
-  │ │ │ │ │ │ │   │   │   │   └─<dart::type::nullable>
-  │ │ │ │ │ │ │   │   │   │     ├─<dart::type::nonNullable>
-  │ │ │ │ │ │ │   │   │   │     │ └─<dart::type::record>
-  │ │ │ │ │ │ │   │   │   │     │   ├─<(>
-  │ │ │ │ │ │ │   │   │   │     │   │ ├─<_>
-  │ │ │ │ │ │ │   │   │   │     │   │ │ └─""
-  │ │ │ │ │ │ │   │   │   │     │   │ ├─"("
-  │ │ │ │ │ │ │   │   │   │     │   │ └─<_>
-  │ │ │ │ │ │ │   │   │   │     │   │   └─""
-  │ │ │ │ │ │ │   │   │   │     │   ├─<dart::type::fields::positional>
-  │ │ │ │ │ │ │   │   │   │     │   │ ├─<dart::type::field::positional>
-  │ │ │ │ │ │ │   │   │   │     │   │ │ ├─<dart::type::type>
-  │ │ │ │ │ │ │   │   │   │     │   │ │ │ └─<dart::type::nullable>
-  │ │ │ │ │ │ │   │   │   │     │   │ │ │   ├─<dart::type::nonNullable>
-  │ │ │ │ │ │ │   │   │   │     │   │ │ │   │ └─<dart::type::base>
-  │ │ │ │ │ │ │   │   │   │     │   │ │ │   │   └─<identifier>
-  │ │ │ │ │ │ │   │   │   │     │   │ │ │   │     └─"int"
-  │ │ │ │ │ │ │   │   │   │     │   │ │ │   └─null
-  │ │ │ │ │ │ │   │   │   │     │   │ │ ├─<_>
-  │ │ │ │ │ │ │   │   │   │     │   │ │ │ └─""
-  │ │ │ │ │ │ │   │   │   │     │   │ │ └─null
-  │ │ │ │ │ │ │   │   │   │     │   │ └─<dart::type::field::positional>
-  │ │ │ │ │ │ │   │   │   │     │   │   ├─<dart::type::type>
-  │ │ │ │ │ │ │   │   │   │     │   │   │ └─<dart::type::nullable>
-  │ │ │ │ │ │ │   │   │   │     │   │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │ │ │   │   │   │     │   │   │   │ └─<dart::type::base>
-  │ │ │ │ │ │ │   │   │   │     │   │   │   │   └─<identifier>
-  │ │ │ │ │ │ │   │   │   │     │   │   │   │     └─"int"
-  │ │ │ │ │ │ │   │   │   │     │   │   │   └─null
-  │ │ │ │ │ │ │   │   │   │     │   │   ├─<_>
-  │ │ │ │ │ │ │   │   │   │     │   │   │ └─""
-  │ │ │ │ │ │ │   │   │   │     │   │   └─null
-  │ │ │ │ │ │ │   │   │   │     │   ├─null
-  │ │ │ │ │ │ │   │   │   │     │   └─<)>
-  │ │ │ │ │ │ │   │   │   │     │     ├─<_>
-  │ │ │ │ │ │ │   │   │   │     │     │ └─""
-  │ │ │ │ │ │ │   │   │   │     │     ├─")"
-  │ │ │ │ │ │ │   │   │   │     │     └─<_>
-  │ │ │ │ │ │ │   │   │   │     │       └─""
-  │ │ │ │ │ │ │   │   │   │     └─null
-  │ │ │ │ │ │ │   │   │   └─┬─<_>
-  │ │ │ │ │ │ │   │   │     │ └─""
-  │ │ │ │ │ │ │   │   │     ├─">"
-  │ │ │ │ │ │ │   │   │     └─<_>
-  │ │ │ │ │ │ │   │   │       └─" "
-  │ │ │ │ │ │ │   │   └─null
+  │ │ │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │ │ │   │     └─<dart::type::generic>
+  │ │ │ │ │ │ │   │       ├─<dart::type::base>
+  │ │ │ │ │ │ │   │       │ └─<identifier>
+  │ │ │ │ │ │ │   │       │   └─"Set"
+  │ │ │ │ │ │ │   │       ├─┬─<_>
+  │ │ │ │ │ │ │   │       │ │ └─""
+  │ │ │ │ │ │ │   │       │ ├─"<"
+  │ │ │ │ │ │ │   │       │ └─<_>
+  │ │ │ │ │ │ │   │       │   └─""
+  │ │ │ │ │ │ │   │       ├─<dart::type::arguments>
+  │ │ │ │ │ │ │   │       │ └─<dart::type::type>
+  │ │ │ │ │ │ │   │       │   └─<dart::type::nullable>
+  │ │ │ │ │ │ │   │       │     └─<dart::type::nonNullable>
+  │ │ │ │ │ │ │   │       │       └─<dart::type::record>
+  │ │ │ │ │ │ │   │       │         ├─<(>
+  │ │ │ │ │ │ │   │       │         │ ├─<_>
+  │ │ │ │ │ │ │   │       │         │ │ └─""
+  │ │ │ │ │ │ │   │       │         │ ├─"("
+  │ │ │ │ │ │ │   │       │         │ └─<_>
+  │ │ │ │ │ │ │   │       │         │   └─""
+  │ │ │ │ │ │ │   │       │         ├─<dart::type::fields::positional>
+  │ │ │ │ │ │ │   │       │         │ ├─<dart::type::field::positional>
+  │ │ │ │ │ │ │   │       │         │ │ ├─<dart::type::type>
+  │ │ │ │ │ │ │   │       │         │ │ │ └─<dart::type::nullable>
+  │ │ │ │ │ │ │   │       │         │ │ │   └─<dart::type::nonNullable>
+  │ │ │ │ │ │ │   │       │         │ │ │     └─<dart::type::base>
+  │ │ │ │ │ │ │   │       │         │ │ │       └─<identifier>
+  │ │ │ │ │ │ │   │       │         │ │ │         └─"int"
+  │ │ │ │ │ │ │   │       │         │ │ ├─<_>
+  │ │ │ │ │ │ │   │       │         │ │ │ └─""
+  │ │ │ │ │ │ │   │       │         │ │ └─null
+  │ │ │ │ │ │ │   │       │         │ └─<dart::type::field::positional>
+  │ │ │ │ │ │ │   │       │         │   ├─<dart::type::type>
+  │ │ │ │ │ │ │   │       │         │   │ └─<dart::type::nullable>
+  │ │ │ │ │ │ │   │       │         │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │ │ │   │       │         │   │     └─<dart::type::base>
+  │ │ │ │ │ │ │   │       │         │   │       └─<identifier>
+  │ │ │ │ │ │ │   │       │         │   │         └─"int"
+  │ │ │ │ │ │ │   │       │         │   ├─<_>
+  │ │ │ │ │ │ │   │       │         │   │ └─""
+  │ │ │ │ │ │ │   │       │         │   └─null
+  │ │ │ │ │ │ │   │       │         ├─null
+  │ │ │ │ │ │ │   │       │         └─<)>
+  │ │ │ │ │ │ │   │       │           ├─<_>
+  │ │ │ │ │ │ │   │       │           │ └─""
+  │ │ │ │ │ │ │   │       │           ├─")"
+  │ │ │ │ │ │ │   │       │           └─<_>
+  │ │ │ │ │ │ │   │       │             └─""
+  │ │ │ │ │ │ │   │       └─┬─<_>
+  │ │ │ │ │ │ │   │         │ └─""
+  │ │ │ │ │ │ │   │         ├─">"
+  │ │ │ │ │ │ │   │         └─<_>
+  │ │ │ │ │ │ │   │           └─" "
   │ │ │ │ │ │ │   └─<_>
   │ │ │ │ │ │ │     └─""
   │ │ │ │ │ │ ├─<name>
@@ -12947,13 +12938,12 @@
   │ │ │ │ │   │   │ └─""
   │ │ │ │ │   │   ├─<dart::type::type>
   │ │ │ │ │   │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   │   └─<identifier>
-  │ │ │ │ │   │   │   │     └─"String"
-  │ │ │ │ │   │   │   └─null
+  │ │ │ │ │   │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │   │     └─<dart::type::base>
+  │ │ │ │ │   │   │       └─<identifier>
+  │ │ │ │ │   │   │         └─"String"
   │ │ │ │ │   │   └─<_>
-  │ │ │ │ │   │     └─""
+  │ │ │ │ │   │     └─" "
   │ │ │ │ │   ├─<name>
   │ │ │ │ │   │ └─<namespacedIdentifier>
   │ │ │ │ │   │   ├─<namespaceReference>
@@ -13048,13 +13038,12 @@
   │ │ │   │   │ └─""
   │ │ │   │   ├─<dart::type::type>
   │ │ │   │   │ └─<dart::type::nullable>
-  │ │ │   │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │   │ └─<dart::type::base>
-  │ │ │   │   │   │   └─<identifier>
-  │ │ │   │   │   │     └─"String"
-  │ │ │   │   │   └─null
+  │ │ │   │   │   └─<dart::type::nonNullable>
+  │ │ │   │   │     └─<dart::type::base>
+  │ │ │   │   │       └─<identifier>
+  │ │ │   │   │         └─"String"
   │ │ │   │   └─<_>
-  │ │ │   │     └─""
+  │ │ │   │     └─" "
   │ │ │   ├─<name>
   │ │ │   │ └─<namespacedIdentifier>
   │ │ │   │   ├─<namespaceReference>
@@ -13201,13 +13190,12 @@
   │ │ │ │ │ │ │   │ └─""
   │ │ │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │ │ │ │ │   │   │   └─<identifier>
-  │ │ │ │ │ │ │   │   │     └─"String"
-  │ │ │ │ │ │ │   │   └─null
+  │ │ │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │ │ │ │ │   │       └─<identifier>
+  │ │ │ │ │ │ │   │         └─"String"
   │ │ │ │ │ │ │   └─<_>
-  │ │ │ │ │ │ │     └─""
+  │ │ │ │ │ │ │     └─" "
   │ │ │ │ │ │ ├─<name>
   │ │ │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │ │ │ │ │   ├─<namespaceReference>
@@ -13331,13 +13319,12 @@
   │ │ │ │ │ │ │   │ └─""
   │ │ │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │ │ │ │ │   │   │   └─<identifier>
-  │ │ │ │ │ │ │   │   │     └─"String"
-  │ │ │ │ │ │ │   │   └─null
+  │ │ │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │ │ │ │ │   │       └─<identifier>
+  │ │ │ │ │ │ │   │         └─"String"
   │ │ │ │ │ │ │   └─<_>
-  │ │ │ │ │ │ │     └─""
+  │ │ │ │ │ │ │     └─" "
   │ │ │ │ │ │ ├─<name>
   │ │ │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │ │ │ │ │   ├─<namespaceReference>
@@ -14610,13 +14597,12 @@
   │ │ │ │ │   │   │   │ └─""
   │ │ │ │ │   │   │   ├─<dart::type::type>
   │ │ │ │ │   │   │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   │   │   └─<identifier>
-  │ │ │ │ │   │   │   │   │     └─"String"
-  │ │ │ │ │   │   │   │   └─null
+  │ │ │ │ │   │   │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │   │   │     └─<dart::type::base>
+  │ │ │ │ │   │   │   │       └─<identifier>
+  │ │ │ │ │   │   │   │         └─"String"
   │ │ │ │ │   │   │   └─<_>
-  │ │ │ │ │   │   │     └─""
+  │ │ │ │ │   │   │     └─" "
   │ │ │ │ │   │   ├─<name>
   │ │ │ │ │   │   │ └─<namespacedIdentifier>
   │ │ │ │ │   │   │   ├─<namespaceReference>
@@ -14845,13 +14831,12 @@
   │ │ │   │ │ │   │ └─""
   │ │ │   │ │ │   ├─<dart::type::type>
   │ │ │   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │   │   │   └─<identifier>
-  │ │ │   │ │ │   │   │     └─"String"
-  │ │ │   │ │ │   │   └─null
+  │ │ │   │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │   │     └─<dart::type::base>
+  │ │ │   │ │ │   │       └─<identifier>
+  │ │ │   │ │ │   │         └─"String"
   │ │ │   │ │ │   └─<_>
-  │ │ │   │ │ │     └─""
+  │ │ │   │ │ │     └─" "
   │ │ │   │ │ ├─<name>
   │ │ │   │ │ │ └─<namespacedIdentifier>
   │ │ │   │ │ │   ├─<namespaceReference>
@@ -14926,13 +14911,12 @@
   │ │ │   │ │ │   │ └─""
   │ │ │   │ │ │   ├─<dart::type::type>
   │ │ │   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │   │   │   └─<identifier>
-  │ │ │   │ │ │   │   │     └─"String"
-  │ │ │   │ │ │   │   └─null
+  │ │ │   │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │   │     └─<dart::type::base>
+  │ │ │   │ │ │   │       └─<identifier>
+  │ │ │   │ │ │   │         └─"String"
   │ │ │   │ │ │   └─<_>
-  │ │ │   │ │ │     └─""
+  │ │ │   │ │ │     └─" "
   │ │ │   │ │ ├─<name>
   │ │ │   │ │ │ └─<namespacedIdentifier>
   │ │ │   │ │ │   ├─<namespaceReference>
@@ -14955,25 +14939,137 @@
   │ │ │   │ │   │ │ │   └─" "
   │ │ │   │ │   │ │ └─null
   │ │ │   │ │   │ └─┬─<acted>
-  │ │ │   │ │   │   │ └─<sequence>
-  │ │ │   │ │   │   │   ├───<dropped>
-  │ │ │   │ │   │   │   │   └─<labeled>
-  │ │ │   │ │   │   │   │     └─<special>
-  │ │ │   │ │   │   │   │       └─<postfix>
-  │ │ │   │ │   │   │   │         └─<prefix>
-  │ │ │   │ │   │   │   │           └─<call>
-  │ │ │   │ │   │   │   │             └─<atom>
-  │ │ │   │ │   │   │   │               └─<name>
-  │ │ │   │ │   │   │   │                 └─<namespacedIdentifier>
-  │ │ │   │ │   │   │   │                   ├─<namespaceReference>
-  │ │ │   │ │   │   │   │                   │ └─┬─<identifier>
-  │ │ │   │ │   │   │   │                   │   │ └─"function"
-  │ │ │   │ │   │   │   │                   │   ├─┬─null
-  │ │ │   │ │   │   │   │                   │   │ └─"."
-  │ │ │   │ │   │   │   │                   │   └─null
-  │ │ │   │ │   │   │   │                   └─<identifier>
-  │ │ │   │ │   │   │   │                     └─"type"
-  │ │ │   │ │   │   │   └─null
+  │ │ │   │ │   │   │ ├─<sequence>
+  │ │ │   │ │   │   │ │ ├─┬─<dropped>
+  │ │ │   │ │   │   │ │ │ │ └─<labeled>
+  │ │ │   │ │   │   │ │ │ │   ├─":"
+  │ │ │   │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │ │   │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │ │   │ │   │   │ │ │ │     └─<identifier>
+  │ │ │   │ │   │   │ │ │ │       └─"type"
+  │ │ │   │ │   │   │ │ │ ├─<dropped>
+  │ │ │   │ │   │   │ │ │ │ └─<labeled>
+  │ │ │   │ │   │   │ │ │ │   └─<special>
+  │ │ │   │ │   │   │ │ │ │     └─<postfix>
+  │ │ │   │ │   │   │ │ │ │       └─<prefix>
+  │ │ │   │ │   │   │ │ │ │         └─<call>
+  │ │ │   │ │   │   │ │ │ │           └─<atom>
+  │ │ │   │ │   │   │ │ │ │             └─<name>
+  │ │ │   │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │ │   │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │ │   │ │   │   │ │ │ │                 └─<identifier>
+  │ │ │   │ │   │   │ │ │ │                   └─"_"
+  │ │ │   │ │   │   │ │ │ ├─<dropped>
+  │ │ │   │ │   │   │ │ │ │ └─<labeled>
+  │ │ │   │ │   │   │ │ │ │   └─<special>
+  │ │ │   │ │   │   │ │ │ │     └─<postfix>
+  │ │ │   │ │   │   │ │ │ │       └─<prefix>
+  │ │ │   │ │   │   │ │ │ │         └─<call>
+  │ │ │   │ │   │   │ │ │ │           └─<atom>
+  │ │ │   │ │   │   │ │ │ │             ├─<_>
+  │ │ │   │ │   │   │ │ │ │             │ └─""
+  │ │ │   │ │   │   │ │ │ │             ├─┬─"\""
+  │ │ │   │ │   │   │ │ │ │             │ ├─┬─"F"
+  │ │ │   │ │   │   │ │ │ │             │ │ ├─"u"
+  │ │ │   │ │   │   │ │ │ │             │ │ ├─"n"
+  │ │ │   │ │   │   │ │ │ │             │ │ ├─"c"
+  │ │ │   │ │   │   │ │ │ │             │ │ ├─"t"
+  │ │ │   │ │   │   │ │ │ │             │ │ ├─"i"
+  │ │ │   │ │   │   │ │ │ │             │ │ ├─"o"
+  │ │ │   │ │   │   │ │ │ │             │ │ └─"n"
+  │ │ │   │ │   │   │ │ │ │             │ └─"\""
+  │ │ │   │ │   │   │ │ │ │             └─<_>
+  │ │ │   │ │   │   │ │ │ │               └─" "
+  │ │ │   │ │   │   │ │ │ ├─<dropped>
+  │ │ │   │ │   │   │ │ │ │ └─<labeled>
+  │ │ │   │ │   │   │ │ │ │   └─<special>
+  │ │ │   │ │   │   │ │ │ │     └─<postfix>
+  │ │ │   │ │   │   │ │ │ │       └─<prefix>
+  │ │ │   │ │   │   │ │ │ │         └─<call>
+  │ │ │   │ │   │   │ │ │ │           └─<atom>
+  │ │ │   │ │   │   │ │ │ │             └─<name>
+  │ │ │   │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │ │   │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │ │   │ │   │   │ │ │ │                 └─<identifier>
+  │ │ │   │ │   │   │ │ │ │                   └─"_"
+  │ │ │   │ │   │   │ │ │ ├─<dropped>
+  │ │ │   │ │   │   │ │ │ │ └─<labeled>
+  │ │ │   │ │   │   │ │ │ │   ├─":"
+  │ │ │   │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │ │   │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │ │   │ │   │   │ │ │ │     │ └─┬─<identifier>
+  │ │ │   │ │   │   │ │ │ │     │   │ └─"fn"
+  │ │ │   │ │   │   │ │ │ │     │   ├─┬─null
+  │ │ │   │ │   │   │ │ │ │     │   │ └─"."
+  │ │ │   │ │   │   │ │ │ │     │   └─null
+  │ │ │   │ │   │   │ │ │ │     └─<identifier>
+  │ │ │   │ │   │   │ │ │ │       └─"parameters"
+  │ │ │   │ │   │   │ │ │ └─<dropped>
+  │ │ │   │ │   │   │ │ │   └─<labeled>
+  │ │ │   │ │   │   │ │ │     └─<special>
+  │ │ │   │ │   │   │ │ │       └─<postfix>
+  │ │ │   │ │   │   │ │ │         ├─<postfix>
+  │ │ │   │ │   │   │ │ │         │ └─<prefix>
+  │ │ │   │ │   │   │ │ │         │   └─<call>
+  │ │ │   │ │   │   │ │ │         │     └─<atom>
+  │ │ │   │ │   │   │ │ │         │       └─<name>
+  │ │ │   │ │   │   │ │ │         │         ├─<namespaceReference>
+  │ │ │   │ │   │   │ │ │         │         └─┬─"`"
+  │ │ │   │ │   │   │ │ │         │           ├───"?"
+  │ │ │   │ │   │   │ │ │         │           └─"`"
+  │ │ │   │ │   │   │ │ │         └─<?>
+  │ │ │   │ │   │   │ │ │           ├─<_>
+  │ │ │   │ │   │   │ │ │           │ └─""
+  │ │ │   │ │   │   │ │ │           ├─"?"
+  │ │ │   │ │   │   │ │ │           └─<_>
+  │ │ │   │ │   │   │ │ │             └─" "
+  │ │ │   │ │   │   │ │ └─null
+  │ │ │   │ │   │   │ ├─┬─<_>
+  │ │ │   │ │   │   │ │ │ └─""
+  │ │ │   │ │   │   │ │ ├─"|>"
+  │ │ │   │ │   │   │ │ └─<_>
+  │ │ │   │ │   │   │ │   └─" "
+  │ │ │   │ │   │   │ ├─<_>
+  │ │ │   │ │   │   │ │ └─""
+  │ │ │   │ │   │   │ ├─<code::nl>
+  │ │ │   │ │   │   │ │ └─<dart::literal::string>
+  │ │ │   │ │   │   │ │   ├─<dart::literal::string::body>
+  │ │ │   │ │   │   │ │   │ ├─"\""
+  │ │ │   │ │   │   │ │   │ ├─┬─┬─"$"
+  │ │ │   │ │   │   │ │   │ │ │ └─<dart::literal::string::interpolation>
+  │ │ │   │ │   │   │ │   │ │ │   ├─"$"
+  │ │ │   │ │   │   │ │   │ │ │   └─<dart::literal::identifier>
+  │ │ │   │ │   │   │ │   │ │ │     └─<identifier>
+  │ │ │   │ │   │   │ │   │ │ │       └─"type"
+  │ │ │   │ │   │   │ │   │ │ ├─" "
+  │ │ │   │ │   │   │ │   │ │ ├─"F"
+  │ │ │   │ │   │   │ │   │ │ ├─"u"
+  │ │ │   │ │   │   │ │   │ │ ├─"n"
+  │ │ │   │ │   │   │ │   │ │ ├─"c"
+  │ │ │   │ │   │   │ │   │ │ ├─"t"
+  │ │ │   │ │   │   │ │   │ │ ├─"i"
+  │ │ │   │ │   │   │ │   │ │ ├─"o"
+  │ │ │   │ │   │   │ │   │ │ ├─"n"
+  │ │ │   │ │   │   │ │   │ │ ├─┬─"$"
+  │ │ │   │ │   │   │ │   │ │ │ └─<dart::literal::string::interpolation>
+  │ │ │   │ │   │   │ │   │ │ │   ├─"$"
+  │ │ │   │ │   │   │ │   │ │ │   └─<dart::literal::identifier>
+  │ │ │   │ │   │   │ │   │ │ │     └─<identifier>
+  │ │ │   │ │   │   │ │   │ │ │       └─"parameters$"
+  │ │ │   │ │   │   │ │   │ │ ├─"{"
+  │ │ │   │ │   │   │ │   │ │ ├─"$"
+  │ │ │   │ │   │   │ │   │ │ ├─"5"
+  │ │ │   │ │   │   │ │   │ │ ├─" "
+  │ │ │   │ │   │   │ │   │ │ ├─"?"
+  │ │ │   │ │   │   │ │   │ │ ├─"?"
+  │ │ │   │ │   │   │ │   │ │ └─" "
+  │ │ │   │ │   │   │ │   │ └─"\""
+  │ │ │   │ │   │   │ │   └─<dart::literal::string::body>
+  │ │ │   │ │   │   │ │     ├─"\""
+  │ │ │   │ │   │   │ │     ├───"}"
+  │ │ │   │ │   │   │ │     └─"\""
+  │ │ │   │ │   │   │ └─<_>
+  │ │ │   │ │   │   │   └─"\n      "
   │ │ │   │ │   │   └─<acted>
   │ │ │   │ │   │     └─<sequence>
   │ │ │   │ │   │       ├───<dropped>
@@ -15003,13 +15099,12 @@
   │ │ │   │ │ │   │ └─""
   │ │ │   │ │ │   ├─<dart::type::type>
   │ │ │   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │   │   │   └─<identifier>
-  │ │ │   │ │ │   │   │     └─"String"
-  │ │ │   │ │ │   │   └─null
+  │ │ │   │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │   │     └─<dart::type::base>
+  │ │ │   │ │ │   │       └─<identifier>
+  │ │ │   │ │ │   │         └─"String"
   │ │ │   │ │ │   └─<_>
-  │ │ │   │ │ │     └─""
+  │ │ │   │ │ │     └─" "
   │ │ │   │ │ ├─<name>
   │ │ │   │ │ │ └─<namespacedIdentifier>
   │ │ │   │ │ │   ├─<namespaceReference>
@@ -15022,99 +15117,86 @@
   │ │ │   │ │   │   │ └─""
   │ │ │   │ │   │   ├─"="
   │ │ │   │ │   │   └─<_>
-  │ │ │   │ │   │     └─" "
+  │ │ │   │ │   │     └─"\n      "
   │ │ │   │ │   ├─<choice>
-  │ │ │   │ │   │ ├─null
-  │ │ │   │ │   │ └───<acted>
-  │ │ │   │ │   │     ├─<sequence>
-  │ │ │   │ │   │     │ ├─┬─<dropped>
-  │ │ │   │ │   │     │ │ │ └─<labeled>
-  │ │ │   │ │   │     │ │ │   ├─":"
-  │ │ │   │ │   │     │ │ │   └─<namespacedIdentifier>
-  │ │ │   │ │   │     │ │ │     ├─<namespaceReference>
-  │ │ │   │ │   │     │ │ │     └─<identifier>
-  │ │ │   │ │   │     │ │ │       └─"nonNullable"
-  │ │ │   │ │   │     │ │ └─<dropped>
-  │ │ │   │ │   │     │ │   └─<labeled>
-  │ │ │   │ │   │     │ │     └─<special>
-  │ │ │   │ │   │     │ │       └─<postfix>
-  │ │ │   │ │   │     │ │         ├─<postfix>
-  │ │ │   │ │   │     │ │         │ └─<prefix>
-  │ │ │   │ │   │     │ │         │   └─<call>
-  │ │ │   │ │   │     │ │         │     └─<atom>
-  │ │ │   │ │   │     │ │         │       └─<name>
-  │ │ │   │ │   │     │ │         │         ├─<namespaceReference>
-  │ │ │   │ │   │     │ │         │         └─┬─"`"
-  │ │ │   │ │   │     │ │         │           ├───"?"
-  │ │ │   │ │   │     │ │         │           └─"`"
-  │ │ │   │ │   │     │ │         └─<?>
-  │ │ │   │ │   │     │ │           ├─<_>
-  │ │ │   │ │   │     │ │           │ └─""
-  │ │ │   │ │   │     │ │           ├─"?"
-  │ │ │   │ │   │     │ │           └─<_>
-  │ │ │   │ │   │     │ │             └─" "
-  │ │ │   │ │   │     │ └─null
-  │ │ │   │ │   │     ├─<{>
-  │ │ │   │ │   │     │ ├─<_>
-  │ │ │   │ │   │     │ │ └─""
-  │ │ │   │ │   │     │ ├─"{"
-  │ │ │   │ │   │     │ └─<_>
-  │ │ │   │ │   │     │   └─" "
-  │ │ │   │ │   │     ├─<_>
-  │ │ │   │ │   │     │ └─""
-  │ │ │   │ │   │     ├─<code::curly>
-  │ │ │   │ │   │     │ ├─"$"
-  │ │ │   │ │   │     │ ├─"1"
-  │ │ │   │ │   │     │ ├─" "
-  │ │ │   │ │   │     │ ├─"="
-  │ │ │   │ │   │     │ ├─"="
-  │ │ │   │ │   │     │ ├─" "
-  │ │ │   │ │   │     │ ├─"n"
-  │ │ │   │ │   │     │ ├─"u"
-  │ │ │   │ │   │     │ ├─"l"
-  │ │ │   │ │   │     │ ├─"l"
-  │ │ │   │ │   │     │ ├─" "
-  │ │ │   │ │   │     │ ├─"?"
-  │ │ │   │ │   │     │ ├─" "
-  │ │ │   │ │   │     │ ├─<dart::literal::string>
-  │ │ │   │ │   │     │ │ └─<dart::literal::string::body>
-  │ │ │   │ │   │     │ │   ├─"\""
-  │ │ │   │ │   │     │ │   ├───┬─"$"
-  │ │ │   │ │   │     │ │   │   └─<dart::literal::string::interpolation>
-  │ │ │   │ │   │     │ │   │     ├─"$"
-  │ │ │   │ │   │     │ │   │     └─<dart::literal::identifier>
-  │ │ │   │ │   │     │ │   │       └─<identifier>
-  │ │ │   │ │   │     │ │   │         └─"nonNullable"
-  │ │ │   │ │   │     │ │   └─"\""
-  │ │ │   │ │   │     │ ├─" "
-  │ │ │   │ │   │     │ ├─":"
-  │ │ │   │ │   │     │ ├─" "
-  │ │ │   │ │   │     │ ├─<dart::literal::string>
-  │ │ │   │ │   │     │ │ └─<dart::literal::string::body>
-  │ │ │   │ │   │     │ │   ├─"\""
-  │ │ │   │ │   │     │ │   ├─┬─┬─"$"
-  │ │ │   │ │   │     │ │   │ │ └─<dart::literal::string::interpolation>
-  │ │ │   │ │   │     │ │   │ │   ├─"$"
-  │ │ │   │ │   │     │ │   │ │   └─<dart::literal::identifier>
-  │ │ │   │ │   │     │ │   │ │     └─<identifier>
-  │ │ │   │ │   │     │ │   │ │       └─"nonNullable"
-  │ │ │   │ │   │     │ │   │ └─"?"
-  │ │ │   │ │   │     │ │   └─"\""
-  │ │ │   │ │   │     │ └─" "
-  │ │ │   │ │   │     ├─<_>
-  │ │ │   │ │   │     │ └─""
-  │ │ │   │ │   │     └─<}>
-  │ │ │   │ │   │       ├─<_>
-  │ │ │   │ │   │       │ └─""
-  │ │ │   │ │   │       ├─"}"
-  │ │ │   │ │   │       └─<_>
-  │ │ │   │ │   │         └─""
+  │ │ │   │ │   │ ├─┬─<|>
+  │ │ │   │ │   │ │ │ ├─<_>
+  │ │ │   │ │   │ │ │ │ └─""
+  │ │ │   │ │   │ │ │ ├─"|"
+  │ │ │   │ │   │ │ │ └─<_>
+  │ │ │   │ │   │ │ │   └─" "
+  │ │ │   │ │   │ │ └─null
+  │ │ │   │ │   │ └─┬─<acted>
+  │ │ │   │ │   │   │ ├─<sequence>
+  │ │ │   │ │   │   │ │ ├─┬─<dropped>
+  │ │ │   │ │   │   │ │ │ │ └─<labeled>
+  │ │ │   │ │   │   │ │ │ │   ├─":"
+  │ │ │   │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │ │   │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │ │   │ │   │   │ │ │ │     └─<identifier>
+  │ │ │   │ │   │   │ │ │ │       └─"nonNullable"
+  │ │ │   │ │   │   │ │ │ └─<dropped>
+  │ │ │   │ │   │   │ │ │   └─<labeled>
+  │ │ │   │ │   │   │ │ │     └─<special>
+  │ │ │   │ │   │   │ │ │       └─<postfix>
+  │ │ │   │ │   │   │ │ │         └─<prefix>
+  │ │ │   │ │   │   │ │ │           └─<call>
+  │ │ │   │ │   │   │ │ │             └─<atom>
+  │ │ │   │ │   │   │ │ │               └─<name>
+  │ │ │   │ │   │   │ │ │                 ├─<namespaceReference>
+  │ │ │   │ │   │   │ │ │                 └─┬─"`"
+  │ │ │   │ │   │   │ │ │                   ├───"?"
+  │ │ │   │ │   │   │ │ │                   └─"`"
+  │ │ │   │ │   │   │ │ └─null
+  │ │ │   │ │   │   │ ├─<{>
+  │ │ │   │ │   │   │ │ ├─<_>
+  │ │ │   │ │   │   │ │ │ └─""
+  │ │ │   │ │   │   │ │ ├─"{"
+  │ │ │   │ │   │   │ │ └─<_>
+  │ │ │   │ │   │   │ │   └─""
+  │ │ │   │ │   │   │ ├─<_>
+  │ │ │   │ │   │   │ │ └─""
+  │ │ │   │ │   │   │ ├─<code::curly>
+  │ │ │   │ │   │   │ │ └─<dart::literal::string>
+  │ │ │   │ │   │   │ │   └─<dart::literal::string::body>
+  │ │ │   │ │   │   │ │     ├─"\""
+  │ │ │   │ │   │   │ │     ├─┬─┬─"$"
+  │ │ │   │ │   │   │ │     │ │ └─<dart::literal::string::interpolation>
+  │ │ │   │ │   │   │ │     │ │   ├─"$"
+  │ │ │   │ │   │   │ │     │ │   └─<dart::literal::identifier>
+  │ │ │   │ │   │   │ │     │ │     └─<identifier>
+  │ │ │   │ │   │   │ │     │ │       └─"nonNullable"
+  │ │ │   │ │   │   │ │     │ └─"?"
+  │ │ │   │ │   │   │ │     └─"\""
+  │ │ │   │ │   │   │ ├─<_>
+  │ │ │   │ │   │   │ │ └─""
+  │ │ │   │ │   │   │ └─<}>
+  │ │ │   │ │   │   │   ├─<_>
+  │ │ │   │ │   │   │   │ └─""
+  │ │ │   │ │   │   │   ├─"}"
+  │ │ │   │ │   │   │   └─<_>
+  │ │ │   │ │   │   │     └─"\n      "
+  │ │ │   │ │   │   └─<acted>
+  │ │ │   │ │   │     └─<sequence>
+  │ │ │   │ │   │       ├───<dropped>
+  │ │ │   │ │   │       │   └─<labeled>
+  │ │ │   │ │   │       │     └─<special>
+  │ │ │   │ │   │       │       └─<postfix>
+  │ │ │   │ │   │       │         └─<prefix>
+  │ │ │   │ │   │       │           └─<call>
+  │ │ │   │ │   │       │             └─<atom>
+  │ │ │   │ │   │       │               └─<name>
+  │ │ │   │ │   │       │                 └─<namespacedIdentifier>
+  │ │ │   │ │   │       │                   ├─<namespaceReference>
+  │ │ │   │ │   │       │                   └─<identifier>
+  │ │ │   │ │   │       │                     └─"nonNullable"
+  │ │ │   │ │   │       └─null
   │ │ │   │ │   └─<;>
   │ │ │   │ │     ├─<_>
   │ │ │   │ │     │ └─""
   │ │ │   │ │     ├─";"
   │ │ │   │ │     └─<_>
-  │ │ │   │ │       └─"\n    "
+  │ │ │   │ │       └─"\n\n    "
   │ │ │   │ ├─<statement>
   │ │ │   │ │ ├─null
   │ │ │   │ │ ├─<type>
@@ -15123,13 +15205,12 @@
   │ │ │   │ │ │   │ └─""
   │ │ │   │ │ │   ├─<dart::type::type>
   │ │ │   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │   │   │   └─<identifier>
-  │ │ │   │ │ │   │   │     └─"String"
-  │ │ │   │ │ │   │   └─null
+  │ │ │   │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │   │     └─<dart::type::base>
+  │ │ │   │ │ │   │       └─<identifier>
+  │ │ │   │ │ │   │         └─"String"
   │ │ │   │ │ │   └─<_>
-  │ │ │   │ │ │     └─""
+  │ │ │   │ │ │     └─" "
   │ │ │   │ │ ├─<name>
   │ │ │   │ │ │ └─<namespacedIdentifier>
   │ │ │   │ │ │   ├─<namespaceReference>
@@ -15204,13 +15285,12 @@
   │ │ │   │ │ │   │ └─""
   │ │ │   │ │ │   ├─<dart::type::type>
   │ │ │   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │   │   │   └─<identifier>
-  │ │ │   │ │ │   │   │     └─"String"
-  │ │ │   │ │ │   │   └─null
+  │ │ │   │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │   │     └─<dart::type::base>
+  │ │ │   │ │ │   │       └─<identifier>
+  │ │ │   │ │ │   │         └─"String"
   │ │ │   │ │ │   └─<_>
-  │ │ │   │ │ │     └─""
+  │ │ │   │ │ │     └─" "
   │ │ │   │ │ ├─<name>
   │ │ │   │ │ │ └─<namespacedIdentifier>
   │ │ │   │ │ │   ├─<namespaceReference>
@@ -15604,192 +15684,14 @@
   │ │ │   │ ├─<statement>
   │ │ │   │ │ ├─null
   │ │ │   │ │ ├─<identifier>
-  │ │ │   │ │ │ └─"function"
+  │ │ │   │ │ │ └─"fn"
   │ │ │   │ │ ├─<{>
   │ │ │   │ │ │ ├─<_>
   │ │ │   │ │ │ │ └─" "
   │ │ │   │ │ │ ├─"{"
   │ │ │   │ │ │ └─<_>
   │ │ │   │ │ │   └─"\n      "
-  │ │ │   │ │ ├─┬─<statement>
-  │ │ │   │ │ │ │ ├─null
-  │ │ │   │ │ │ │ ├─<type>
-  │ │ │   │ │ │ │ │ └─<dart::type::main>
-  │ │ │   │ │ │ │ │   ├─<_>
-  │ │ │   │ │ │ │ │   │ └─""
-  │ │ │   │ │ │ │ │   ├─<dart::type::type>
-  │ │ │   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │ │ │   │   │   └─<identifier>
-  │ │ │   │ │ │ │ │   │   │     └─"String"
-  │ │ │   │ │ │ │ │   │   └─null
-  │ │ │   │ │ │ │ │   └─<_>
-  │ │ │   │ │ │ │ │     └─""
-  │ │ │   │ │ │ │ ├─<name>
-  │ │ │   │ │ │ │ │ └─<namespacedIdentifier>
-  │ │ │   │ │ │ │ │   ├─<namespaceReference>
-  │ │ │   │ │ │ │ │   └─<identifier>
-  │ │ │   │ │ │ │ │     └─"type"
-  │ │ │   │ │ │ │ └─<body>
-  │ │ │   │ │ │ │   ├─┬─null
-  │ │ │   │ │ │ │   │ └─<=>
-  │ │ │   │ │ │ │   │   ├─<_>
-  │ │ │   │ │ │ │   │   │ └─""
-  │ │ │   │ │ │ │   │   ├─"="
-  │ │ │   │ │ │ │   │   └─<_>
-  │ │ │   │ │ │ │   │     └─" "
-  │ │ │   │ │ │ │   ├─<choice>
-  │ │ │   │ │ │ │   │ ├─null
-  │ │ │   │ │ │ │   │ └───<acted>
-  │ │ │   │ │ │ │   │     ├─<sequence>
-  │ │ │   │ │ │ │   │     │ ├─┬─<dropped>
-  │ │ │   │ │ │ │   │     │ │ │ └─<labeled>
-  │ │ │   │ │ │ │   │     │ │ │   ├─<identifier>
-  │ │ │   │ │ │ │   │     │ │ │   │ └─"type"
-  │ │ │   │ │ │ │   │     │ │ │   ├─":"
-  │ │ │   │ │ │ │   │     │ │ │   ├─<_>
-  │ │ │   │ │ │ │   │     │ │ │   │ └─""
-  │ │ │   │ │ │ │   │     │ │ │   └─<special>
-  │ │ │   │ │ │ │   │     │ │ │     └─<postfix>
-  │ │ │   │ │ │ │   │     │ │ │       └─<prefix>
-  │ │ │   │ │ │ │   │     │ │ │         └─<call>
-  │ │ │   │ │ │ │   │     │ │ │           └─<atom>
-  │ │ │   │ │ │ │   │     │ │ │             └─<name>
-  │ │ │   │ │ │ │   │     │ │ │               └─<namespacedIdentifier>
-  │ │ │   │ │ │ │   │     │ │ │                 ├─<namespaceReference>
-  │ │ │   │ │ │ │   │     │ │ │                 │ └─┬─<identifier>
-  │ │ │   │ │ │ │   │     │ │ │                 │   │ └─"type"
-  │ │ │   │ │ │ │   │     │ │ │                 │   ├─┬─null
-  │ │ │   │ │ │ │   │     │ │ │                 │   │ └─"."
-  │ │ │   │ │ │ │   │     │ │ │                 │   └─null
-  │ │ │   │ │ │ │   │     │ │ │                 └─<identifier>
-  │ │ │   │ │ │ │   │     │ │ │                   └─"main"
-  │ │ │   │ │ │ │   │     │ │ ├─<dropped>
-  │ │ │   │ │ │ │   │     │ │ │ └─<labeled>
-  │ │ │   │ │ │ │   │     │ │ │   └─<special>
-  │ │ │   │ │ │ │   │     │ │ │     └─<postfix>
-  │ │ │   │ │ │ │   │     │ │ │       └─<prefix>
-  │ │ │   │ │ │ │   │     │ │ │         └─<call>
-  │ │ │   │ │ │ │   │     │ │ │           └─<atom>
-  │ │ │   │ │ │ │   │     │ │ │             └─<name>
-  │ │ │   │ │ │ │   │     │ │ │               └─<namespacedIdentifier>
-  │ │ │   │ │ │ │   │     │ │ │                 ├─<namespaceReference>
-  │ │ │   │ │ │ │   │     │ │ │                 └─<identifier>
-  │ │ │   │ │ │ │   │     │ │ │                   └─"_"
-  │ │ │   │ │ │ │   │     │ │ ├─<dropped>
-  │ │ │   │ │ │ │   │     │ │ │ └─<labeled>
-  │ │ │   │ │ │ │   │     │ │ │   └─<special>
-  │ │ │   │ │ │ │   │     │ │ │     └─<postfix>
-  │ │ │   │ │ │ │   │     │ │ │       └─<prefix>
-  │ │ │   │ │ │ │   │     │ │ │         └─<call>
-  │ │ │   │ │ │ │   │     │ │ │           └─<atom>
-  │ │ │   │ │ │ │   │     │ │ │             ├─<_>
-  │ │ │   │ │ │ │   │     │ │ │             │ └─""
-  │ │ │   │ │ │ │   │     │ │ │             ├─┬─"\""
-  │ │ │   │ │ │ │   │     │ │ │             │ ├─┬─"F"
-  │ │ │   │ │ │ │   │     │ │ │             │ │ ├─"u"
-  │ │ │   │ │ │ │   │     │ │ │             │ │ ├─"n"
-  │ │ │   │ │ │ │   │     │ │ │             │ │ ├─"c"
-  │ │ │   │ │ │ │   │     │ │ │             │ │ ├─"t"
-  │ │ │   │ │ │ │   │     │ │ │             │ │ ├─"i"
-  │ │ │   │ │ │ │   │     │ │ │             │ │ ├─"o"
-  │ │ │   │ │ │ │   │     │ │ │             │ │ └─"n"
-  │ │ │   │ │ │ │   │     │ │ │             │ └─"\""
-  │ │ │   │ │ │ │   │     │ │ │             └─<_>
-  │ │ │   │ │ │ │   │     │ │ │               └─" "
-  │ │ │   │ │ │ │   │     │ │ ├─<dropped>
-  │ │ │   │ │ │ │   │     │ │ │ └─<labeled>
-  │ │ │   │ │ │ │   │     │ │ │   └─<special>
-  │ │ │   │ │ │ │   │     │ │ │     └─<postfix>
-  │ │ │   │ │ │ │   │     │ │ │       └─<prefix>
-  │ │ │   │ │ │ │   │     │ │ │         └─<call>
-  │ │ │   │ │ │ │   │     │ │ │           └─<atom>
-  │ │ │   │ │ │ │   │     │ │ │             └─<name>
-  │ │ │   │ │ │ │   │     │ │ │               └─<namespacedIdentifier>
-  │ │ │   │ │ │ │   │     │ │ │                 ├─<namespaceReference>
-  │ │ │   │ │ │ │   │     │ │ │                 └─<identifier>
-  │ │ │   │ │ │ │   │     │ │ │                   └─"_"
-  │ │ │   │ │ │ │   │     │ │ ├─<dropped>
-  │ │ │   │ │ │ │   │     │ │ │ └─<labeled>
-  │ │ │   │ │ │ │   │     │ │ │   ├─":"
-  │ │ │   │ │ │ │   │     │ │ │   └─<namespacedIdentifier>
-  │ │ │   │ │ │ │   │     │ │ │     ├─<namespaceReference>
-  │ │ │   │ │ │ │   │     │ │ │     └─<identifier>
-  │ │ │   │ │ │ │   │     │ │ │       └─"fnParameters"
-  │ │ │   │ │ │ │   │     │ │ └─<dropped>
-  │ │ │   │ │ │ │   │     │ │   └─<labeled>
-  │ │ │   │ │ │ │   │     │ │     └─<special>
-  │ │ │   │ │ │ │   │     │ │       └─<postfix>
-  │ │ │   │ │ │ │   │     │ │         ├─<postfix>
-  │ │ │   │ │ │ │   │     │ │         │ └─<prefix>
-  │ │ │   │ │ │ │   │     │ │         │   └─<call>
-  │ │ │   │ │ │ │   │     │ │         │     └─<atom>
-  │ │ │   │ │ │ │   │     │ │         │       └─<name>
-  │ │ │   │ │ │ │   │     │ │         │         ├─<namespaceReference>
-  │ │ │   │ │ │ │   │     │ │         │         └─┬─"`"
-  │ │ │   │ │ │ │   │     │ │         │           ├───"?"
-  │ │ │   │ │ │ │   │     │ │         │           └─"`"
-  │ │ │   │ │ │ │   │     │ │         └─<?>
-  │ │ │   │ │ │ │   │     │ │           ├─<_>
-  │ │ │   │ │ │ │   │     │ │           │ └─""
-  │ │ │   │ │ │ │   │     │ │           ├─"?"
-  │ │ │   │ │ │ │   │     │ │           └─<_>
-  │ │ │   │ │ │ │   │     │ │             └─"\n        "
-  │ │ │   │ │ │ │   │     │ └─null
-  │ │ │   │ │ │ │   │     ├─┬─<_>
-  │ │ │   │ │ │ │   │     │ │ └─""
-  │ │ │   │ │ │ │   │     │ ├─"|>"
-  │ │ │   │ │ │ │   │     │ └─<_>
-  │ │ │   │ │ │ │   │     │   └─" "
-  │ │ │   │ │ │ │   │     ├─<_>
-  │ │ │   │ │ │ │   │     │ └─""
-  │ │ │   │ │ │ │   │     ├─<code::nl>
-  │ │ │   │ │ │ │   │     │ └─<dart::literal::string>
-  │ │ │   │ │ │ │   │     │   ├─<dart::literal::string::body>
-  │ │ │   │ │ │ │   │     │   │ ├─"\""
-  │ │ │   │ │ │ │   │     │   │ ├─┬─┬─"$"
-  │ │ │   │ │ │ │   │     │   │ │ │ └─<dart::literal::string::interpolation>
-  │ │ │   │ │ │ │   │     │   │ │ │   ├─"$"
-  │ │ │   │ │ │ │   │     │   │ │ │   └─<dart::literal::identifier>
-  │ │ │   │ │ │ │   │     │   │ │ │     └─<identifier>
-  │ │ │   │ │ │ │   │     │   │ │ │       └─"type"
-  │ │ │   │ │ │ │   │     │   │ │ ├─" "
-  │ │ │   │ │ │ │   │     │   │ │ ├─"F"
-  │ │ │   │ │ │ │   │     │   │ │ ├─"u"
-  │ │ │   │ │ │ │   │     │   │ │ ├─"n"
-  │ │ │   │ │ │ │   │     │   │ │ ├─"c"
-  │ │ │   │ │ │ │   │     │   │ │ ├─"t"
-  │ │ │   │ │ │ │   │     │   │ │ ├─"i"
-  │ │ │   │ │ │ │   │     │   │ │ ├─"o"
-  │ │ │   │ │ │ │   │     │   │ │ ├─"n"
-  │ │ │   │ │ │ │   │     │   │ │ ├─┬─"$"
-  │ │ │   │ │ │ │   │     │   │ │ │ └─<dart::literal::string::interpolation>
-  │ │ │   │ │ │ │   │     │   │ │ │   ├─"$"
-  │ │ │   │ │ │ │   │     │   │ │ │   └─<dart::literal::identifier>
-  │ │ │   │ │ │ │   │     │   │ │ │     └─<identifier>
-  │ │ │   │ │ │ │   │     │   │ │ │       └─"fnParameters$"
-  │ │ │   │ │ │ │   │     │   │ │ ├─"{"
-  │ │ │   │ │ │ │   │     │   │ │ ├─"$"
-  │ │ │   │ │ │ │   │     │   │ │ ├─"5"
-  │ │ │   │ │ │ │   │     │   │ │ ├─" "
-  │ │ │   │ │ │ │   │     │   │ │ ├─"?"
-  │ │ │   │ │ │ │   │     │   │ │ ├─"?"
-  │ │ │   │ │ │ │   │     │   │ │ └─" "
-  │ │ │   │ │ │ │   │     │   │ └─"\""
-  │ │ │   │ │ │ │   │     │   └─<dart::literal::string::body>
-  │ │ │   │ │ │ │   │     │     ├─"\""
-  │ │ │   │ │ │ │   │     │     ├───"}"
-  │ │ │   │ │ │ │   │     │     └─"\""
-  │ │ │   │ │ │ │   │     └─<_>
-  │ │ │   │ │ │ │   │       └─""
-  │ │ │   │ │ │ │   └─<;>
-  │ │ │   │ │ │ │     ├─<_>
-  │ │ │   │ │ │ │     │ └─""
-  │ │ │   │ │ │ │     ├─";"
-  │ │ │   │ │ │ │     └─<_>
-  │ │ │   │ │ │ │       └─"\n\n      "
-  │ │ │   │ │ │ └─<statement>
+  │ │ │   │ │ ├───<statement>
   │ │ │   │ │ │   ├─null
   │ │ │   │ │ │   ├─<type>
   │ │ │   │ │ │   │ └─<dart::type::main>
@@ -15797,18 +15699,17 @@
   │ │ │   │ │ │   │   │ └─""
   │ │ │   │ │ │   │   ├─<dart::type::type>
   │ │ │   │ │ │   │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │   │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │   │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │   │   │   │   └─<identifier>
-  │ │ │   │ │ │   │   │   │     └─"String"
-  │ │ │   │ │ │   │   │   └─null
+  │ │ │   │ │ │   │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │   │   │     └─<dart::type::base>
+  │ │ │   │ │ │   │   │       └─<identifier>
+  │ │ │   │ │ │   │   │         └─"String"
   │ │ │   │ │ │   │   └─<_>
-  │ │ │   │ │ │   │     └─""
+  │ │ │   │ │ │   │     └─" "
   │ │ │   │ │ │   ├─<name>
   │ │ │   │ │ │   │ └─<namespacedIdentifier>
   │ │ │   │ │ │   │   ├─<namespaceReference>
   │ │ │   │ │ │   │   └─<identifier>
-  │ │ │   │ │ │   │     └─"fnParameters"
+  │ │ │   │ │ │   │     └─"parameters"
   │ │ │   │ │ │   └─<body>
   │ │ │   │ │ │     ├─┬─null
   │ │ │   │ │ │     │ └─<=>
@@ -16373,7 +16274,7 @@
   │ │ │   │ │ │     │       │ └─""
   │ │ │   │ │ │     │       ├─"}"
   │ │ │   │ │ │     │       └─<_>
-  │ │ │   │ │ │     │         └─"\n        "
+  │ │ │   │ │ │     │         └─""
   │ │ │   │ │ │     └─<;>
   │ │ │   │ │ │       ├─<_>
   │ │ │   │ │ │       │ └─""
@@ -16408,13 +16309,12 @@
   │ │ │   │ │ │ │ │   │ └─""
   │ │ │   │ │ │ │ │   ├─<dart::type::type>
   │ │ │   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │ │ │   │   │   └─<identifier>
-  │ │ │   │ │ │ │ │   │   │     └─"String"
-  │ │ │   │ │ │ │ │   │   └─null
+  │ │ │   │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │   │ │ │ │ │   │       └─<identifier>
+  │ │ │   │ │ │ │ │   │         └─"String"
   │ │ │   │ │ │ │ │   └─<_>
-  │ │ │   │ │ │ │ │     └─""
+  │ │ │   │ │ │ │ │     └─" "
   │ │ │   │ │ │ │ ├─<name>
   │ │ │   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │   │ │ │ │ │   ├─<namespaceReference>
@@ -16521,13 +16421,12 @@
   │ │ │   │ │ │ │ │   │ └─""
   │ │ │   │ │ │ │ │   ├─<dart::type::type>
   │ │ │   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │ │ │   │   │   └─<identifier>
-  │ │ │   │ │ │ │ │   │   │     └─"String"
-  │ │ │   │ │ │ │ │   │   └─null
+  │ │ │   │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │   │ │ │ │ │   │       └─<identifier>
+  │ │ │   │ │ │ │ │   │         └─"String"
   │ │ │   │ │ │ │ │   └─<_>
-  │ │ │   │ │ │ │ │     └─""
+  │ │ │   │ │ │ │ │     └─" "
   │ │ │   │ │ │ │ ├─<name>
   │ │ │   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │   │ │ │ │ │   ├─<namespaceReference>
@@ -16622,13 +16521,12 @@
   │ │ │   │ │ │   │   │ └─""
   │ │ │   │ │ │   │   ├─<dart::type::type>
   │ │ │   │ │ │   │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │   │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │   │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │   │   │   │   └─<identifier>
-  │ │ │   │ │ │   │   │   │     └─"String"
-  │ │ │   │ │ │   │   │   └─null
+  │ │ │   │ │ │   │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │   │   │     └─<dart::type::base>
+  │ │ │   │ │ │   │   │       └─<identifier>
+  │ │ │   │ │ │   │   │         └─"String"
   │ │ │   │ │ │   │   └─<_>
-  │ │ │   │ │ │   │     └─""
+  │ │ │   │ │ │   │     └─" "
   │ │ │   │ │ │   ├─<name>
   │ │ │   │ │ │   │ └─<namespacedIdentifier>
   │ │ │   │ │ │   │   ├─<namespaceReference>
@@ -16738,13 +16636,12 @@
   │ │ │   │ │ │ │ │   │ └─""
   │ │ │   │ │ │ │ │   ├─<dart::type::type>
   │ │ │   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │ │ │   │   │   └─<identifier>
-  │ │ │   │ │ │ │ │   │   │     └─"String"
-  │ │ │   │ │ │ │ │   │   └─null
+  │ │ │   │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │   │ │ │ │ │   │       └─<identifier>
+  │ │ │   │ │ │ │ │   │         └─"String"
   │ │ │   │ │ │ │ │   └─<_>
-  │ │ │   │ │ │ │ │     └─""
+  │ │ │   │ │ │ │ │     └─" "
   │ │ │   │ │ │ │ ├─<name>
   │ │ │   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │   │ │ │ │ │   ├─<namespaceReference>
@@ -16873,13 +16770,12 @@
   │ │ │   │ │ │   │   │ └─""
   │ │ │   │ │ │   │   ├─<dart::type::type>
   │ │ │   │ │ │   │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │   │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │   │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │   │   │   │   └─<identifier>
-  │ │ │   │ │ │   │   │   │     └─"String"
-  │ │ │   │ │ │   │   │   └─null
+  │ │ │   │ │ │   │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │   │   │     └─<dart::type::base>
+  │ │ │   │ │ │   │   │       └─<identifier>
+  │ │ │   │ │ │   │   │         └─"String"
   │ │ │   │ │ │   │   └─<_>
-  │ │ │   │ │ │   │     └─""
+  │ │ │   │ │ │   │     └─" "
   │ │ │   │ │ │   ├─<name>
   │ │ │   │ │ │   │ └─<namespacedIdentifier>
   │ │ │   │ │ │   │   ├─<namespaceReference>
@@ -17024,13 +16920,12 @@
   │ │ │   │ │ │ │ │   │ └─""
   │ │ │   │ │ │ │ │   ├─<dart::type::type>
   │ │ │   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │ │ │   │   │   └─<identifier>
-  │ │ │   │ │ │ │ │   │   │     └─"String"
-  │ │ │   │ │ │ │ │   │   └─null
+  │ │ │   │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │   │ │ │ │ │   │       └─<identifier>
+  │ │ │   │ │ │ │ │   │         └─"String"
   │ │ │   │ │ │ │ │   └─<_>
-  │ │ │   │ │ │ │ │     └─""
+  │ │ │   │ │ │ │ │     └─" "
   │ │ │   │ │ │ │ ├─<name>
   │ │ │   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │   │ │ │ │ │   ├─<namespaceReference>
@@ -17130,13 +17025,12 @@
   │ │ │   │ │ │   │   │ └─""
   │ │ │   │ │ │   │   ├─<dart::type::type>
   │ │ │   │ │ │   │   │ └─<dart::type::nullable>
-  │ │ │   │ │ │   │   │   ├─<dart::type::nonNullable>
-  │ │ │   │ │ │   │   │   │ └─<dart::type::base>
-  │ │ │   │ │ │   │   │   │   └─<identifier>
-  │ │ │   │ │ │   │   │   │     └─"String"
-  │ │ │   │ │ │   │   │   └─null
+  │ │ │   │ │ │   │   │   └─<dart::type::nonNullable>
+  │ │ │   │ │ │   │   │     └─<dart::type::base>
+  │ │ │   │ │ │   │   │       └─<identifier>
+  │ │ │   │ │ │   │   │         └─"String"
   │ │ │   │ │ │   │   └─<_>
-  │ │ │   │ │ │   │     └─""
+  │ │ │   │ │ │   │     └─" "
   │ │ │   │ │ │   ├─<name>
   │ │ │   │ │ │   │ └─<namespacedIdentifier>
   │ │ │   │ │ │   │   ├─<namespaceReference>
@@ -17252,13 +17146,12 @@
   │ │ │   │   │ │ │   │ └─""
   │ │ │   │   │ │ │   ├─<dart::type::type>
   │ │ │   │   │ │ │   │ └─<dart::type::nullable>
-  │ │ │   │   │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │ │ │   │   │ └─<dart::type::base>
-  │ │ │   │   │ │ │   │   │   └─<identifier>
-  │ │ │   │   │ │ │   │   │     └─"String"
-  │ │ │   │   │ │ │   │   └─null
+  │ │ │   │   │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │   │   │ │ │   │     └─<dart::type::base>
+  │ │ │   │   │ │ │   │       └─<identifier>
+  │ │ │   │   │ │ │   │         └─"String"
   │ │ │   │   │ │ │   └─<_>
-  │ │ │   │   │ │ │     └─""
+  │ │ │   │   │ │ │     └─" "
   │ │ │   │   │ │ ├─<name>
   │ │ │   │   │ │ │ └─<namespacedIdentifier>
   │ │ │   │   │ │ │   ├─<namespaceReference>
@@ -17395,13 +17288,12 @@
   │ │ │   │   │   │   │ └─""
   │ │ │   │   │   │   ├─<dart::type::type>
   │ │ │   │   │   │   │ └─<dart::type::nullable>
-  │ │ │   │   │   │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │   │   │   │ └─<dart::type::base>
-  │ │ │   │   │   │   │   │   └─<identifier>
-  │ │ │   │   │   │   │   │     └─"String"
-  │ │ │   │   │   │   │   └─null
+  │ │ │   │   │   │   │   └─<dart::type::nonNullable>
+  │ │ │   │   │   │   │     └─<dart::type::base>
+  │ │ │   │   │   │   │       └─<identifier>
+  │ │ │   │   │   │   │         └─"String"
   │ │ │   │   │   │   └─<_>
-  │ │ │   │   │   │     └─""
+  │ │ │   │   │   │     └─" "
   │ │ │   │   │   ├─<name>
   │ │ │   │   │   │ └─<namespacedIdentifier>
   │ │ │   │   │   │   ├─<namespaceReference>
@@ -17541,13 +17433,12 @@
   │ │ │ │ │   │ └─""
   │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   └─<identifier>
-  │ │ │ │ │   │   │     └─"String"
-  │ │ │ │ │   │   └─null
+  │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │ │ │   │       └─<identifier>
+  │ │ │ │ │   │         └─"String"
   │ │ │ │ │   └─<_>
-  │ │ │ │ │     └─""
+  │ │ │ │ │     └─" "
   │ │ │ │ ├─<name>
   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │ │ │   ├─<namespaceReference>
@@ -17653,13 +17544,12 @@
   │ │ │ │ │   │ └─""
   │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   └─<identifier>
-  │ │ │ │ │   │   │     └─"String"
-  │ │ │ │ │   │   └─null
+  │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │ │ │   │       └─<identifier>
+  │ │ │ │ │   │         └─"String"
   │ │ │ │ │   └─<_>
-  │ │ │ │ │     └─""
+  │ │ │ │ │     └─" "
   │ │ │ │ ├─<name>
   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │ │ │   ├─<namespaceReference>
@@ -17880,13 +17770,12 @@
   │ │ │ │ │   │ └─""
   │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   └─<identifier>
-  │ │ │ │ │   │   │     └─"String"
-  │ │ │ │ │   │   └─null
+  │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │ │ │   │       └─<identifier>
+  │ │ │ │ │   │         └─"String"
   │ │ │ │ │   └─<_>
-  │ │ │ │ │     └─""
+  │ │ │ │ │     └─" "
   │ │ │ │ ├─<name>
   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │ │ │   ├─<namespaceReference>
@@ -17952,13 +17841,12 @@
   │ │ │ │ │   │ └─""
   │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   └─<identifier>
-  │ │ │ │ │   │   │     └─"String"
-  │ │ │ │ │   │   └─null
+  │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │ │ │   │       └─<identifier>
+  │ │ │ │ │   │         └─"String"
   │ │ │ │ │   └─<_>
-  │ │ │ │ │     └─""
+  │ │ │ │ │     └─" "
   │ │ │ │ ├─<name>
   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │ │ │   ├─<namespaceReference>
@@ -18078,13 +17966,12 @@
   │ │ │ │ │   │ └─""
   │ │ │ │ │   ├─<dart::type::type>
   │ │ │ │ │   │ └─<dart::type::nullable>
-  │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │ │ │ │ │   │   │ └─<dart::type::base>
-  │ │ │ │ │   │   │   └─<identifier>
-  │ │ │ │ │   │   │     └─"String"
-  │ │ │ │ │   │   └─null
+  │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │ │ │ │ │   │     └─<dart::type::base>
+  │ │ │ │ │   │       └─<identifier>
+  │ │ │ │ │   │         └─"String"
   │ │ │ │ │   └─<_>
-  │ │ │ │ │     └─""
+  │ │ │ │ │     └─" "
   │ │ │ │ ├─<name>
   │ │ │ │ │ └─<namespacedIdentifier>
   │ │ │ │ │   ├─<namespaceReference>
@@ -18199,13 +18086,12 @@
   │ │ │   │   │ └─""
   │ │ │   │   ├─<dart::type::type>
   │ │ │   │   │ └─<dart::type::nullable>
-  │ │ │   │   │   ├─<dart::type::nonNullable>
-  │ │ │   │   │   │ └─<dart::type::base>
-  │ │ │   │   │   │   └─<identifier>
-  │ │ │   │   │   │     └─"Node"
-  │ │ │   │   │   └─null
+  │ │ │   │   │   └─<dart::type::nonNullable>
+  │ │ │   │   │     └─<dart::type::base>
+  │ │ │   │   │       └─<identifier>
+  │ │ │   │   │         └─"Node"
   │ │ │   │   └─<_>
-  │ │ │   │     └─""
+  │ │ │   │     └─" "
   │ │ │   ├─<name>
   │ │ │   │ └─<namespacedIdentifier>
   │ │ │   │   ├─<namespaceReference>
@@ -18412,13 +18298,12 @@
   │   │ │ │   │ └─""
   │   │ │ │   ├─<dart::type::type>
   │   │ │ │   │ └─<dart::type::nullable>
-  │   │ │ │   │   ├─<dart::type::nonNullable>
-  │   │ │ │   │   │ └─<dart::type::base>
-  │   │ │ │   │   │   └─<identifier>
-  │   │ │ │   │   │     └─"String"
-  │   │ │ │   │   └─null
+  │   │ │ │   │   └─<dart::type::nonNullable>
+  │   │ │ │   │     └─<dart::type::base>
+  │   │ │ │   │       └─<identifier>
+  │   │ │ │   │         └─"String"
   │   │ │ │   └─<_>
-  │   │ │ │     └─""
+  │   │ │ │     └─" "
   │   │ │ ├─<name>
   │   │ │ │ └─<namespacedIdentifier>
   │   │ │ │   ├─<namespaceReference>
@@ -18506,13 +18391,12 @@
   │   │ │ │   │ └─""
   │   │ │ │   ├─<dart::type::type>
   │   │ │ │   │ └─<dart::type::nullable>
-  │   │ │ │   │   ├─<dart::type::nonNullable>
-  │   │ │ │   │   │ └─<dart::type::base>
-  │   │ │ │   │   │   └─<identifier>
-  │   │ │ │   │   │     └─"String"
-  │   │ │ │   │   └─null
+  │   │ │ │   │   └─<dart::type::nonNullable>
+  │   │ │ │   │     └─<dart::type::base>
+  │   │ │ │   │       └─<identifier>
+  │   │ │ │   │         └─"String"
   │   │ │ │   └─<_>
-  │   │ │ │     └─""
+  │   │ │ │     └─" "
   │   │ │ ├─<name>
   │   │ │ │ └─<namespacedIdentifier>
   │   │ │ │   ├─<namespaceReference>
@@ -18658,13 +18542,12 @@
   │   │ │ │   │ └─""
   │   │ │ │   ├─<dart::type::type>
   │   │ │ │   │ └─<dart::type::nullable>
-  │   │ │ │   │   ├─<dart::type::nonNullable>
-  │   │ │ │   │   │ └─<dart::type::base>
-  │   │ │ │   │   │   └─<identifier>
-  │   │ │ │   │   │     └─"int"
-  │   │ │ │   │   └─null
+  │   │ │ │   │   └─<dart::type::nonNullable>
+  │   │ │ │   │     └─<dart::type::base>
+  │   │ │ │   │       └─<identifier>
+  │   │ │ │   │         └─"int"
   │   │ │ │   └─<_>
-  │   │ │ │     └─""
+  │   │ │ │     └─" "
   │   │ │ ├─<name>
   │   │ │ │ └─<namespacedIdentifier>
   │   │ │ │   ├─<namespaceReference>
@@ -18767,13 +18650,12 @@
   │   │ │ │ │ │   │ └─""
   │   │ │ │ │ │   ├─<dart::type::type>
   │   │ │ │ │ │   │ └─<dart::type::nullable>
-  │   │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │   │ │ │ │ │   │   │ └─<dart::type::base>
-  │   │ │ │ │ │   │   │   └─<identifier>
-  │   │ │ │ │ │   │   │     └─"Tag"
-  │   │ │ │ │ │   │   └─null
+  │   │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │   │ │ │ │ │   │     └─<dart::type::base>
+  │   │ │ │ │ │   │       └─<identifier>
+  │   │ │ │ │ │   │         └─"Tag"
   │   │ │ │ │ │   └─<_>
-  │   │ │ │ │ │     └─""
+  │   │ │ │ │ │     └─" "
   │   │ │ │ │ ├─<name>
   │   │ │ │ │ │ └─<namespacedIdentifier>
   │   │ │ │ │ │   ├─<namespaceReference>
@@ -19028,13 +18910,12 @@
   │   │ │ │ │ │   │ └─""
   │   │ │ │ │ │   ├─<dart::type::type>
   │   │ │ │ │ │   │ └─<dart::type::nullable>
-  │   │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │   │ │ │ │ │   │   │ └─<dart::type::base>
-  │   │ │ │ │ │   │   │   └─<identifier>
-  │   │ │ │ │ │   │   │     └─"String"
-  │   │ │ │ │ │   │   └─null
+  │   │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │   │ │ │ │ │   │     └─<dart::type::base>
+  │   │ │ │ │ │   │       └─<identifier>
+  │   │ │ │ │ │   │         └─"String"
   │   │ │ │ │ │   └─<_>
-  │   │ │ │ │ │     └─""
+  │   │ │ │ │ │     └─" "
   │   │ │ │ │ ├─<name>
   │   │ │ │ │ │ └─<namespacedIdentifier>
   │   │ │ │ │ │   ├─<namespaceReference>
@@ -19122,13 +19003,12 @@
   │   │ │ │ │ │   │ └─""
   │   │ │ │ │ │   ├─<dart::type::type>
   │   │ │ │ │ │   │ └─<dart::type::nullable>
-  │   │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │   │ │ │ │ │   │   │ └─<dart::type::base>
-  │   │ │ │ │ │   │   │   └─<identifier>
-  │   │ │ │ │ │   │   │     └─"String"
-  │   │ │ │ │ │   │   └─null
+  │   │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │   │ │ │ │ │   │     └─<dart::type::base>
+  │   │ │ │ │ │   │       └─<identifier>
+  │   │ │ │ │ │   │         └─"String"
   │   │ │ │ │ │   └─<_>
-  │   │ │ │ │ │     └─""
+  │   │ │ │ │ │     └─" "
   │   │ │ │ │ ├─<name>
   │   │ │ │ │ │ └─<namespacedIdentifier>
   │   │ │ │ │ │   ├─<namespaceReference>
@@ -19214,13 +19094,12 @@
   │   │ │ │ │ │   │ └─""
   │   │ │ │ │ │   ├─<dart::type::type>
   │   │ │ │ │ │   │ └─<dart::type::nullable>
-  │   │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │   │ │ │ │ │   │   │ └─<dart::type::base>
-  │   │ │ │ │ │   │   │   └─<identifier>
-  │   │ │ │ │ │   │   │     └─"String"
-  │   │ │ │ │ │   │   └─null
+  │   │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │   │ │ │ │ │   │     └─<dart::type::base>
+  │   │ │ │ │ │   │       └─<identifier>
+  │   │ │ │ │ │   │         └─"String"
   │   │ │ │ │ │   └─<_>
-  │   │ │ │ │ │     └─""
+  │   │ │ │ │ │     └─" "
   │   │ │ │ │ ├─<name>
   │   │ │ │ │ │ └─<namespacedIdentifier>
   │   │ │ │ │ │   ├─<namespaceReference>
@@ -19305,13 +19184,12 @@
   │   │ │ │ │ │   │ └─""
   │   │ │ │ │ │   ├─<dart::type::type>
   │   │ │ │ │ │   │ └─<dart::type::nullable>
-  │   │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │   │ │ │ │ │   │   │ └─<dart::type::base>
-  │   │ │ │ │ │   │   │   └─<identifier>
-  │   │ │ │ │ │   │   │     └─"String"
-  │   │ │ │ │ │   │   └─null
+  │   │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │   │ │ │ │ │   │     └─<dart::type::base>
+  │   │ │ │ │ │   │       └─<identifier>
+  │   │ │ │ │ │   │         └─"String"
   │   │ │ │ │ │   └─<_>
-  │   │ │ │ │ │     └─""
+  │   │ │ │ │ │     └─" "
   │   │ │ │ │ ├─<name>
   │   │ │ │ │ │ └─<namespacedIdentifier>
   │   │ │ │ │ │   ├─<namespaceReference>
@@ -19394,13 +19272,12 @@
   │   │ │ │ │ │   │ └─""
   │   │ │ │ │ │   ├─<dart::type::type>
   │   │ │ │ │ │   │ └─<dart::type::nullable>
-  │   │ │ │ │ │   │   ├─<dart::type::nonNullable>
-  │   │ │ │ │ │   │   │ └─<dart::type::base>
-  │   │ │ │ │ │   │   │   └─<identifier>
-  │   │ │ │ │ │   │   │     └─"String"
-  │   │ │ │ │ │   │   └─null
+  │   │ │ │ │ │   │   └─<dart::type::nonNullable>
+  │   │ │ │ │ │   │     └─<dart::type::base>
+  │   │ │ │ │ │   │       └─<identifier>
+  │   │ │ │ │ │   │         └─"String"
   │   │ │ │ │ │   └─<_>
-  │   │ │ │ │ │     └─""
+  │   │ │ │ │ │     └─" "
   │   │ │ │ │ ├─<name>
   │   │ │ │ │ │ └─<namespacedIdentifier>
   │   │ │ │ │ │   ├─<namespaceReference>
@@ -19479,13 +19356,12 @@
   │   │ │ │   │   │ └─""
   │   │ │ │   │   ├─<dart::type::type>
   │   │ │ │   │   │ └─<dart::type::nullable>
-  │   │ │ │   │   │   ├─<dart::type::nonNullable>
-  │   │ │ │   │   │   │ └─<dart::type::base>
-  │   │ │ │   │   │   │   └─<identifier>
-  │   │ │ │   │   │   │     └─"String"
-  │   │ │ │   │   │   └─null
+  │   │ │ │   │   │   └─<dart::type::nonNullable>
+  │   │ │ │   │   │     └─<dart::type::base>
+  │   │ │ │   │   │       └─<identifier>
+  │   │ │ │   │   │         └─"String"
   │   │ │ │   │   └─<_>
-  │   │ │ │   │     └─""
+  │   │ │ │   │     └─" "
   │   │ │ │   ├─<name>
   │   │ │ │   │ └─<namespacedIdentifier>
   │   │ │ │   │   ├─<namespaceReference>
@@ -19570,13 +19446,12 @@
   │   │ │ │   │ └─""
   │   │ │ │   ├─<dart::type::type>
   │   │ │ │   │ └─<dart::type::nullable>
-  │   │ │ │   │   ├─<dart::type::nonNullable>
-  │   │ │ │   │   │ └─<dart::type::base>
-  │   │ │ │   │   │   └─<identifier>
-  │   │ │ │   │   │     └─"String"
-  │   │ │ │   │   └─null
+  │   │ │ │   │   └─<dart::type::nonNullable>
+  │   │ │ │   │     └─<dart::type::base>
+  │   │ │ │   │       └─<identifier>
+  │   │ │ │   │         └─"String"
   │   │ │ │   └─<_>
-  │   │ │ │     └─""
+  │   │ │ │     └─" "
   │   │ │ ├─<identifier>
   │   │ │ │ └─"mac"
   │   │ │ ├─<=>
@@ -19925,13 +19800,12 @@
   │   │ │ │   │ └─""
   │   │ │ │   ├─<dart::type::type>
   │   │ │ │   │ └─<dart::type::nullable>
-  │   │ │ │   │   ├─<dart::type::nonNullable>
-  │   │ │ │   │   │ └─<dart::type::base>
-  │   │ │ │   │   │   └─<identifier>
-  │   │ │ │   │   │     └─"String"
-  │   │ │ │   │   └─null
+  │   │ │ │   │   └─<dart::type::nonNullable>
+  │   │ │ │   │     └─<dart::type::base>
+  │   │ │ │   │       └─<identifier>
+  │   │ │ │   │         └─"String"
   │   │ │ │   └─<_>
-  │   │ │ │     └─""
+  │   │ │ │     └─" "
   │   │ │ ├─<identifier>
   │   │ │ │ └─"regexEscape"
   │   │ │ ├─<=>
@@ -22390,13 +22264,12 @@
   │   │ │ │   │ └─""
   │   │ │ │   ├─<dart::type::type>
   │   │ │ │   │ └─<dart::type::nullable>
-  │   │ │ │   │   ├─<dart::type::nonNullable>
-  │   │ │ │   │   │ └─<dart::type::base>
-  │   │ │ │   │   │   └─<identifier>
-  │   │ │ │   │   │     └─"String"
-  │   │ │ │   │   └─null
+  │   │ │ │   │   └─<dart::type::nonNullable>
+  │   │ │ │   │     └─<dart::type::base>
+  │   │ │ │   │       └─<identifier>
+  │   │ │ │   │         └─"String"
   │   │ │ │   └─<_>
-  │   │ │ │     └─""
+  │   │ │ │     └─" "
   │   │ │ ├─<(>
   │   │ │ │ ├─<_>
   │   │ │ │ │ └─""
@@ -25024,13 +24897,12 @@
   │   │   │   │ └─""
   │   │   │   ├─<dart::type::type>
   │   │   │   │ └─<dart::type::nullable>
-  │   │   │   │   ├─<dart::type::nonNullable>
-  │   │   │   │   │ └─<dart::type::base>
-  │   │   │   │   │   └─<identifier>
-  │   │   │   │   │     └─"String"
-  │   │   │   │   └─null
+  │   │   │   │   └─<dart::type::nonNullable>
+  │   │   │   │     └─<dart::type::base>
+  │   │   │   │       └─<identifier>
+  │   │   │   │         └─"String"
   │   │   │   └─<_>
-  │   │   │     └─""
+  │   │   │     └─" "
   │   │   ├─<name>
   │   │   │ └─<namespacedIdentifier>
   │   │   │   ├─<namespaceReference>
@@ -25164,4 +25036,4 @@
   │       └─""
   ├─<_>
   │ └─""
-  └─19968
+  └─19874

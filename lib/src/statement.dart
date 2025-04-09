@@ -22,11 +22,11 @@ final class NamespaceStatement implements Statement {
 }
 
 final class DeclarationTypeStatement implements Statement {
-  const DeclarationTypeStatement(this.type, this.name, {required this.tag});
-  const DeclarationTypeStatement.predefined(this.name, {this.type = "String"}) : tag = null;
+  const DeclarationTypeStatement(this.type, this.names, {required this.tag});
+  const DeclarationTypeStatement.predefined(this.names, {this.type = "String"}) : tag = null;
 
   final String? type;
-  final String name;
+  final List<String> names;
   final Tag? tag;
 
   @override

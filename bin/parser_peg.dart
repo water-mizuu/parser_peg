@@ -8,7 +8,6 @@ import "package:args/args.dart";
 import "package:dart_casing/dart_casing.dart";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/parser/grammar_parser.cst.dart";
-// import "package:parser_peg/src/parser/grammar_parser.cst.dart";
 import "package:parser_peg/src/parser/grammar_parser.dart";
 import "package:path/path.dart" as path;
 
@@ -103,13 +102,15 @@ void main(List<String> arguments) {
     return;
   }
 
-  // if (arguments case ["experiment"]) {
-  //   _experiment();
-  // } else if (arguments case ["test"]) {
-  //   _testCompiler();
-  // } else {
-  // }
+  if (arguments case ["experiment"]) {
+    _experiment();
+  } else if (arguments case ["test"]) {
+    _testCompiler();
+  } else if (arguments case ["complete", ...var rest]) {
+    _buildParser(rest, complete: true);
+  } else {
     _buildParser(arguments);
+  }
 }
 
 void _testCompiler() async {
@@ -236,7 +237,7 @@ extension<K, V> on Map<K, V> {
   Iterable<(K, V)> get pairs => entries.map((e) => (e.key, e.value));
 }
 
-void _buildParser(List<String> arguments) {
+void _buildParser(List<String> arguments, {bool complete = false}) {
   var argParser =
       ArgParser()
         ..addOption("output", abbr: "o", help: "Output file path")
@@ -255,18 +256,37 @@ void _buildParser(List<String> arguments) {
           stdout.writeln("Successfully parsed grammar!");
           stdout.writeln("Generating parser.");
 
-          if (parsedArgs["output"] case String output) {
-            File(output)
-              ..createSync(recursive: true)
-              ..writeAsStringSync(generator.compileParserGenerator(name));
-          } else {
-            /// Default output file
-            var parentPath = path.dirname(inputPath);
-            var outputPath = path.join(parentPath, "$fileName.dart");
+          var outputPath = switch (parsedArgs["output"] as String?) {
+            var output? => output,
+            null => path.join(path.dirname(inputPath), "$fileName.dart"),
+          };
 
-            File(outputPath)
+          File(outputPath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync(generator.compileParserGenerator(name));
+
+          if (complete) {
+            var cstOutputPath = path.join(path.dirname(outputPath), "$fileName.cst.dart");
+            File(cstOutputPath)
               ..createSync(recursive: true)
-              ..writeAsStringSync(generator.compileParserGenerator(name));
+              ..writeAsStringSync(generator.compileCstParserGenerator(name));
+
+            var astOutputPath = path.join(path.dirname(outputPath), "$fileName.ast.dart");
+            File(astOutputPath)
+              ..createSync(recursive: true)
+              ..writeAsStringSync(generator.compileAstParserGenerator(name));
+
+            if (CstGrammarParser() case CstGrammarParser cstGrammar) {
+              var cstInput = readFile(inputPath);
+              switch (cstGrammar.parse(cstInput)) {
+                case Object result:
+                  File(path.join(path.dirname(cstOutputPath), "$fileName.txt"))
+                    ..createSync(recursive: true)
+                    ..writeAsStringSync(_displayTree(result));
+                case _:
+                  stdout.writeln(cstGrammar.reportFailures());
+              }
+            }
           }
         case _:
           stdout.writeln(grammar.reportFailures());

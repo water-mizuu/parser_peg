@@ -1,0 +1,1206 @@
+└─<document>
+  ├─0
+  ├─<preamble>
+  │ ├─<{>
+  │ │ ├─<_>
+  │ │ │ └─""
+  │ │ ├─"{"
+  │ │ └─<_>
+  │ │   └─"\n"
+  │ ├─<_>
+  │ │ └─""
+  │ ├─<code::curly>
+  │ │ ├─"i"
+  │ │ ├─"m"
+  │ │ ├─"p"
+  │ │ ├─"o"
+  │ │ ├─"r"
+  │ │ ├─"t"
+  │ │ ├─" "
+  │ │ ├─<dart::literal::string>
+  │ │ │ └─<dart::literal::string::body>
+  │ │ │   ├─"\""
+  │ │ │   ├─┬─"d"
+  │ │ │   │ ├─"a"
+  │ │ │   │ ├─"r"
+  │ │ │   │ ├─"t"
+  │ │ │   │ ├─":"
+  │ │ │   │ ├─"m"
+  │ │ │   │ ├─"a"
+  │ │ │   │ ├─"t"
+  │ │ │   │ └─"h"
+  │ │ │   └─"\""
+  │ │ ├─" "
+  │ │ ├─"a"
+  │ │ ├─"s"
+  │ │ ├─" "
+  │ │ ├─"m"
+  │ │ ├─"a"
+  │ │ ├─"t"
+  │ │ ├─"h"
+  │ │ ├─" "
+  │ │ ├─"s"
+  │ │ ├─"h"
+  │ │ ├─"o"
+  │ │ ├─"w"
+  │ │ ├─" "
+  │ │ ├─"p"
+  │ │ ├─"o"
+  │ │ ├─"w"
+  │ │ ├─";"
+  │ │ └─"\n"
+  │ ├─<_>
+  │ │ └─""
+  │ └─<}>
+  │   ├─<_>
+  │   │ └─""
+  │   ├─"}"
+  │   └─<_>
+  │     └─"\n\n"
+  ├─┬─<statement>
+  │ │ ├─null
+  │ │ ├─<type>
+  │ │ │ └─<dart::type::main>
+  │ │ │   ├─<_>
+  │ │ │   │ └─""
+  │ │ │   ├─<dart::type::type>
+  │ │ │   │ └─<dart::type::nullable>
+  │ │ │   │   ├─<dart::type::nonNullable>
+  │ │ │   │   │ └─<dart::type::base>
+  │ │ │   │   │   └─<identifier>
+  │ │ │   │   │     └─"num"
+  │ │ │   │   └─null
+  │ │ │   └─<_>
+  │ │ │     └─""
+  │ │ ├─┬─<name>
+  │ │ │ │ └─<namespacedIdentifier>
+  │ │ │ │   ├─<namespaceReference>
+  │ │ │ │   └─<identifier>
+  │ │ │ │     └─"rule"
+  │ │ │ ├─<name>
+  │ │ │ │ └─<namespacedIdentifier>
+  │ │ │ │   ├─<namespaceReference>
+  │ │ │ │   └─<identifier>
+  │ │ │ │     └─"expr"
+  │ │ │ ├─<name>
+  │ │ │ │ └─<namespacedIdentifier>
+  │ │ │ │   ├─<namespaceReference>
+  │ │ │ │   └─<identifier>
+  │ │ │ │     └─"term"
+  │ │ │ ├─<name>
+  │ │ │ │ └─<namespacedIdentifier>
+  │ │ │ │   ├─<namespaceReference>
+  │ │ │ │   └─<identifier>
+  │ │ │ │     └─"factor"
+  │ │ │ └─<name>
+  │ │ │   └─<namespacedIdentifier>
+  │ │ │     ├─<namespaceReference>
+  │ │ │     └─<identifier>
+  │ │ │       └─"primary"
+  │ │ └─<;>
+  │ │   ├─<_>
+  │ │   │ └─""
+  │ │   ├─";"
+  │ │   └─<_>
+  │ │     └─"\n\n"
+  │ ├─<statement>
+  │ │ ├─null
+  │ │ ├─null
+  │ │ ├─<name>
+  │ │ │ └─<namespacedIdentifier>
+  │ │ │   ├─<namespaceReference>
+  │ │ │   └─<identifier>
+  │ │ │     └─"rule"
+  │ │ └─<body>
+  │ │   ├─┬─null
+  │ │   │ └─<=>
+  │ │   │   ├─<_>
+  │ │   │   │ └─""
+  │ │   │   ├─"="
+  │ │   │   └─<_>
+  │ │   │     └─" "
+  │ │   ├─<choice>
+  │ │   │ ├─null
+  │ │   │ └───<acted>
+  │ │   │     └─<sequence>
+  │ │   │       ├─┬─<dropped>
+  │ │   │       │ │ └─<labeled>
+  │ │   │       │ │   └─<special>
+  │ │   │       │ │     └─<postfix>
+  │ │   │       │ │       └─<prefix>
+  │ │   │       │ │         └─<call>
+  │ │   │       │ │           └─<atom>
+  │ │   │       │ │             ├─<_>
+  │ │   │       │ │             │ └─""
+  │ │   │       │ │             ├─"^"
+  │ │   │       │ │             └─<_>
+  │ │   │       │ │               └─" "
+  │ │   │       │ ├─<dropped>
+  │ │   │       │ │ └─<labeled>
+  │ │   │       │ │   └─<special>
+  │ │   │       │ │     └─<postfix>
+  │ │   │       │ │       └─<prefix>
+  │ │   │       │ │         └─<call>
+  │ │   │       │ │           └─<atom>
+  │ │   │       │ │             └─<name>
+  │ │   │       │ │               └─<namespacedIdentifier>
+  │ │   │       │ │                 ├─<namespaceReference>
+  │ │   │       │ │                 └─<identifier>
+  │ │   │       │ │                   └─"expr"
+  │ │   │       │ └─<dropped>
+  │ │   │       │   └─<labeled>
+  │ │   │       │     └─<special>
+  │ │   │       │       └─<postfix>
+  │ │   │       │         └─<prefix>
+  │ │   │       │           └─<call>
+  │ │   │       │             └─<atom>
+  │ │   │       │               ├─<_>
+  │ │   │       │               │ └─""
+  │ │   │       │               ├─"$"
+  │ │   │       │               └─<_>
+  │ │   │       │                 └─" "
+  │ │   │       └─┬─┬─<_>
+  │ │   │         │ │ └─""
+  │ │   │         │ ├─"@"
+  │ │   │         │ └─<_>
+  │ │   │         │   └─""
+  │ │   │         └─<number>
+  │ │   │           └─"1"
+  │ │   └─<;>
+  │ │     ├─<_>
+  │ │     │ └─""
+  │ │     ├─";"
+  │ │     └─<_>
+  │ │       └─"\n\n"
+  │ ├─<statement>
+  │ │ ├─null
+  │ │ ├─null
+  │ │ ├─<name>
+  │ │ │ └─<namespacedIdentifier>
+  │ │ │   ├─<namespaceReference>
+  │ │ │   └─<identifier>
+  │ │ │     └─"expr"
+  │ │ └─<body>
+  │ │   ├─┬─null
+  │ │   │ └─<=>
+  │ │   │   ├─<_>
+  │ │   │   │ └─""
+  │ │   │   ├─"="
+  │ │   │   └─<_>
+  │ │   │     └─"\n  "
+  │ │   ├─<choice>
+  │ │   │ ├─┬─<|>
+  │ │   │ │ │ ├─<_>
+  │ │   │ │ │ │ └─""
+  │ │   │ │ │ ├─"|"
+  │ │   │ │ │ └─<_>
+  │ │   │ │ │   └─" "
+  │ │   │ │ └─null
+  │ │   │ └─┬─<acted>
+  │ │   │   │ ├─<sequence>
+  │ │   │   │ │ ├─┬─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   ├─":"
+  │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │   │   │ │ │ │     └─<identifier>
+  │ │   │   │ │ │ │       └─"expr"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             ├─<_>
+  │ │   │   │ │ │ │             │ └─""
+  │ │   │   │ │ │ │             ├─┬─"\""
+  │ │   │   │ │ │ │             │ ├───"+"
+  │ │   │   │ │ │ │             │ └─"\""
+  │ │   │   │ │ │ │             └─<_>
+  │ │   │   │ │ │ │               └─" "
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ └─<dropped>
+  │ │   │   │ │ │   └─<labeled>
+  │ │   │   │ │ │     ├─":"
+  │ │   │   │ │ │     └─<namespacedIdentifier>
+  │ │   │   │ │ │       ├─<namespaceReference>
+  │ │   │   │ │ │       └─<identifier>
+  │ │   │   │ │ │         └─"term"
+  │ │   │   │ │ └─null
+  │ │   │   │ ├─┬─<_>
+  │ │   │   │ │ │ └─""
+  │ │   │   │ │ ├─"|>"
+  │ │   │   │ │ └─<_>
+  │ │   │   │ │   └─" "
+  │ │   │   │ ├─<_>
+  │ │   │   │ │ └─""
+  │ │   │   │ ├─<code::nl>
+  │ │   │   │ │ ├─"e"
+  │ │   │   │ │ ├─"x"
+  │ │   │   │ │ ├─"p"
+  │ │   │   │ │ ├─"r"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"+"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"e"
+  │ │   │   │ │ ├─"r"
+  │ │   │   │ │ └─"m"
+  │ │   │   │ └─<_>
+  │ │   │   │   └─"\n  "
+  │ │   │   ├─<acted>
+  │ │   │   │ ├─<sequence>
+  │ │   │   │ │ ├─┬─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   ├─":"
+  │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │   │   │ │ │ │     └─<identifier>
+  │ │   │   │ │ │ │       └─"expr"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             ├─<_>
+  │ │   │   │ │ │ │             │ └─""
+  │ │   │   │ │ │ │             ├─┬─"\""
+  │ │   │   │ │ │ │             │ ├───"-"
+  │ │   │   │ │ │ │             │ └─"\""
+  │ │   │   │ │ │ │             └─<_>
+  │ │   │   │ │ │ │               └─" "
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ └─<dropped>
+  │ │   │   │ │ │   └─<labeled>
+  │ │   │   │ │ │     ├─":"
+  │ │   │   │ │ │     └─<namespacedIdentifier>
+  │ │   │   │ │ │       ├─<namespaceReference>
+  │ │   │   │ │ │       └─<identifier>
+  │ │   │   │ │ │         └─"term"
+  │ │   │   │ │ └─null
+  │ │   │   │ ├─┬─<_>
+  │ │   │   │ │ │ └─""
+  │ │   │   │ │ ├─"|>"
+  │ │   │   │ │ └─<_>
+  │ │   │   │ │   └─" "
+  │ │   │   │ ├─<_>
+  │ │   │   │ │ └─""
+  │ │   │   │ ├─<code::nl>
+  │ │   │   │ │ ├─"e"
+  │ │   │   │ │ ├─"x"
+  │ │   │   │ │ ├─"p"
+  │ │   │   │ │ ├─"r"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"-"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"e"
+  │ │   │   │ │ ├─"r"
+  │ │   │   │ │ └─"m"
+  │ │   │   │ └─<_>
+  │ │   │   │   └─"\n  "
+  │ │   │   └─<acted>
+  │ │   │     └─<sequence>
+  │ │   │       ├───<dropped>
+  │ │   │       │   └─<labeled>
+  │ │   │       │     └─<special>
+  │ │   │       │       └─<postfix>
+  │ │   │       │         └─<prefix>
+  │ │   │       │           └─<call>
+  │ │   │       │             └─<atom>
+  │ │   │       │               └─<name>
+  │ │   │       │                 └─<namespacedIdentifier>
+  │ │   │       │                   ├─<namespaceReference>
+  │ │   │       │                   └─<identifier>
+  │ │   │       │                     └─"term"
+  │ │   │       └─null
+  │ │   └─<;>
+  │ │     ├─<_>
+  │ │     │ └─""
+  │ │     ├─";"
+  │ │     └─<_>
+  │ │       └─"\n\n"
+  │ ├─<statement>
+  │ │ ├─null
+  │ │ ├─null
+  │ │ ├─<name>
+  │ │ │ └─<namespacedIdentifier>
+  │ │ │   ├─<namespaceReference>
+  │ │ │   └─<identifier>
+  │ │ │     └─"term"
+  │ │ └─<body>
+  │ │   ├─┬─null
+  │ │   │ └─<=>
+  │ │   │   ├─<_>
+  │ │   │   │ └─""
+  │ │   │   ├─"="
+  │ │   │   └─<_>
+  │ │   │     └─"\n  "
+  │ │   ├─<choice>
+  │ │   │ ├─┬─<|>
+  │ │   │ │ │ ├─<_>
+  │ │   │ │ │ │ └─""
+  │ │   │ │ │ ├─"|"
+  │ │   │ │ │ └─<_>
+  │ │   │ │ │   └─" "
+  │ │   │ │ └─null
+  │ │   │ └─┬─<acted>
+  │ │   │   │ ├─<sequence>
+  │ │   │   │ │ ├─┬─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             ├─<_>
+  │ │   │   │ │ │ │             │ └─""
+  │ │   │   │ │ │ │             ├─┬─"\""
+  │ │   │   │ │ │ │             │ ├───"-"
+  │ │   │   │ │ │ │             │ └─"\""
+  │ │   │   │ │ │ │             └─<_>
+  │ │   │   │ │ │ │               └─" "
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ └─<dropped>
+  │ │   │   │ │ │   └─<labeled>
+  │ │   │   │ │ │     ├─":"
+  │ │   │   │ │ │     └─<namespacedIdentifier>
+  │ │   │   │ │ │       ├─<namespaceReference>
+  │ │   │   │ │ │       └─<identifier>
+  │ │   │   │ │ │         └─"term"
+  │ │   │   │ │ └─null
+  │ │   │   │ ├─┬─<_>
+  │ │   │   │ │ │ └─""
+  │ │   │   │ │ ├─"|>"
+  │ │   │   │ │ └─<_>
+  │ │   │   │ │   └─" "
+  │ │   │   │ ├─<_>
+  │ │   │   │ │ └─""
+  │ │   │   │ ├─<code::nl>
+  │ │   │   │ │ ├─"-"
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"e"
+  │ │   │   │ │ ├─"r"
+  │ │   │   │ │ └─"m"
+  │ │   │   │ └─<_>
+  │ │   │   │   └─"\n  "
+  │ │   │   ├─<acted>
+  │ │   │   │ ├─<sequence>
+  │ │   │   │ │ ├─┬─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   ├─":"
+  │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │   │   │ │ │ │     └─<identifier>
+  │ │   │   │ │ │ │       └─"term"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ └─<dropped>
+  │ │   │   │ │ │   └─<labeled>
+  │ │   │   │ │ │     ├─":"
+  │ │   │   │ │ │     └─<namespacedIdentifier>
+  │ │   │   │ │ │       ├─<namespaceReference>
+  │ │   │   │ │ │       └─<identifier>
+  │ │   │   │ │ │         └─"factor"
+  │ │   │   │ │ └─null
+  │ │   │   │ ├─┬─<_>
+  │ │   │   │ │ │ └─""
+  │ │   │   │ │ ├─"|>"
+  │ │   │   │ │ └─<_>
+  │ │   │   │ │   └─" "
+  │ │   │   │ ├─<_>
+  │ │   │   │ │ └─""
+  │ │   │   │ ├─<code::nl>
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"e"
+  │ │   │   │ │ ├─"r"
+  │ │   │   │ │ ├─"m"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"*"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"f"
+  │ │   │   │ │ ├─"a"
+  │ │   │   │ │ ├─"c"
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"o"
+  │ │   │   │ │ └─"r"
+  │ │   │   │ └─<_>
+  │ │   │   │   └─"\n  "
+  │ │   │   ├─<acted>
+  │ │   │   │ ├─<sequence>
+  │ │   │   │ │ ├─┬─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   ├─":"
+  │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │   │   │ │ │ │     └─<identifier>
+  │ │   │   │ │ │ │       └─"term"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             ├─<_>
+  │ │   │   │ │ │ │             │ └─""
+  │ │   │   │ │ │ │             ├─┬─"\""
+  │ │   │   │ │ │ │             │ ├───"*"
+  │ │   │   │ │ │ │             │ └─"\""
+  │ │   │   │ │ │ │             └─<_>
+  │ │   │   │ │ │ │               └─" "
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ └─<dropped>
+  │ │   │   │ │ │   └─<labeled>
+  │ │   │   │ │ │     ├─":"
+  │ │   │   │ │ │     └─<namespacedIdentifier>
+  │ │   │   │ │ │       ├─<namespaceReference>
+  │ │   │   │ │ │       └─<identifier>
+  │ │   │   │ │ │         └─"factor"
+  │ │   │   │ │ └─null
+  │ │   │   │ ├─┬─<_>
+  │ │   │   │ │ │ └─""
+  │ │   │   │ │ ├─"|>"
+  │ │   │   │ │ └─<_>
+  │ │   │   │ │   └─" "
+  │ │   │   │ ├─<_>
+  │ │   │   │ │ └─""
+  │ │   │   │ ├─<code::nl>
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"e"
+  │ │   │   │ │ ├─"r"
+  │ │   │   │ │ ├─"m"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"*"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"f"
+  │ │   │   │ │ ├─"a"
+  │ │   │   │ │ ├─"c"
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"o"
+  │ │   │   │ │ └─"r"
+  │ │   │   │ └─<_>
+  │ │   │   │   └─"\n  "
+  │ │   │   ├─<acted>
+  │ │   │   │ ├─<sequence>
+  │ │   │   │ │ ├─┬─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   ├─":"
+  │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │   │   │ │ │ │     └─<identifier>
+  │ │   │   │ │ │ │       └─"term"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             ├─<_>
+  │ │   │   │ │ │ │             │ └─""
+  │ │   │   │ │ │ │             ├─┬─"\""
+  │ │   │   │ │ │ │             │ ├───"/"
+  │ │   │   │ │ │ │             │ └─"\""
+  │ │   │   │ │ │ │             └─<_>
+  │ │   │   │ │ │ │               └─" "
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ └─<dropped>
+  │ │   │   │ │ │   └─<labeled>
+  │ │   │   │ │ │     ├─":"
+  │ │   │   │ │ │     └─<namespacedIdentifier>
+  │ │   │   │ │ │       ├─<namespaceReference>
+  │ │   │   │ │ │       └─<identifier>
+  │ │   │   │ │ │         └─"factor"
+  │ │   │   │ │ └─null
+  │ │   │   │ ├─┬─<_>
+  │ │   │   │ │ │ └─""
+  │ │   │   │ │ ├─"|>"
+  │ │   │   │ │ └─<_>
+  │ │   │   │ │   └─" "
+  │ │   │   │ ├─<_>
+  │ │   │   │ │ └─""
+  │ │   │   │ ├─<code::nl>
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"e"
+  │ │   │   │ │ ├─"r"
+  │ │   │   │ │ ├─"m"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"/"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"f"
+  │ │   │   │ │ ├─"a"
+  │ │   │   │ │ ├─"c"
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"o"
+  │ │   │   │ │ └─"r"
+  │ │   │   │ └─<_>
+  │ │   │   │   └─"\n  "
+  │ │   │   ├─<acted>
+  │ │   │   │ ├─<sequence>
+  │ │   │   │ │ ├─┬─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   ├─":"
+  │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │   │   │ │ │ │     └─<identifier>
+  │ │   │   │ │ │ │       └─"term"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             ├─<_>
+  │ │   │   │ │ │ │             │ └─""
+  │ │   │   │ │ │ │             ├─┬─"\""
+  │ │   │   │ │ │ │             │ ├───"%"
+  │ │   │   │ │ │ │             │ └─"\""
+  │ │   │   │ │ │ │             └─<_>
+  │ │   │   │ │ │ │               └─" "
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ └─<dropped>
+  │ │   │   │ │ │   └─<labeled>
+  │ │   │   │ │ │     ├─":"
+  │ │   │   │ │ │     └─<namespacedIdentifier>
+  │ │   │   │ │ │       ├─<namespaceReference>
+  │ │   │   │ │ │       └─<identifier>
+  │ │   │   │ │ │         └─"factor"
+  │ │   │   │ │ └─null
+  │ │   │   │ ├─┬─<_>
+  │ │   │   │ │ │ └─""
+  │ │   │   │ │ ├─"|>"
+  │ │   │   │ │ └─<_>
+  │ │   │   │ │   └─" "
+  │ │   │   │ ├─<_>
+  │ │   │   │ │ └─""
+  │ │   │   │ ├─<code::nl>
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"e"
+  │ │   │   │ │ ├─"r"
+  │ │   │   │ │ ├─"m"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"%"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"f"
+  │ │   │   │ │ ├─"a"
+  │ │   │   │ │ ├─"c"
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"o"
+  │ │   │   │ │ └─"r"
+  │ │   │   │ └─<_>
+  │ │   │   │   └─"\n  "
+  │ │   │   ├─<acted>
+  │ │   │   │ ├─<sequence>
+  │ │   │   │ │ ├─┬─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   ├─":"
+  │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │   │   │ │ │ │     └─<identifier>
+  │ │   │   │ │ │ │       └─"term"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             ├─<_>
+  │ │   │   │ │ │ │             │ └─""
+  │ │   │   │ │ │ │             ├─┬─"\""
+  │ │   │   │ │ │ │             │ ├─┬─"~"
+  │ │   │   │ │ │ │             │ │ └─"/"
+  │ │   │   │ │ │ │             │ └─"\""
+  │ │   │   │ │ │ │             └─<_>
+  │ │   │   │ │ │ │               └─" "
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ └─<dropped>
+  │ │   │   │ │ │   └─<labeled>
+  │ │   │   │ │ │     ├─":"
+  │ │   │   │ │ │     └─<namespacedIdentifier>
+  │ │   │   │ │ │       ├─<namespaceReference>
+  │ │   │   │ │ │       └─<identifier>
+  │ │   │   │ │ │         └─"factor"
+  │ │   │   │ │ └─null
+  │ │   │   │ ├─┬─<_>
+  │ │   │   │ │ │ └─""
+  │ │   │   │ │ ├─"|>"
+  │ │   │   │ │ └─<_>
+  │ │   │   │ │   └─" "
+  │ │   │   │ ├─<_>
+  │ │   │   │ │ └─""
+  │ │   │   │ ├─<code::nl>
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"e"
+  │ │   │   │ │ ├─"r"
+  │ │   │   │ │ ├─"m"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"~"
+  │ │   │   │ │ ├─"/"
+  │ │   │   │ │ ├─" "
+  │ │   │   │ │ ├─"f"
+  │ │   │   │ │ ├─"a"
+  │ │   │   │ │ ├─"c"
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"o"
+  │ │   │   │ │ └─"r"
+  │ │   │   │ └─<_>
+  │ │   │   │   └─"\n  "
+  │ │   │   └─<acted>
+  │ │   │     └─<sequence>
+  │ │   │       ├───<dropped>
+  │ │   │       │   └─<labeled>
+  │ │   │       │     └─<special>
+  │ │   │       │       └─<postfix>
+  │ │   │       │         └─<prefix>
+  │ │   │       │           └─<call>
+  │ │   │       │             └─<atom>
+  │ │   │       │               └─<name>
+  │ │   │       │                 └─<namespacedIdentifier>
+  │ │   │       │                   ├─<namespaceReference>
+  │ │   │       │                   └─<identifier>
+  │ │   │       │                     └─"factor"
+  │ │   │       └─null
+  │ │   └─<;>
+  │ │     ├─<_>
+  │ │     │ └─""
+  │ │     ├─";"
+  │ │     └─<_>
+  │ │       └─"\n\n"
+  │ ├─<statement>
+  │ │ ├─null
+  │ │ ├─null
+  │ │ ├─<name>
+  │ │ │ └─<namespacedIdentifier>
+  │ │ │   ├─<namespaceReference>
+  │ │ │   └─<identifier>
+  │ │ │     └─"factor"
+  │ │ └─<body>
+  │ │   ├─┬─null
+  │ │   │ └─<=>
+  │ │   │   ├─<_>
+  │ │   │   │ └─""
+  │ │   │   ├─"="
+  │ │   │   └─<_>
+  │ │   │     └─"\n  "
+  │ │   ├─<choice>
+  │ │   │ ├─┬─<|>
+  │ │   │ │ │ ├─<_>
+  │ │   │ │ │ │ └─""
+  │ │   │ │ │ ├─"|"
+  │ │   │ │ │ └─<_>
+  │ │   │ │ │   └─" "
+  │ │   │ │ └─null
+  │ │   │ └─┬─<acted>
+  │ │   │   │ ├─<sequence>
+  │ │   │   │ │ ├─┬─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   ├─":"
+  │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │   │   │ │ │ │     └─<identifier>
+  │ │   │   │ │ │ │       └─"primary"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             ├─<_>
+  │ │   │   │ │ │ │             │ └─""
+  │ │   │   │ │ │ │             ├─┬─"\""
+  │ │   │   │ │ │ │             │ ├───"^"
+  │ │   │   │ │ │ │             │ └─"\""
+  │ │   │   │ │ │ │             └─<_>
+  │ │   │   │ │ │ │               └─" "
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ └─<dropped>
+  │ │   │   │ │ │   └─<labeled>
+  │ │   │   │ │ │     ├─":"
+  │ │   │   │ │ │     └─<namespacedIdentifier>
+  │ │   │   │ │ │       ├─<namespaceReference>
+  │ │   │   │ │ │       └─<identifier>
+  │ │   │   │ │ │         └─"factor"
+  │ │   │   │ │ └─null
+  │ │   │   │ ├─┬─<_>
+  │ │   │   │ │ │ └─""
+  │ │   │   │ │ ├─"|>"
+  │ │   │   │ │ └─<_>
+  │ │   │   │ │   └─" "
+  │ │   │   │ ├─<_>
+  │ │   │   │ │ └─""
+  │ │   │   │ ├─<code::nl>
+  │ │   │   │ │ ├─"m"
+  │ │   │   │ │ ├─"a"
+  │ │   │   │ │ ├─"t"
+  │ │   │   │ │ ├─"h"
+  │ │   │   │ │ ├─"."
+  │ │   │   │ │ ├─"p"
+  │ │   │   │ │ ├─"o"
+  │ │   │   │ │ ├─"w"
+  │ │   │   │ │ └─┬─"("
+  │ │   │   │ │   ├─<code::balanced>
+  │ │   │   │ │   │ ├─"p"
+  │ │   │   │ │   │ ├─"r"
+  │ │   │   │ │   │ ├─"i"
+  │ │   │   │ │   │ ├─"m"
+  │ │   │   │ │   │ ├─"a"
+  │ │   │   │ │   │ ├─"r"
+  │ │   │   │ │   │ ├─"y"
+  │ │   │   │ │   │ ├─","
+  │ │   │   │ │   │ ├─" "
+  │ │   │   │ │   │ ├─"f"
+  │ │   │   │ │   │ ├─"a"
+  │ │   │   │ │   │ ├─"c"
+  │ │   │   │ │   │ ├─"t"
+  │ │   │   │ │   │ ├─"o"
+  │ │   │   │ │   │ └─"r"
+  │ │   │   │ │   └─")"
+  │ │   │   │ └─<_>
+  │ │   │   │   └─"\n  "
+  │ │   │   └─<acted>
+  │ │   │     └─<sequence>
+  │ │   │       ├───<dropped>
+  │ │   │       │   └─<labeled>
+  │ │   │       │     └─<special>
+  │ │   │       │       └─<postfix>
+  │ │   │       │         └─<prefix>
+  │ │   │       │           └─<call>
+  │ │   │       │             └─<atom>
+  │ │   │       │               └─<name>
+  │ │   │       │                 └─<namespacedIdentifier>
+  │ │   │       │                   ├─<namespaceReference>
+  │ │   │       │                   └─<identifier>
+  │ │   │       │                     └─"primary"
+  │ │   │       └─null
+  │ │   └─<;>
+  │ │     ├─<_>
+  │ │     │ └─""
+  │ │     ├─";"
+  │ │     └─<_>
+  │ │       └─"\n\n"
+  │ ├─<statement>
+  │ │ ├─null
+  │ │ ├─null
+  │ │ ├─<name>
+  │ │ │ └─<namespacedIdentifier>
+  │ │ │   ├─<namespaceReference>
+  │ │ │   └─<identifier>
+  │ │ │     └─"primary"
+  │ │ └─<body>
+  │ │   ├─┬─null
+  │ │   │ └─<=>
+  │ │   │   ├─<_>
+  │ │   │   │ └─""
+  │ │   │   ├─"="
+  │ │   │   └─<_>
+  │ │   │     └─"\n  "
+  │ │   ├─<choice>
+  │ │   │ ├─┬─<|>
+  │ │   │ │ │ ├─<_>
+  │ │   │ │ │ │ └─""
+  │ │   │ │ │ ├─"|"
+  │ │   │ │ │ └─<_>
+  │ │   │ │ │   └─" "
+  │ │   │ │ └─null
+  │ │   │ └─┬─<acted>
+  │ │   │   │ ├─<sequence>
+  │ │   │   │ │ ├─┬─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             ├─<_>
+  │ │   │   │ │ │ │             │ └─""
+  │ │   │   │ │ │ │             ├─┬─"\""
+  │ │   │   │ │ │ │             │ ├───"("
+  │ │   │   │ │ │ │             │ └─"\""
+  │ │   │   │ │ │ │             └─<_>
+  │ │   │   │ │ │ │               └─" "
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   ├─":"
+  │ │   │   │ │ │ │   └─<namespacedIdentifier>
+  │ │   │   │ │ │ │     ├─<namespaceReference>
+  │ │   │   │ │ │ │     └─<identifier>
+  │ │   │   │ │ │ │       └─"expr"
+  │ │   │   │ │ │ ├─<dropped>
+  │ │   │   │ │ │ │ └─<labeled>
+  │ │   │   │ │ │ │   └─<special>
+  │ │   │   │ │ │ │     └─<postfix>
+  │ │   │   │ │ │ │       └─<prefix>
+  │ │   │   │ │ │ │         └─<call>
+  │ │   │   │ │ │ │           └─<atom>
+  │ │   │   │ │ │ │             └─<name>
+  │ │   │   │ │ │ │               └─<namespacedIdentifier>
+  │ │   │   │ │ │ │                 ├─<namespaceReference>
+  │ │   │   │ │ │ │                 └─<identifier>
+  │ │   │   │ │ │ │                   └─"_"
+  │ │   │   │ │ │ └─<dropped>
+  │ │   │   │ │ │   └─<labeled>
+  │ │   │   │ │ │     └─<special>
+  │ │   │   │ │ │       └─<postfix>
+  │ │   │   │ │ │         └─<prefix>
+  │ │   │   │ │ │           └─<call>
+  │ │   │   │ │ │             └─<atom>
+  │ │   │   │ │ │               ├─<_>
+  │ │   │   │ │ │               │ └─""
+  │ │   │   │ │ │               ├─┬─"\""
+  │ │   │   │ │ │               │ ├───")"
+  │ │   │   │ │ │               │ └─"\""
+  │ │   │   │ │ │               └─<_>
+  │ │   │   │ │ │                 └─"     "
+  │ │   │   │ │ └─null
+  │ │   │   │ ├─┬─<_>
+  │ │   │   │ │ │ └─""
+  │ │   │   │ │ ├─"|>"
+  │ │   │   │ │ └─<_>
+  │ │   │   │ │   └─" "
+  │ │   │   │ ├─<_>
+  │ │   │   │ │ └─""
+  │ │   │   │ ├─<code::nl>
+  │ │   │   │ │ ├─"e"
+  │ │   │   │ │ ├─"x"
+  │ │   │   │ │ ├─"p"
+  │ │   │   │ │ └─"r"
+  │ │   │   │ └─<_>
+  │ │   │   │   └─"\n  "
+  │ │   │   └─<acted>
+  │ │   │     ├─<sequence>
+  │ │   │     │ ├───<dropped>
+  │ │   │     │ │   └─<labeled>
+  │ │   │     │ │     └─<special>
+  │ │   │     │ │       └─<postfix>
+  │ │   │     │ │         └─<prefix>
+  │ │   │     │ │           └─<call>
+  │ │   │     │ │             └─<atom>
+  │ │   │     │ │               └─<name>
+  │ │   │     │ │                 └─<namespacedIdentifier>
+  │ │   │     │ │                   ├─<namespaceReference>
+  │ │   │     │ │                   │ ├─┬─<identifier>
+  │ │   │     │ │                   │ │ │ └─"json"
+  │ │   │     │ │                   │ │ ├─┬─null
+  │ │   │     │ │                   │ │ │ └─"."
+  │ │   │     │ │                   │ │ └─null
+  │ │   │     │ │                   │ ├─┬─<identifier>
+  │ │   │     │ │                   │ │ │ └─"atom"
+  │ │   │     │ │                   │ │ ├─┬─null
+  │ │   │     │ │                   │ │ │ └─"."
+  │ │   │     │ │                   │ │ └─null
+  │ │   │     │ │                   │ └─┬─<identifier>
+  │ │   │     │ │                   │   │ └─"number"
+  │ │   │     │ │                   │   ├─┬─null
+  │ │   │     │ │                   │   │ └─"."
+  │ │   │     │ │                   │   └─null
+  │ │   │     │ │                   └─<identifier>
+  │ │   │     │ │                     └─"slow"
+  │ │   │     │ └─null
+  │ │   │     ├─┬─<_>
+  │ │   │     │ │ └─""
+  │ │   │     │ ├─"|>"
+  │ │   │     │ └─<_>
+  │ │   │     │   └─" "
+  │ │   │     ├─<_>
+  │ │   │     │ └─""
+  │ │   │     ├─<code::nl>
+  │ │   │     │ ├─"d"
+  │ │   │     │ ├─"o"
+  │ │   │     │ ├─"u"
+  │ │   │     │ ├─"b"
+  │ │   │     │ ├─"l"
+  │ │   │     │ ├─"e"
+  │ │   │     │ ├─"."
+  │ │   │     │ ├─"p"
+  │ │   │     │ ├─"a"
+  │ │   │     │ ├─"r"
+  │ │   │     │ ├─"s"
+  │ │   │     │ ├─"e"
+  │ │   │     │ └─┬─"("
+  │ │   │     │   ├─<code::balanced>
+  │ │   │     │   │ ├─"s"
+  │ │   │     │   │ ├─"p"
+  │ │   │     │   │ ├─"a"
+  │ │   │     │   │ └─"n"
+  │ │   │     │   └─")"
+  │ │   │     └─<_>
+  │ │   │       └─""
+  │ │   └─<;>
+  │ │     ├─<_>
+  │ │     │ └─""
+  │ │     ├─";"
+  │ │     └─<_>
+  │ │       └─"\n\n"
+  │ └─<statement>
+  │   ├─null
+  │   ├─null
+  │   ├─<name>
+  │   │ └─<namespacedIdentifier>
+  │   │   ├─<namespaceReference>
+  │   │   └─<identifier>
+  │   │     └─"_"
+  │   └─<body>
+  │     ├─┬─null
+  │     │ └─<=>
+  │     │   ├─<_>
+  │     │   │ └─""
+  │     │   ├─"="
+  │     │   └─<_>
+  │     │     └─" "
+  │     ├─<choice>
+  │     │ ├─null
+  │     │ └───<acted>
+  │     │     ├─<sequence>
+  │     │     │ ├───<dropped>
+  │     │     │ │   └─<labeled>
+  │     │     │ │     └─<special>
+  │     │     │ │       └─<postfix>
+  │     │     │ │         ├─<postfix>
+  │     │     │ │         │ └─<prefix>
+  │     │     │ │         │   └─<call>
+  │     │     │ │         │     └─<atom>
+  │     │     │ │         │       └─<regexEscape::whitespace>
+  │     │     │ │         │         ├─<_>
+  │     │     │ │         │         │ └─""
+  │     │     │ │         │         ├─┬─"\\"
+  │     │     │ │         │         │ └─"s"
+  │     │     │ │         │         └─<_>
+  │     │     │ │         │           └─""
+  │     │     │ │         └─<*>
+  │     │     │ │           ├─<_>
+  │     │     │ │           │ └─""
+  │     │     │ │           ├─"*"
+  │     │     │ │           └─<_>
+  │     │     │ │             └─" "
+  │     │     │ └─null
+  │     │     ├─<{>
+  │     │     │ ├─<_>
+  │     │     │ │ └─""
+  │     │     │ ├─"{"
+  │     │     │ └─<_>
+  │     │     │   └─" "
+  │     │     ├─<_>
+  │     │     │ └─""
+  │     │     ├─<code::curly>
+  │     │     │ ├─┬─"("
+  │     │     │ │ ├─<code::balanced>
+  │     │     │ │ └─")"
+  │     │     │ └─" "
+  │     │     ├─<_>
+  │     │     │ └─""
+  │     │     └─<}>
+  │     │       ├─<_>
+  │     │       │ └─""
+  │     │       ├─"}"
+  │     │       └─<_>
+  │     │         └─""
+  │     └─<;>
+  │       ├─<_>
+  │       │ └─""
+  │       ├─";"
+  │       └─<_>
+  │         └─""
+  ├─<_>
+  │ └─""
+  └─666

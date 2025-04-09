@@ -346,7 +346,7 @@ final class ParserGenerator {
     ///     upper = /[A-Z]/;
     ///   }
     /// }
-    NamespaceStatement("std", <Statement>[
+    NamespaceStatement("std", [
       DeclarationStatement.predefined("any", AnyCharacterNode()),
       DeclarationStatement.predefined("epsilon", EpsilonNode()),
       DeclarationStatement.predefined("start", StartOfInputNode(), type: "int"),
@@ -364,6 +364,130 @@ final class ParserGenerator {
         DeclarationStatement.predefined("upper", RegExpNode("[A-Z]")),
       ]),
     ], tag: Tag.inline),
+    NamespaceStatement("json", [
+      NamespaceStatement.predefined("atom", [
+        DeclarationStatement.predefined("null", StringLiteralNode("null")),
+        DeclarationStatement.predefined("true", StringLiteralNode("true")),
+        DeclarationStatement.predefined("false", StringLiteralNode("false")),
+        DeclarationStatement.predefined("number", RegExpNode(r"-?\d+(\.\d+)?([eE][+-]?\d+)?")),
+
+        // number
+        //    integer fraction exponent
+
+        // integer
+        //    digit
+        //    onenine digits
+        //    '-' digit
+        //    '-' onenine digits
+
+        // digits
+        //    digit
+        //    digit digits
+
+        // digit
+        //    '0'
+        //    onenine
+
+        // onenine
+        //    '1' . '9'
+
+        // fraction
+        //    ""
+        //    '.' digits
+
+        // exponent
+        //    ""
+        //    'E' sign digits
+        //    'e' sign digits
+
+        // sign
+        //    ""
+        //    '+'
+        //    '-'
+        NamespaceStatement(
+          tag: Tag.fragment,
+          "number", [
+          DeclarationStatement.predefined("slow", ReferenceNode("number"), type: "Object"),
+          DeclarationStatement.predefined(
+            "number",
+            SequenceNode([
+              ReferenceNode("integer"),
+              ReferenceNode("fraction"),
+              ReferenceNode("exponent"),
+            ], chosenIndex: null),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "integer",
+            ChoiceNode([
+              ReferenceNode("digit"),
+              SequenceNode([ReferenceNode("onenine"), ReferenceNode("digits")], chosenIndex: null),
+              SequenceNode([StringLiteralNode("-"), ReferenceNode("digit")], chosenIndex: null),
+              SequenceNode([
+                StringLiteralNode("-"),
+                ReferenceNode("onenine"),
+                ReferenceNode("digits"),
+              ], chosenIndex: null),
+            ]),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "digits",
+            ChoiceNode([
+              SequenceNode([ReferenceNode("digits"), ReferenceNode("digit")], chosenIndex: null),
+              ReferenceNode("digit"),
+            ]),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "digit",
+            ChoiceNode([StringLiteralNode("0"), ReferenceNode("onenine")]),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "onenine",
+            ChoiceNode([
+              StringLiteralNode("1"),
+              StringLiteralNode("2"),
+              StringLiteralNode("3"),
+              StringLiteralNode("4"),
+              StringLiteralNode("5"),
+              StringLiteralNode("6"),
+              StringLiteralNode("7"),
+              StringLiteralNode("8"),
+              StringLiteralNode("9"),
+            ]),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "fraction",
+            ChoiceNode([
+              SequenceNode([StringLiteralNode("."), ReferenceNode("digits")], chosenIndex: null),
+              EpsilonNode(),
+            ]),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "exponent",
+            ChoiceNode([
+              SequenceNode([
+                ChoiceNode([StringLiteralNode("E"), StringLiteralNode("e")]),
+                ReferenceNode("sign"),
+                ReferenceNode("digits"),
+              ], chosenIndex: null),
+              EpsilonNode(),
+            ]),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "sign",
+            ChoiceNode([StringLiteralNode("+"), StringLiteralNode("-"), EpsilonNode()]),
+            type: "Object",
+          ),
+        ]),
+        DeclarationStatement.predefined("string", StringLiteralNode(r'"([^"\\]|\\.)*"')),
+      ]),
+    ], tag: Tag.fragment),
   ];
 
   int redirectId = 0;
@@ -614,42 +738,42 @@ final class ParserGenerator {
   /// Returns `true` if the node should pass even if the answer was null.
   bool isNullable(Node node, String ruleName) {
     return _isNullable[node] ??= switch (node) {
-      SpecialSymbolNode() => false,
-      EpsilonNode() => true,
-      RangeNode() => false,
-      TriePatternNode() => false,
+      SpecialSymbolNode _ => false,
+      EpsilonNode _ => true,
+      RangeNode _ => false,
+      TriePatternNode _ => false,
 
       /// Absolutely false, because [matchPattern] is nullable.
-      RegExpNode() => false,
-      RegExpEscapeNode() => false,
-      CountedNode() => node.min <= 0 || isNullable(node.child, ruleName),
-      StringLiteralNode() => node.literal.isEmpty,
-      SequenceNode() =>
+      RegExpNode _ => false,
+      RegExpEscapeNode _ => false,
+      CountedNode _ => node.min <= 0 || isNullable(node.child, ruleName),
+      StringLiteralNode _ => node.literal.isEmpty,
+      SequenceNode _ =>
         (_isNullable[node] = true, node.children.every((node) => isNullable(node, ruleName))).$2,
-      ChoiceNode() =>
-        (_isNullable[node] = false, node.children.every((node) => isNullable(node, ruleName))).$2,
-      PlusSeparatedNode() =>
+      ChoiceNode _ =>
+        (_isNullable[node] = false, node.children.any((node) => isNullable(node, ruleName))).$2,
+      PlusSeparatedNode _ =>
         isNullable(node.child, ruleName) && isNullable(node.separator, ruleName),
-      StarSeparatedNode() => true,
-      PlusNode() => isNullable(node.child, ruleName),
-      StarNode() => true,
-      AndPredicateNode() => isNullable(node.child, ruleName),
-      NotPredicateNode() => isNullable(node.child, ruleName),
-      ExceptNode() => false,
-      OptionalNode() => isNullable(node.child, ruleName),
-      ReferenceNode() => isNullable(
+      StarSeparatedNode _ => true,
+      PlusNode _ => isNullable(node.child, ruleName),
+      StarNode _ => true,
+      AndPredicateNode _ => isNullable(node.child, ruleName),
+      NotPredicateNode _ => isNullable(node.child, ruleName),
+      ExceptNode _ => false,
+      OptionalNode _ => isNullable(node.child, ruleName),
+      ReferenceNode _ => isNullable(
         _rules[node.ruleName]?.$2 ?? notFound(node.ruleName, Tag.rule, ruleName),
         ruleName,
       ),
-      FragmentNode() => isNullable(
+      FragmentNode _ => isNullable(
         _fragments[node.fragmentName]?.$2 ??
             _inline[node.fragmentName]?.$2 ??
             notFound(node.fragmentName, Tag.fragment, ruleName),
         ruleName,
       ),
-      NamedNode() => isNullable(node.child, ruleName),
-      ActionNode() => isNullable(node.child, ruleName),
-      InlineActionNode() => isNullable(node.child, ruleName),
+      NamedNode _ => isNullable(node.child, ruleName),
+      ActionNode _ => isNullable(node.child, ruleName),
+      InlineActionNode _ => isNullable(node.child, ruleName),
     };
   }
 }

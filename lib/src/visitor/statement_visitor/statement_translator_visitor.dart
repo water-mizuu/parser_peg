@@ -10,10 +10,14 @@ class StatementTranslatorVisitor implements StatementVisitor<List<Statement>, St
   @override
   List<Statement> visitDeclarationTypeStatement(DeclarationTypeStatement statement, String? type) {
     if (statement.type case var type?) {
-      _declaredTypes[statement.name] = type;
+      for (var name in statement.names) {
+        _declaredTypes[name] = type;
+      }
     }
     if (statement.tag case var tag?) {
-      _declaredTags[statement.name] = tag;
+      for (var name in statement.names) {
+        _declaredTags[name] = tag;
+      }
     }
 
     // We don't return anything here. Basically, treat the statement as metadata.
