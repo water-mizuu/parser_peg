@@ -103,13 +103,13 @@ void main(List<String> arguments) {
     return;
   }
 
-  if (arguments case ["experiment"]) {
-    _experiment();
-  } else if (arguments case ["test"]) {
-    _testCompiler();
-  } else {
+  // if (arguments case ["experiment"]) {
+  //   _experiment();
+  // } else if (arguments case ["test"]) {
+  //   _testCompiler();
+  // } else {
+  // }
     _buildParser(arguments);
-  }
 }
 
 void _testCompiler() async {

@@ -545,7 +545,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
                 markSaved: true,
               ),
             )
-            .indent(),
+            .indent(2),
       )
       ..writeln("    this._recover(_mark);")
       ..writeln("    break;")

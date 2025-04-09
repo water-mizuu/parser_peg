@@ -16,7 +16,7 @@ num term =
   | :term _ "/" _ :factor  { term  / factor }
   | :term _ "%" _ :factor  { term  % factor }
   | :term _ "~/" _ :factor { term ~/ factor }
-  | factor; 
+  | factor;
 
 num factor =
   | :primary _ "^" _ :factor { math.pow(primary, factor) }
