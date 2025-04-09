@@ -21,12 +21,26 @@ final class NamespaceStatement implements Statement {
   }
 }
 
-final class DeclarationStatement implements Statement {
-  const DeclarationStatement(this.type, this.names, this.node, {required this.tag});
-  const DeclarationStatement.predefined(this.names, this.node, {this.type = "String"}) : tag = null;
+final class DeclarationTypeStatement implements Statement {
+  const DeclarationTypeStatement(this.type, this.name, {required this.tag});
+  const DeclarationTypeStatement.predefined(this.name, {this.type = "String"}) : tag = null;
 
   final String? type;
-  final List<String> names;
+  final String name;
+  final Tag? tag;
+
+  @override
+  O acceptVisitor<O, I>(StatementVisitor<O, I> visitor, I parameters) {
+    return visitor.visitDeclarationTypeStatement(this, parameters);
+  }
+}
+
+final class DeclarationStatement implements Statement {
+  const DeclarationStatement(this.type, this.name, this.node, {required this.tag});
+  const DeclarationStatement.predefined(this.name, this.node, {this.type = "String"}) : tag = null;
+
+  final String? type;
+  final String name;
   final Node node;
   final Tag? tag;
 

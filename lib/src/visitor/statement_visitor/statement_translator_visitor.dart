@@ -4,12 +4,28 @@ import "package:parser_peg/src/statement.dart";
 import "package:parser_peg/src/visitor/statement_visitor.dart";
 
 class StatementTranslatorVisitor implements StatementVisitor<List<Statement>, String?> {
+  final Map<String, String> _declaredTypes = {};
+  final Map<String, Tag> _declaredTags = {};
+
+  @override
+  List<Statement> visitDeclarationTypeStatement(DeclarationTypeStatement statement, String? type) {
+    if (statement.type case var type?) {
+      _declaredTypes[statement.name] = type;
+    }
+    if (statement.tag case var tag?) {
+      _declaredTags[statement.name] = tag;
+    }
+
+    // We don't return anything here. Basically, treat the statement as metadata.
+    return [];
+  }
+
   @override
   List<Statement> visitDeclarationStatement(DeclarationStatement statement, String? type) {
     return [
       DeclarationStatement(
-        statement.type ?? type,
-        statement.names,
+        statement.type ?? _declaredTypes[statement.name] ?? type,
+        statement.name,
         statement.node,
         tag: statement.tag,
       ),
@@ -24,13 +40,13 @@ class StatementTranslatorVisitor implements StatementVisitor<List<Statement>, St
       if (statement.name case var name?)
         DeclarationStatement(
           statement.type,
-          [name],
+          name,
           ChoiceNode([
             for (var innerStatement in statement.children)
-              if (innerStatement case DeclarationStatement(:var names))
-                ReferenceNode([name, names.first].join(ParserGenerator.separator))
-              else if (innerStatement case HybridNamespaceStatement(:var name))
-                ReferenceNode([name, name].join(ParserGenerator.separator)),
+              if (innerStatement case DeclarationStatement())
+                ReferenceNode([name, innerStatement.name].join(ParserGenerator.separator))
+              else if (innerStatement case HybridNamespaceStatement())
+                ReferenceNode([name, innerStatement.name].join(ParserGenerator.separator)),
           ]),
           tag: statement.outerTag,
         ),

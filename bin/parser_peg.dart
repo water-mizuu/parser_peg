@@ -7,6 +7,7 @@ import "dart:isolate";
 import "package:args/args.dart";
 import "package:dart_casing/dart_casing.dart";
 import "package:parser_peg/src/generator.dart";
+import "package:parser_peg/src/parser/grammar_parser.cst.dart";
 // import "package:parser_peg/src/parser/grammar_parser.cst.dart";
 import "package:parser_peg/src/parser/grammar_parser.dart";
 import "package:path/path.dart" as path;
@@ -127,7 +128,7 @@ void _testCompiler() async {
       void main(_, payload) {
         var [sendPort as SendPort, grammar as String] = payload;
         var parser = GrammarParser();
-        
+
         if (parser.parse(grammar) case var generator?) {
           sendPort.send(true);
         } else {
@@ -210,25 +211,25 @@ void _experiment() {
     }
   }
 
-  // if (CstGrammarParser() case CstGrammarParser grammar) {
-  //   const inputPath = "lib/src/parser/grammar_parser.dart_grammar";
-  //   var input = readFile(inputPath);
-  //   var parentPath = path.dirname(inputPath);
-  //   var fileName = path.basenameWithoutExtension(inputPath);
+  if (CstGrammarParser() case CstGrammarParser grammar) {
+    const inputPath = "lib/src/parser/grammar_parser.dart_grammar";
+    var input = readFile(inputPath);
+    var parentPath = path.dirname(inputPath);
+    var fileName = path.basenameWithoutExtension(inputPath);
 
-  //   switch (grammar.parse(input)) {
-  //     case Object result:
-  //       stdout.writeln("Successfully parsed grammar!");
-  //       stdout.writeln("Generating parser.");
+    switch (grammar.parse(input)) {
+      case Object result:
+        stdout.writeln("Successfully parsed grammar!");
+        stdout.writeln("Generating parser.");
 
-  //       File(path.join(parentPath, "$fileName.txt"))
-  //         ..createSync(recursive: true)
-  //         ..writeAsStringSync(_displayTree(result));
+        File(path.join(parentPath, "$fileName.txt"))
+          ..createSync(recursive: true)
+          ..writeAsStringSync(_displayTree(result));
 
-  //     case _:
-  //       stdout.writeln(grammar.reportFailures());
-  //   }
-  // }
+      case _:
+        stdout.writeln(grammar.reportFailures());
+    }
+  }
 }
 
 extension<K, V> on Map<K, V> {

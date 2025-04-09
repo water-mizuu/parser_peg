@@ -80,17 +80,16 @@ final class ParserGenerator {
         switch (statement) {
           /// If it is a declaration:
           ///   rule declaration, fragment declaration, inline declaration
-          case DeclarationStatement(:var type, :var names, :var node, tag: var declaredTag):
-            for (var name in names) {
-              var realName = [...prefix, name].join(separator);
-              var target = switch (declaredTag ?? tag) {
-                Tag.inline => _inline,
-                Tag.fragment => _fragments,
-                Tag.rule || null => _rules,
-              };
 
-              target[realName] = (type, node);
-            }
+          case DeclarationStatement(:var type, :var name, :var node, tag: var declaredTag):
+            var realName = [...prefix, name].join(separator);
+            var target = switch (declaredTag ?? tag) {
+              Tag.inline => _inline,
+              Tag.fragment => _fragments,
+              Tag.rule || null => _rules,
+            };
+
+            target[realName] = (type, node);
 
           case NamespaceStatement(:var name?, :var children, tag: var declaredTag):
             for (var sub in children.reversed) {
@@ -100,6 +99,8 @@ final class ParserGenerator {
             for (var sub in children.reversed) {
               stack.addLast((sub, prefix, declaredTag ?? tag));
             }
+
+          case DeclarationTypeStatement():
           case HybridNamespaceStatement():
             throw Error();
         }
@@ -116,25 +117,17 @@ final class ParserGenerator {
         var (statement, prefixes, tag) = stack.removeLast();
 
         switch (statement) {
-          case DeclarationStatement(:var type, :var names, :var node, tag: var declaredTag):
-            for (var name in names) {
-              var realName = [...prefixes, name].join(separator);
-              var visitor = ResolveReferencesVisitor(
-                realName,
-                prefixes,
-                _rules,
-                _fragments,
-                _inline,
-              );
-              var resolvedNode = node.acceptSimpleVisitor(visitor);
+          case DeclarationStatement(:var type, :var name, :var node, tag: var declaredTag):
+            var realName = [...prefixes, name].join(separator);
+            var visitor = ResolveReferencesVisitor(realName, prefixes, _rules, _fragments, _inline);
+            var resolvedNode = node.acceptSimpleVisitor(visitor);
 
-              var target = switch (declaredTag ?? tag) {
-                Tag.inline => _inline,
-                Tag.fragment => _fragments,
-                Tag.rule || null => _rules,
-              };
-              target[realName] = (type, resolvedNode);
-            }
+            var target = switch (declaredTag ?? tag) {
+              Tag.inline => _inline,
+              Tag.fragment => _fragments,
+              Tag.rule || null => _rules,
+            };
+            target[realName] = (type, resolvedNode);
           case NamespaceStatement(:var name?, :var children, tag: var declaredTag):
             for (var sub in children.reversed) {
               stack.addLast((sub, [...prefixes, name], declaredTag ?? tag));
@@ -143,6 +136,8 @@ final class ParserGenerator {
             for (var sub in children.reversed) {
               stack.addLast((sub, prefixes, declaredTag ?? tag));
             }
+
+          case DeclarationTypeStatement():
           case HybridNamespaceStatement():
             throw Error();
         }
@@ -352,21 +347,21 @@ final class ParserGenerator {
     ///   }
     /// }
     NamespaceStatement("std", <Statement>[
-      DeclarationStatement.predefined(["any"], AnyCharacterNode()),
-      DeclarationStatement.predefined(["epsilon"], EpsilonNode()),
-      DeclarationStatement.predefined(["start"], StartOfInputNode(), type: "int"),
-      DeclarationStatement.predefined(["end"], EndOfInputNode(), type: "int"),
-      DeclarationStatement.predefined(["whitespace"], RegExpNode(r"\s")),
-      DeclarationStatement.predefined(["digit"], RegExpNode(r"\d")),
-      DeclarationStatement.predefined(["hex"], RegExpNode("[0-9A-Fa-f]")),
+      DeclarationStatement.predefined("any", AnyCharacterNode()),
+      DeclarationStatement.predefined("epsilon", EpsilonNode()),
+      DeclarationStatement.predefined("start", StartOfInputNode(), type: "int"),
+      DeclarationStatement.predefined("end", EndOfInputNode(), type: "int"),
+      DeclarationStatement.predefined("whitespace", RegExpNode(r"\s")),
+      DeclarationStatement.predefined("digit", RegExpNode(r"\d")),
+      DeclarationStatement.predefined("hex", RegExpNode("[0-9A-Fa-f]")),
       NamespaceStatement.predefined("hex", <Statement>[
-        DeclarationStatement.predefined(["lower"], RegExpNode("[0-9a-f]")),
-        DeclarationStatement.predefined(["upper"], RegExpNode("[0-9A-F]")),
+        DeclarationStatement.predefined("lower", RegExpNode("[0-9a-f]")),
+        DeclarationStatement.predefined("upper", RegExpNode("[0-9A-F]")),
       ]),
-      DeclarationStatement.predefined(["alpha"], RegExpNode("[a-zA-Z]")),
+      DeclarationStatement.predefined("alpha", RegExpNode("[a-zA-Z]")),
       NamespaceStatement.predefined("alpha", <Statement>[
-        DeclarationStatement.predefined(["lower"], RegExpNode("[a-z]")),
-        DeclarationStatement.predefined(["upper"], RegExpNode("[A-Z]")),
+        DeclarationStatement.predefined("lower", RegExpNode("[a-z]")),
+        DeclarationStatement.predefined("upper", RegExpNode("[A-Z]")),
       ]),
     ], tag: Tag.inline),
   ];
@@ -423,7 +418,8 @@ final class ParserGenerator {
     fullBuffer.writeln("  get start => $parserStartRule;");
     fullBuffer.writeln();
 
-    if (ParserCompilerVisitor(isNullable: isNullable, reported: true) case ParserCompilerVisitor compilerVisitor) {
+    if (ParserCompilerVisitor(isNullable: isNullable, reported: true)
+        case ParserCompilerVisitor compilerVisitor) {
       for (var (rawName, (type, node)) in fragments.pairs) {
         compilerVisitor.ruleId = 0;
 
@@ -698,7 +694,24 @@ extension NameShortcuts on Set<String>? {
   /// This gets a single name from the set.
   ///  If the set is null, it returns `$`.
   String get singleName => this == null ? r"$" : this!.first;
-  String get varNames => switch (this) {
+
+  String get statementVarNames => switch (this) {
+    null => r"var $",
+    Set<String>(length: 1, single: "_") => "_",
+    Set<String>(length: 1, single: "null") => "null",
+    Set<String>(length: 1, single: String name) => "var $name",
+    Set<String> set => set //
+        .where((v) => v != "_")
+        .toList()
+        .apply(
+          (iter) => switch (iter) {
+            List<String>(length: 1, :String single) => single,
+            List<String>() => iter.join(" && ").apply((v) => "($v)"),
+          },
+        )
+        .apply((v) => "var $v"),
+  };
+  String get caseVarNames => switch (this) {
     null => r"var $",
     Set<String>(length: 1, single: "_") => "_",
     Set<String>(length: 1, single: "null") => "null",

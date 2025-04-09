@@ -1,5 +1,4 @@
 {
-
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
@@ -9,11 +8,11 @@ final _regexps = (
   to: RegExp(r"\bto\b"),
   span: RegExp(r"\bspan\b"),
 );
-
 }
 
 /// A grammar file contains an optional preamble and statements.
-ParserGenerator document = ^ preamble? _..statement+ _? $
+ParserGenerator document;
+document = ^ preamble? _..statement+ _? $
   |> ParserGenerator.fromParsed(preamble: $1, statements: $2);
 
 /// The preamble is simple.
@@ -26,8 +25,6 @@ String preamble = `{` _ code:code.curly _ `}` @2;
 ///  A fragment is a declaration that is faster, but doesn't support left recursion / memoization.
 ///  A rule is a declaration, that supports left recursion & memoization.
 Statement statement =
-/// A hybridNamespace is a namespace that can be used as a rule.
-///   Each statement in the namespace is a rule, bound to an option.
   | outer_decorator:kw.decorator?
       :type? name:identifier `=` mac.choice
       inner_decorator:kw.decorator? `{` statements:_..statement+ `}`
@@ -36,30 +33,41 @@ Statement statement =
       type, name, statements,
       outerTag: outer_decorator, innerTag: inner_decorator
     )
+  | outer_decorator:kw.decorator?
+      :type? `(` `)` `=` mac.choice
+      inner_decorator:kw.decorator? `{` statements:_..statement+ `}`
+      `;`?
+    |> HybridNamespaceStatement(
+      type, null, statements,
+      outerTag: outer_decorator, innerTag: inner_decorator
+    )
 
 /// A namespace is a block of statements which can apply a tag and/or be encapsulated
 ///   under a name.
   | :kw.decorator? name:identifier? `{` statements:_..statement+ `}`
     |> NamespaceStatement(name, statements, tag: decorator)
 
+/// A type declaration is a separate statement from the declaration
+///   that can be used as a basis for types or tags.
+
+  | :kw.decorator? :type? :name `;`
+    |> DeclarationTypeStatement(type, name, tag: decorator)
+  | :kw.decorator? kw.var? :type? :name `;`
+    |> DeclarationTypeStatement(type, name, tag: decorator)
+
 /// A declaration is a statement that can be referenced by other declarations.
 ///   Formally, it is a non-terminal.
-  /// `var`-prefixed declaration
+
   | :kw.decorator? kw.var? :name :body
     |> DeclarationStatement(null, name, body, tag: decorator)
-
-  /// A C-style declaration with <type> <name> = <body>;
   | :kw.decorator? :type :name :body
     |> DeclarationStatement(type, name, body, tag: decorator)
-
-  /// A modern-style declaration with <name>: <type> = <body>;
   | :kw.decorator? kw.var? :name `:` :type :body
-    |> DeclarationStatement(type, name, body, tag: decorator)
-  ;
+    |> DeclarationStatement(type, name, body, tag: decorator);
 
 /// A choice parser is a parser that tries to match one of the options.
 /// Despite the syntax, the parser is ordered choice.
-choice = (`|` `|`?)? options:(`|` `|`?)..acted+ {
+Node choice = (`|` `|`?)? options:(`|` `|`?)..acted+ {
   options.length == 1 ? options.single : ChoiceNode(options)
 };
 
@@ -160,8 +168,8 @@ Node postfix =
 /// A parser that is prefixed.
 ///   Usually with disambiguators such as `and-predicate` and `not-predicate`.
 Node prefix =
-  | min:number `..` max:number? body:atom { CountedNode(min, max, body) }
-  | :number body:atom                     { CountedNode(number, number, body) }
+  | min:number `..` max:number? body:atom |> CountedNode(min, max, body)
+  | :number body:atom                     |> CountedNode(number, number, body)
   | `~` prefix @1 |> ExceptNode($)
   | `&` prefix @1 |> AndPredicateNode($)
   | `!` prefix @1 |> NotPredicateNode($)
@@ -250,7 +258,7 @@ Node atom =
   | literal.range
   | literal.regexp             |> RegExpNode($)
   | literal.string             |> StringLiteralNode($)
-  | singleName                 |> ReferenceNode($)
+  | name                       |> ReferenceNode($)
   ;
 
 code {
@@ -341,15 +349,15 @@ dart {
     string {
       @inline body =
         /// Raw string literals
-        | 1"r" '"""' ~'"""'* '"""' { () }
-        | 1"r" "'''" ~"'''"* "'''" { () }
-        | 1"r" '"'   ~'"'*   '"'   { () }
-        | 1"r" "'"   ~"'"*   "'"   { () }
+        | 1"r" '"""' ~'"""'* '"""' |> ()
+        | 1"r" "'''" ~"'''"* "'''" |> ()
+        | 1"r" '"'   ~'"'*   '"'   |> ()
+        | 1"r" "'"   ~"'"*   "'"   |> ()
         /// Escaped string literals
-        | '"""' (\\ . @1 | &"$" interpolation | ~'"""')* '"""' { () }
-        | "'''" (\\ . @1 | &"$" interpolation | ~"'''")* "'''" { () }
-        | '"'   (\\ . @1 | &"$" interpolation | ~'"'  )* '"'   { () }
-        | "'"   (\\ . @1 | &"$" interpolation | ~"'"  )* "'"   { () }
+        | '"""' (\\ . @1 | &"$" interpolation | ~'"""')* '"""' |> ()
+        | "'''" (\\ . @1 | &"$" interpolation | ~"'''")* "'''" |> ()
+        | '"'   (\\ . @1 | &"$" interpolation | ~'"'  )* '"'   |> ()
+        | "'"   (\\ . @1 | &"$" interpolation | ~"'"  )* "'"   |> ()
         ;
 
       @inline interpolation =
@@ -361,7 +369,7 @@ dart {
         | string
         | "{" balanced "}" @1 {"{" + $ + "}"}
         | ~"}"
-      )* { $.join() };
+      )* |> $.join();
     }
   }
 
@@ -455,12 +463,7 @@ dart {
 
   /// A [name] can be a single name, or multiple aliases.
   ///  The aliases are separated by `&&`, surrounded by parentheses.
-  List<String> name =
-    | `(` `&&`..singleName+ `)` @1
-    | singleName |> [$];
-
-  /// A [singleName] is a single name, or a namespaced name.
-  String singleName =
+  String name =
     | namespacedRaw
     | namespacedIdentifier;
 
@@ -476,7 +479,7 @@ dart {
 ///   Since they are not recursive, they are not defined as rules.
 @fragment {
   String identifier = /[a-zA-Z_$][a-zA-Z0-9_$]*/ { span };
-  String raw        = "`" ~"`"* "`" @1 { $.join() };
+  String raw        = "`" 0..(~"`") "`" @1 { $.join() };
   int number        = \d+ { int.parse($.join()) };
 
   kw {
@@ -495,14 +498,14 @@ dart {
   }
 
   /// Tokens used in "macro-like" rules.
-  String mac = choice! {
+  String mac = choice! @fragment {
     range  = _ "range!"  _ @1;
     flat   = _ "flat!"   _ @1;
     sep    = _ "sep!"    _ @1;
     choice = _ "choice!" _ @1;
   };
 
-  String regexEscape = choice! @inline {
+  String regexEscape = choice! @fragment {
     backslash       = _ (\\ r"\").flat!() _ @1;
 
     digit           = _ (\\ r"d").flat!() _ @1;
@@ -527,44 +530,46 @@ dart {
   };
 
   /// Literal tokens
-  String `..` = _ ".." _ @1;
-  String `::` = _ "::" _ @1;
-  String `%%` = _ "%%" _ @1;
-  String `=>` = _ "=>" _ @1;
-  String `<-` = _ "<-" _ @1;
-  String `->` = _ "->" _ @1;
-  String `~>` = _ "~>" _ @1;
-  String `<~` = _ "<~" _ @1;
-  String `|>` = _ "|>" _ @1;
-  String `&&` = _ "&&" _ @1;
+  String () = choice! @fragment {
+    `..` = _ ".." _ @1;
+    `::` = _ "::" _ @1;
+    `%%` = _ "%%" _ @1;
+    `=>` = _ "=>" _ @1;
+    `<-` = _ "<-" _ @1;
+    `->` = _ "->" _ @1;
+    `~>` = _ "~>" _ @1;
+    `<~` = _ "<~" _ @1;
+    `|>` = _ "|>" _ @1;
+    `&&` = _ "&&" _ @1;
 
-  String `%` = _ "%" _ @1;
-  String `@` = _ "@" _ @1;
-  String `<` = _ "<" _ @1;
-  String `>` = _ ">" _ @1;
-  String `]` = _ "]" _ @1;
-  String `[` = _ "[" _ @1;
-  String `}` = _ "}" _ @1;
-  String `{` = _ "{" _ @1;
-  String `)` = _ ")" _ @1;
-  String `(` = _ "(" _ @1;
-  String `;` = _ ";" _ @1;
-  String `=` = _ "=" _ @1;
-  String `?` = _ "?" _ @1;
-  String `!` = _ "!" _ @1;
-  String `~` = _ "~" _ @1;
-  String `&` = _ "&" _ @1;
-  String `*` = _ "*" _ @1;
-  String `+` = _ "+" _ @1;
-  String `,` = _ "," _ @1;
-  String `:` = _ ":" _ @1;
-  String `|` = _ "|" _ @1;
-  String `/` = _ "/" _ @1;
+    `%` = _ "%" _ @1;
+    `@` = _ "@" _ @1;
+    `<` = _ "<" _ @1;
+    `>` = _ ">" _ @1;
+    `]` = _ "]" _ @1;
+    `[` = _ "[" _ @1;
+    `}` = _ "}" _ @1;
+    `{` = _ "{" _ @1;
+    `)` = _ ")" _ @1;
+    `(` = _ "(" _ @1;
+    `;` = _ ";" _ @1;
+    `=` = _ "=" _ @1;
+    `?` = _ "?" _ @1;
+    `!` = _ "!" _ @1;
+    `~` = _ "~" _ @1;
+    `&` = _ "&" _ @1;
+    `*` = _ "*" _ @1;
+    `+` = _ "+" _ @1;
+    `,` = _ "," _ @1;
+    `:` = _ ":" _ @1;
+    `|` = _ "|" _ @1;
+    `/` = _ "/" _ @1;
 
-  String `.` = _ "." _ @1;
-  String `ε` = _ "ε" _ @1;
-  String `^` = _ "^" _ @1;
-  String `$` = _ "$" _ @1;
+    `.` = _ "." _ @1;
+    `ε` = _ "ε" _ @1;
+    `^` = _ "^" _ @1;
+    `$` = _ "$" _ @1;
+  }
 
   /// Layout parser allows comments (like this) and space between parsers.
   /// Regular Expression monster below:
