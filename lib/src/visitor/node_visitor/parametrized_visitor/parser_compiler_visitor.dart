@@ -821,7 +821,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   String visitActionNode(node, parameters) {
     var Parameters(:withNames, :declarationName, :markSaved) = parameters;
 
-    if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
+    if (node.action.contains(RegExp(r"\b\$(?![A-Za-z0-9_\$\{])"))) {
       (withNames ??= {}).add(r"$");
     }
 
@@ -873,7 +873,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   String visitInlineActionNode(node, parameters) {
     var Parameters(:withNames, :declarationName, :markSaved) = parameters;
 
-    if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$])"))) {
+    if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$\{])"))) {
       (withNames ??= {}).add(r"$");
     }
 

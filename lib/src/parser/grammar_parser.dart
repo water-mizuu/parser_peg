@@ -413,9 +413,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
     if (this._mark() case var _mark) {
       if (this.f5() case var $0) {
         if (this.f2l() case var $1?) {
-          if ([$0, $1] case var $) {
-            return $0.isEmpty ? $1 : "${$0}::${$1}";
-          }
+          return $0.isEmpty ? $1 : "${$0}::${$1}";
         }
       }
       this._recover(_mark);
@@ -429,9 +427,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
   String? f7() {
     if (this.f5() case var $0) {
       if (this.f9() case var $1?) {
-        if ([$0, $1] case var $) {
-          return $0.isEmpty ? $1 : "${$0}::${$1}";
-        }
+        return $0.isEmpty ? $1 : "${$0}::${$1}";
       }
     }
   }
@@ -3812,14 +3808,12 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
   String? rk() {
     if (this._mark() case var _mark) {
       if (this.apply(this.rk) case var type?) {
-        if (this.apply(this.ry) case var $1?) {
-          if (this.matchPattern(_string.$73) case var $2?) {
-            if (this.apply(this.ry) case var $3?) {
+        if (this.apply(this.ry) case _?) {
+          if (this.matchPattern(_string.$73) case _?) {
+            if (this.apply(this.ry) case _?) {
               if (this.apply(this.ro) case var parameters?) {
                 if (this.f10() case var $5) {
-                  if ([type, $1, $2, $3, parameters, $5] case var $) {
-                    return "$type Function$parameters${$5 ?? " "}";
-                  }
+                  return "$type Function$parameters${$5 ?? " "}";
                 }
               }
             }
@@ -4093,11 +4087,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
   /// `global::dart::type::field::positional`
   String? rw() {
     if (this.apply(this.rk) case var $0?) {
-      if (this.apply(this.ry) case var $1?) {
+      if (this.apply(this.ry) case _?) {
         if (this.f9() case var $2) {
-          if ([$0, $1, $2] case var $) {
-            return "${$0} ${$2 ?? ""}".trimRight();
-          }
+          return "${$0} ${$2 ?? ""}".trimRight();
         }
       }
     }
@@ -4106,11 +4098,9 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
   /// `global::dart::type::field::named`
   String? rx() {
     if (this.apply(this.rk) case var $0?) {
-      if (this.apply(this.ry) case var $1?) {
+      if (this.apply(this.ry) case _?) {
         if (this.f9() case var $2?) {
-          if ([$0, $1, $2] case var $) {
-            return "${$0} ${$2}";
-          }
+          return "${$0} ${$2}";
         }
       }
     }
