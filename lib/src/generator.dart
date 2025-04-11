@@ -404,9 +404,7 @@ final class ParserGenerator {
         //    ""
         //    '+'
         //    '-'
-        NamespaceStatement(
-          tag: Tag.fragment,
-          "number", [
+        NamespaceStatement(tag: Tag.fragment, "number", [
           DeclarationStatement.predefined("slow", ReferenceNode("number"), type: "Object"),
           DeclarationStatement.predefined(
             "number",
@@ -817,7 +815,7 @@ extension IndentationExtension on String {
 extension NameShortcuts on Set<String>? {
   /// This gets a single name from the set.
   ///  If the set is null, it returns `$`.
-  String get singleName => this == null ? r"$" : this!.first;
+  String get singleName => this == null ? r"$" : this!.where((v) => v != "_").firstOrNull ?? r"$";
 
   String get statementVarNames => switch (this) {
     null => r"var $",

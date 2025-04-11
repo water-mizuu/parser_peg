@@ -64,13 +64,14 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   @override
   String visitEpsilonNode(node, parameters) {
     var Parameters(:isNullAllowed, :withNames, :inner) = parameters;
-    var buffer = [
-      "if ('' case ${withNames.caseVarNames}) {",
-      inner?.indent() ?? "return ${withNames.singleName};".indent(),
-      "}",
-    ];
+    var body = inner ?? "return ${withNames.singleName};";
 
-    return buffer.join("\n");
+    return body =
+        (StringBuffer()
+              ..writeln("if ('' case ${withNames.caseVarNames}) {")
+              ..writeln(body.indent())
+              ..writeln("}"))
+            .toString();
   }
 
   @override
@@ -78,13 +79,16 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     var Parameters(:isNullAllowed, :withNames, :inner) = parameters;
     var key = jsonEncode(node.options);
     var id = trieIds[key] ??= (tries..add(node.options), ++trieId).$2;
-    var buffer = [
-      "if (this.matchTrie(_trie.\$$id) case ${withNames.caseVarNames}${isNullAllowed ? "" : "?"}) {",
-      inner?.indent() ?? "return ${withNames.singleName};".indent(),
-      "}",
-    ];
+    var questionMark = isNullAllowed ? "" : "?";
+    var name = withNames.caseVarNames + questionMark;
 
-    return buffer.join("\n");
+    var body = inner ?? "return ${withNames.singleName};";
+    return body =
+        (StringBuffer()
+              ..writeln("if (this.matchTrie(_trie.\$$id) case $name) {")
+              ..writeln(body.indent())
+              ..writeln("}"))
+            .toString();
   }
 
   @override
@@ -92,12 +96,16 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     var Parameters(:isNullAllowed, :withNames, :inner) = parameters;
     var key = node.literal;
     var id = stringIds[key] ??= (strings..add(node.literal), ++stringId).$2;
-    var buffer = [
-      "if (this.matchPattern(_string.\$$id) case ${withNames.caseVarNames}${isNullAllowed ? "" : "?"}) {",
-      inner?.indent() ?? "return ${withNames.singleName};".indent(),
-      "}",
-    ];
-    return buffer.join("\n");
+    var questionMark = isNullAllowed ? "" : "?";
+    var name = withNames.caseVarNames + questionMark;
+
+    var body = inner ?? "return ${withNames.singleName};";
+    return body =
+        (StringBuffer()
+              ..writeln("if (this.matchPattern(_string.\$$id) case $name) {")
+              ..writeln(body.indent())
+              ..writeln("}"))
+            .toString();
   }
 
   @override
@@ -112,14 +120,18 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
           },
         )
         .join(",");
-    var id = rangeIds[key] ??= (ranges..add(node.ranges), ++rangeId).$2;
-    var buffer = [
-      "if (this.matchRange(_range.\$$id) case ${withNames.caseVarNames}${isNullAllowed ? "" : "?"}) {",
-      inner?.indent() ?? "return ${withNames.singleName};".indent(),
-      "}",
-    ];
 
-    return buffer.join("\n");
+    var id = rangeIds[key] ??= (ranges..add(node.ranges), ++rangeId).$2;
+    var questionMark = isNullAllowed ? "" : "?";
+    var name = withNames.caseVarNames + questionMark;
+
+    var body = inner ?? "return ${withNames.singleName};";
+    return body =
+        (StringBuffer()
+              ..writeln("if (this.matchRange(_range.\$$id) case $name) {")
+              ..writeln(body.indent())
+              ..writeln("}"))
+            .toString();
   }
 
   @override
@@ -127,13 +139,16 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     var Parameters(:isNullAllowed, :withNames, :inner) = parameters;
     var key = node.value;
     var id = regexpIds[key] ??= (regexps..add(key), ++regexpId).$2;
-    var buffer = [
-      "if (matchPattern(_regexp.\$$id) case ${withNames.caseVarNames}${isNullAllowed ? "" : "?"}) {",
-      inner?.indent() ?? "return ${withNames.singleName};".indent(),
-      "}",
-    ];
+    var questionMark = isNullAllowed ? "" : "?";
+    var name = withNames.caseVarNames + questionMark;
 
-    return buffer.join("\n");
+    var body = inner ?? "return ${withNames.singleName};";
+    return body =
+        (StringBuffer()
+              ..writeln("if (this.matchPattern(_regexp.\$$id) case $name) {")
+              ..writeln(body.indent())
+              ..writeln("}"))
+            .toString();
   }
 
   @override
@@ -141,80 +156,77 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     var Parameters(:isNullAllowed, :withNames, :inner) = parameters;
     var pattern = node.pattern;
     var id = regexpIds[pattern] ??= (regexps..add(pattern), ++regexpId).$2;
-    var buffer = [
-      "if (matchPattern(_regexp.\$$id) case ${withNames.caseVarNames}${isNullAllowed ? "" : "?"}) {",
-      inner?.indent() ?? "return ${withNames.singleName};".indent(),
-      "}",
-    ];
 
-    return buffer.join("\n");
+    var questionMark = isNullAllowed ? "" : "?";
+    var name = withNames.caseVarNames + questionMark;
+
+    var body = inner ?? "return ${withNames.singleName};";
+    return body =
+        (StringBuffer()
+              ..writeln("if (this.matchPattern(_regexp.\$$id) case $name) {")
+              ..writeln(body.indent())
+              ..writeln("}"))
+            .toString();
   }
 
   @override
   String visitSequenceNode(node, parameters) {
     var Parameters(:withNames, :inner, :declarationName, :markSaved) = parameters;
 
-    /// This is a list of names that are used to name the result of a match.
-    var names = [
+    var names = List.generate(node.children.length, (_) => {"_"});
+    if (node.chosenIndex case var index?) {
+      names[index].add("\$$index");
+    } else if (inner == null) {
       /// If the inner is null, take it easy.
-      if (inner == null) ...[
-        /// If there aren't any chosen items, then we name all of them.
-        if (node.chosenIndex == null)
-          for (var i = 0; i < node.children.length; ++i) "\$$i"
-        /// If there is a chosen item, then just name that one.
-        else
-          for (var i = 0; i < node.children.length; ++i)
-            if (node.chosenIndex == i) "\$$i" else "_",
-      ]
-      /// Since there is an inner, we must be more careful.
-      else
-        for (var (i, child) in node.children.indexed)
-          /// If a child is named, then obviously we name them as is.
-          if (child case NamedNode(:String name))
-            name //
-          else ...[
-            /// If we're not choosing anything, then we *MIGHT* need to use it.
-            if (node.chosenIndex != null) ...[
-              /// If we're not naming our result, then we *won't* need it.
-              if (withNames == null)
-                "_"
-              /// Else, we just add a name.
-              else
-                "\$$i",
-            ] else ...[
-              /// If we're going to use this, then we need to name it.
-              if (inner.contains(RegExp("\\\$$i\\b")))
-                "\$$i"
-              /// If we won't name our general result, then we won't need it.
-              else if (withNames == null)
-                "_"
-              /// Else, we just add a name.
-              else
-                "\$$i",
-            ],
-          ],
-    ];
+      ///   this just means that we expose all of them.
+      ///   Also, there are no actions, so we don't need to worry about
+      ///   naming them.
 
-    var lowestInner =
+      for (var i = 0; i < names.length; ++i) {
+        names[i].add("\$$i");
+      }
+    } else {
+      for (var (i, child) in node.children.indexed) {
+        if (child case NamedNode(:String name)) {
+          /// If the node is named, then we just use the name.
+          names[i].add(name);
+        } else if (withNames != null || inner.contains(RegExp("\\\$$i\\b"))) {
+          /// If [withNames] is not null, (this whole sequence) has been named,
+          ///   then we need to name the node.
+          ///
+          /// If the [inner] contains a reference to this node, then we need to
+          ///   name it.
+          names[i].add("\$$i");
+        }
+      }
+    }
+
+    var body =
         inner ?? //
         node.chosenIndex?.apply((v) => "return \$$v;") ??
-        names.join(", ").apply((v) => "return ($v);");
+        names.map((s) => s.singleName).join(", ").apply((v) => "return ($v);");
 
-    var aliased = switch (withNames) {
-      null => lowestInner,
-      var withNames => switch (node.chosenIndex) {
-        null =>
-          "if ([${names.join(", ")}] case ${withNames.caseVarNames}) {\n${lowestInner.indent()}\n}",
-        var choose => "if (\$$choose case ${withNames.caseVarNames}) {\n${lowestInner.indent()}\n}",
-      },
-    };
+    if (withNames != null) {
+      /// Since we have a name ordered by our parent, we need to expose
+      ///   it to our [inner].
 
-    var body = aliased;
+      var leftHand = switch (node.chosenIndex) {
+        null => "[${names.map((s) => s.singleName).join(", ")}]",
+        var choose => "\$$choose",
+      };
+
+      body =
+          (StringBuffer()
+                ..writeln("if ($leftHand case ${withNames.caseVarNames}) {")
+                ..writeln(body.indent())
+                ..writeln("}"))
+              .toString();
+    }
 
     /// We essentially "wrap" the body by each node in the sequence in reverse.
     for (var (index, node) in node.children.indexed.toList().reversed) {
       var innerParameters = Parameters(
-        withNames: {names[index]},
+        withNames: names[index],
         inner: body,
         isNullAllowed: isNullable(node, declarationName),
         declarationName: declarationName,
@@ -229,28 +241,32 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   @override
   String visitChoiceNode(node, parameters) {
     var Parameters(:isNullAllowed, :withNames, :inner, :declarationName, :markSaved) = parameters;
-    var buffer = [
-      if (!markSaved) "if (this._mark() case var _mark) {",
-      [
-        for (var (i, child) in node.children.indexed) ...[
-          if (i > 0) "this._recover(_mark);",
 
-          child.acceptParametrizedVisitor(
+    var body = node.children
+        .map(
+          (c) => c.acceptParametrizedVisitor(
             this,
             Parameters(
-              isNullAllowed: isNullable(child, declarationName),
+              isNullAllowed: isNullable(c, declarationName),
               withNames: withNames,
               inner: inner,
               declarationName: declarationName,
               markSaved: true,
             ),
-          ), //
-        ],
-      ].join("\n").indent(1, !markSaved),
-      if (!markSaved) "}",
-    ];
+          ),
+        )
+        .join("\nthis._recover(_mark);\n");
 
-    return buffer.join("\n");
+    if (!markSaved) {
+      body =
+          (StringBuffer()
+                ..writeln("if (this._mark() case var _mark) {")
+                ..writeln(body.indent())
+                ..writeln("}"))
+              .toString();
+    }
+
+    return body;
   }
 
   @override

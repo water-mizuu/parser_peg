@@ -24890,7 +24890,12 @@
   │   │ │ │   └─"\n\n  /// Layout parser allows comments (like this) and space between parsers.\n  /// Regular Expression monster below:\n  ///   Split into three parts.\n  ///   1. `(\\s)` - Matches any whitespace character.\n  ///   2. `(\\/{2}.*((\\r?\\n)|($)))` - Matches a single line comment.\n  ///   3. `(\\/\\*((?!\\*\\/).)*\\*\\/)` - Matches a multi-line comment.\n\n  /// These entries are commented out as I think they are slower than regexp counterparts.\n\n  // String _ = (whitespace | comment.singleLine | comment.multiLine)* |> \"\";\n  // String whitespace = \\s+                                           |> \"\";\n  // String comment.singleLine = \"//\" (~(\\r?\\n|$))* &(\\r?\\n|$)         |> \"\";\n  // String comment.multiLine = \"/*\" (~\"*/\")* \"*/\"                     |> \"\";\n\n  // String _ = (whitespace | comment.singleLine | comment.multiLine)*  { \"\" };\n  // String whitespace = /\\s+/;\n  // String comment.singleLine = /\\/{2}((?!((\\r?\\n)|($))).)*(?=(\\r?\\n)|($))/;\n  // String comment.multiLine = /(\\/\\*((?!\\*\\/).)*\\*\\/)/;\n\n  "
   │   │ │ └─null
   │   │ └─<statement>
-  │   │   ├─null
+  │   │   ├─<kw::decorator>
+  │   │   │ ├─<_>
+  │   │   │ │ └─""
+  │   │   │ ├─"@rule"
+  │   │   │ └─<_>
+  │   │   │   └─"\n  "
   │   │   ├─<type>
   │   │   │ └─<dart::type::main>
   │   │   │   ├─<_>
@@ -25036,4 +25041,4 @@
   │       └─""
   ├─<_>
   │ └─""
-  └─19874
+  └─19882
