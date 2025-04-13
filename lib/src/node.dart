@@ -85,18 +85,21 @@ enum SimpleRegExpEscapeNode implements RegExpEscapeNode {
   digit(r"\d"),
   word(r"\w"),
   whitespace(r"\s"),
+  wordBoundary(r"\b"),
 
   /// Inverses
   notDigit(r"\D"),
   notWord(r"\W"),
   notWhitespace(r"\S"),
+  notWordBoundary(r"\B"),
 
   /// Spaces
   tab(r"\t"),
   newline(r"\n"),
   carriageReturn(r"\r"),
   formFeed(r"\f"),
-  verticalTab(r"\v");
+  verticalTab(r"\v"),
+  ;
 
   const SimpleRegExpEscapeNode(this.pattern);
 

@@ -747,7 +747,7 @@ final class ParserGenerator {
       CountedNode _ => node.min <= 0 || isNullable(node.child, ruleName),
       StringLiteralNode _ => node.literal.isEmpty,
       SequenceNode _ =>
-        (_isNullable[node] = true, node.children.every((node) => isNullable(node, ruleName))).$2,
+        (_isNullable[node] = false, node.children.every((node) => isNullable(node, ruleName))).$2,
       ChoiceNode _ =>
         (_isNullable[node] = false, node.children.any((node) => isNullable(node, ruleName))).$2,
       PlusSeparatedNode _ =>

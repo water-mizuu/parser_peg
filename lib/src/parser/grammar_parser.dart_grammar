@@ -8,6 +8,11 @@ final _regexps = (
   to: RegExp(r"\bto\b"),
   span: RegExp(r"\bspan\b"),
 );
+
+class FlatNode extends InlineActionNode {
+  const FlatNode(Node child): super(child, "span", areIndicesProvided: true, isSpanUsed: true);
+}
+
 }
 
 /// A grammar file contains an optional preamble and statements.
@@ -48,7 +53,7 @@ Statement statement =
 
 /// A type declaration is a separate statement from the declaration
 ///   that can be used as a basis for types or tags.
-  | :kw.decorator? :type? names:`,`..name+ `;`
+  | :kw.decorator? :type? names:(`,`..name+) `;`
     |> DeclarationTypeStatement(type, names, tag: decorator)
   | :kw.decorator? kw.var? :name `:` :type `;`
     |> DeclarationTypeStatement(type, [name], tag: decorator)
@@ -139,7 +144,7 @@ Node labeled =
       return NamedNode(name, ReferenceNode(id));
     }
   | special
-;
+  ;
 
 /// Pegen style separators.
 ///   Difference here, is that we can use `+` or `*` as quantifiers.
@@ -147,82 +152,40 @@ Node labeled =
 ///   `+`, like a normal kleene-plus, means one or more.
 ///   So technically, _.."a"* is equivalent to "a"*.
 Node special =
-  | sep:call `..` expr:call `+` `?` |> PlusSeparatedNode(sep, expr, isTrailingAllowed: true)
-  | sep:call `..` expr:call `*` `?` |> StarSeparatedNode(sep, expr, isTrailingAllowed: true)
-  | sep:call `..` expr:call `+`     |> PlusSeparatedNode(sep, expr, isTrailingAllowed: false)
-  | sep:call `..` expr:call `*`     |> StarSeparatedNode(sep, expr, isTrailingAllowed: false)
+  | sep:atom `..` expr:atom `+` `?` |> PlusSeparatedNode(sep, expr, isTrailingAllowed: true)
+  | sep:atom `..` expr:atom `*` `?` |> StarSeparatedNode(sep, expr, isTrailingAllowed: true)
+  | sep:atom `..` expr:atom `+`     |> PlusSeparatedNode(sep, expr, isTrailingAllowed: false)
+  | sep:atom `..` expr:atom `*`     |> StarSeparatedNode(sep, expr, isTrailingAllowed: false)
   | postfix
-;
+  ;
 
 /// A parser that is quantified.
 ///   Can be nested, but shouldn't be used in practice.
 Node postfix =
-  | postfix `?` @0 |> OptionalNode($)
-  | postfix `*` @0 |> StarNode($)
-  | postfix `+` @0 |> PlusNode($)
+  | postfix <~ `?` |> OptionalNode($)
+  | postfix <~ `*` |> StarNode($)
+  | postfix <~ `+` |> PlusNode($)
   | prefix
-;
+  ;
 
 /// A parser that is prefixed.
 ///   Usually with disambiguators such as `and-predicate` and `not-predicate`.
 Node prefix =
-  | min:number `..` max:number? body:atom |> CountedNode(min, max, body)
-  | :number body:atom                     |> CountedNode(number, number, body)
-  | `~` prefix @1 |> ExceptNode($)
-  | `&` prefix @1 |> AndPredicateNode($)
-  | `!` prefix @1 |> NotPredicateNode($)
-  | call
-;
-
-/// "Call"-like because they technically look like a call, but this is special syntax.
-///   (Calls don't exist.)
-Node call =
-  /// Flattens a parser result.
-  ///   a.flat!()
-  | target:call `.` mac.flat `(`  `)` {
-      InlineActionNode(target, "span", areIndicesProvided: true, isSpanUsed: true)
-    }
-  /// Expects a number of results.
-  ///  a.range!(2, 4)
-  | target:call `.` mac.range `(` min:number `,` max:number `)` {
-      CountedNode(min, max, target)
-    }
-
-  ///  a.range!(2)
-  | target:call `.` mac.range `(` :number `)` { CountedNode(number, number, target) }
-
-  ///  a.range! 2
-  | target:call `.` mac.range  _  :number  _ { CountedNode(number, number, target) }
-
-  /// Separates a parser by a separator.
-  ///
-  ///  a.sep! b
-  | sep:call `.` mac.sep `(` body:choice `)` `+` `?` {
-      PlusSeparatedNode(sep, body, isTrailingAllowed: true)
-    }
-  | sep:call `.` mac.sep `(` body:choice `)` `*` `?` {
-      StarSeparatedNode(sep, body, isTrailingAllowed: true)
-    }
-  | sep:call `.` mac.sep `(` body:choice `)` `+` {
-      PlusSeparatedNode(sep, body, isTrailingAllowed: false)
-    }
-  | sep:call `.` mac.sep `(` body:choice `)` `*` {
-      StarSeparatedNode(sep, body, isTrailingAllowed: false)
-    }
-  | sep:call `.` mac.sep `(` body:choice `)` {
-      PlusSeparatedNode(sep, body, isTrailingAllowed: false)
-    }
-  | sep:call `.` mac.sep  _  body:atom  _ {
-      PlusSeparatedNode(sep, body, isTrailingAllowed: false)
-    }
+  | min:number `..` max:number body:atom |> CountedNode(min, max, body)
+  | min:number `..` body:atom            |> CountedNode(min, null, body)
+  | :number body:atom                    |> CountedNode(number, number, body)
+  | `~` ~> prefix |> ExceptNode($)
+  | `&` ~> prefix |> AndPredicateNode($)
+  | `!` ~> prefix |> NotPredicateNode($)
   | atom
-;
+  ;
 
 /// A parser that can be qualified as a group.
 ///   These are usually parsers that are delimited.
 Node atom =
   /// Basic atomic parsers.
   | `(` ~> choice <~ `)`
+  | !`<~` `<` :choice `>`      |> FlatNode(choice)
 
   /// Special syntax for character classes.
   | `^`                        |> const StartOfInputNode()
@@ -250,8 +213,11 @@ Node atom =
   | regexEscape.formFeed       |> SimpleRegExpEscapeNode.formFeed
   | regexEscape.verticalTab    |> SimpleRegExpEscapeNode.verticalTab
 
+  /// Specials
+  | regexEscape.wordBoundary   |> SimpleRegExpEscapeNode.wordBoundary
+
   /// Basic literals.
-  | literal.range
+  | literal.range              |> RangeNode($)
   | literal.regexp             |> RegExpNode($)
   | literal.string             |> StringLiteralNode($)
   | name                       |> ReferenceNode($)
@@ -305,11 +271,9 @@ code {
       ;
   }
 
-  Node range =  _ range.main _ @1;
+  Set<(int, int)> range =  _ range.main _ @1;
   range {
-    @inline main =
-      | _ "[" elements:_..element+ "]" _
-        |> RangeNode(elements.expand((e) => e).toSet());
+    @inline main = "[" elements:_..element+ "]" |> elements.expand((e) => e).toSet();
 
     Set<(int, int)> element =
       | escape
@@ -339,8 +303,8 @@ dart {
   literal {
     /// Since string literals in [Dart] can be put adjacent, we need to parse while
     ///   there are still string literals.
-    String string = _..string.body.flat!()+ { $.join(" ") };
-    String identifier = global.identifier.flat!();
+    String string = _..<string.body>+ { $.join(" ") };
+    String identifier = global.identifier;
 
     string {
       @inline body =
@@ -356,7 +320,7 @@ dart {
         | "'"   (\\ . @1 | &"$" interpolation | ~"'"  )* "'"   |> ()
         ;
 
-      @inline interpolation =
+      interpolation =
         | r"$" "{" balanced "}"
         | r"$" identifier
         ;
@@ -370,62 +334,61 @@ dart {
   }
 
   type {
-    String main = _ type _ @1;
-    String type =
-      | :type _ "Function" _ :fn.parameters `?`? |> "$type Function$parameters${$5 ?? ""}"
-      | nullable;
+    String main = _ nullable _ @1;
+    String nullable = :nonNullable `?`? { "$nonNullable${$1 ?? ""}" };
+    String nonNullable = choice! {
+      /// Dart function type.
+      function = :nullable _ "Function" _ :fnParameters |> "${$0} Function${$4}";
 
-    String nullable =
-      | :nonNullable `?` {"$nonNullable?"}
-      | nonNullable;
+      /// Generic types.
+      generic = :base `<` args:(`,`..type+ { $.join(", ") }) `>` { "$base<$args>" };
 
-    String nonNullable = generic | record | base;
+      /// A record type.
+      ///   The fields can be positional or named.
+      ///   The fields are special by commas.
+      // (int, int b, {int a,})
+      // (int, int b,)
+      // ({int a,})
+      // ()
+      String record = choice! {
+        all = `(` positional:fields.positional `,` named:parameters.named `)`
+          |> "(" + positional + ", " + named + ")";
 
-    /// A record type.
-    ///   The fields can be positional or named.
-    ///   The fields are special by commas.
-    // (int, int b, {int a,})
-    // (int, int b,)
-    // ({int a,})
-    // ()
-    String record =
-      | `(` positional:fields.positional `,` named:parameters.named `)`
-        |> "(" + positional + ", " + named + ")"
-      | `(` positional:fields.positional `,`? `)`
-        |> "(" + positional + ")"
-      | `(` named:parameters.named `)`
-        |> "(" + named + ")"
-      | `(`  `)`
-        |> "()";
+        onlyPositional = `(` positional:fields.positional `,`? `)`
+          |> "(" + positional + ")";
 
-    /// Dart function type.
+        onlyNamed = `(` named:parameters.named `)`
+          |> "(" + named + ")";
+
+        empty = `(` `)`
+          |> "()";
+      };
+
+      /// The base type.
+      ///   This is basically identifiers separated by dots.
+      ///   As from a namespace or such.
+      base = `.`..identifier+         { $.join(".") };
+    };
+
     // (int a, int b, {int a})
     // (int a, int b, [int a])
     // (int a, int b)
     // ({int a, int b})
     // ([int a, int b])
     // ()
-    fn {
-      String parameters =
-        | `(` positional:fields.positional `,` named:parameters.named `)`
-            { "($positional, $named)" }
-        | `(` positional:fields.positional `,` optional:parameters.optional `)`
-            { "($positional, $optional)" }
-        | `(` positional:fields.positional `,`? `)`
-            { "($positional)" }
-        | `(` named:parameters.named `)`
-            { "($named)" }
-        | `(` optional:parameters.optional `)`
-            { "($optional)" }
-        | `(` `)`
-            { "()" };
-    }
-
-    @rule {
-      String generic   = :base `<` :arguments `>` { "$base<$arguments>" };
-      String arguments = `,`..type+               { $.join(", ") };
-      String base      = `.`..identifier+         { $.join(".") };
-    }
+    String fnParameters =
+      | `(` :fields.positional `,` :parameters.named `)`
+          { "($positional, $named)" }
+      | `(` :fields.positional `,` :parameters.optional `)`
+          { "($positional, $optional)" }
+      | `(` :fields.positional `,`? `)`
+          { "($positional)" }
+      | `(` :parameters.named `)`
+          { "($named)" }
+      | `(` :parameters.optional `)`
+          { "($optional)" }
+      | `(` `)`
+          { "()" };
 
     parameters {
       String optional = `[` fields.positional `,`? `]` { "[" + $1 + "]" };
@@ -452,8 +415,9 @@ dart {
   /// [namespaceReference] is a reference to a namespace.
   ///   It is a sequence of identifiers separated by "::" or ".".
   ///   It should not match a macro.
-  String namespaceReference = (identifier ("::" | !".." ".") !mac @0)*
-    |> $.join(ParserGenerator.separator);
+  String namespaceReference =
+    | 1..(identifier ("::" | !".." ".") !mac @0) |> $.join(ParserGenerator.separator)
+    | std.epsilon;
 
   /// A [name] can be a single name, or multiple aliases.
   ///  The aliases are separated by `&&`, surrounded by parentheses.
@@ -463,22 +427,22 @@ dart {
 
   /// [namespacedRaw] refers to a name which may have accessed a namespace,
   ///   using a raw trailing name ``<example>``
-  String namespacedRaw = namespaceReference literal.raw { $0.isEmpty ? $1 : "${$0}::${$1}" };
-  String namespacedIdentifier = namespaceReference identifier { $0.isEmpty ? $1 : "${$0}::${$1}" };
+  String namespacedRaw = namespaceReference literal.raw       |> $0.isEmpty ? $1 : "${$0}::${$1}";
+  String namespacedIdentifier = namespaceReference identifier |> $0.isEmpty ? $1 : "${$0}::${$1}";
 
-  Node body = ((`:`? `=`)| `<-` | `->`) :choice `;` { choice };
+  Node body = ((1..2`:`)? `=` | `<-` | `->`) :choice `;` @1;
 }
 
 /// Tokens used in the grammar.
 ///   Since they are not recursive, they are not defined as rules.
 @fragment {
-  String identifier = /[a-zA-Z_$][a-zA-Z0-9_$]*/ { span };
-  String raw        = "`" 0..(~"`") "`" @1 { $.join() };
-  int number        = \d+ { int.parse($.join()) };
+  String identifier ::= <[a-zA-Z_$] [a-zA-Z0-9_$]*>;
+  String raw        := "`" <0..(~"`")> "`" @1;
+  int number        -> \d+ { int.parse($.join()) };
 
   kw {
-    Tag decorator
-      = _ "@rule" _     { Tag.rule }
+    Tag decorator <-
+      | _ "@rule" _     { Tag.rule }
       | _ "@fragment" _ { Tag.fragment }
       | _ "@inline" _   { Tag.inline }
       ;
@@ -500,32 +464,34 @@ dart {
   };
 
   String regexEscape = choice! @fragment {
-    backslash       = _ (\\ r"\").flat!() _ @1;
+    backslash       = _ ~> <\\ r"\"> <~ _;
 
-    digit           = _ (\\ r"d").flat!() _ @1;
-    word            = _ (\\ r"w").flat!() _ @1;
-    whitespace      = _ (\\ r"s").flat!() _ @1;
+    digit           = _ <\\ r"d"> _ @1;
+    word            = _ <\\ r"w"> _ @1;
+    whitespace      = _ <\\ r"s"> _ @1;
+    wordBoundary    = _ <\\ r"b"> _ @1;
 
-    notDigit        = _ (\\ r"d").flat!() _ @1;
-    notWord         = _ (\\ r"w").flat!() _ @1;
-    notWhitespace   = _ (\\ r"s").flat!() _ @1;
+    notDigit        = _ <\\ r"D"> _ @1;
+    notWord         = _ <\\ r"W"> _ @1;
+    notWhitespace   = _ <\\ r"S"> _ @1;
+    notWordBoundary = _ <\\ r"b"> _ @1;
 
-    newline         = _ (\\ r"n").flat!() _ @1;
-    carriageReturn  = _ (\\ r"r").flat!() _ @1;
-    tab             = _ (\\ r"t").flat!() _ @1;
-    formFeed        = _ (\\ r"f").flat!() _ @1;
-    verticalTab     = _ (\\ r"v").flat!() _ @1;
-    null            = _ (\\ r"0").flat!() _ @1;
-    control         = _ (\\ r"c").flat!() _ @1;
-    hex             = _ (\\ r"x").flat!() _ @1;
-    unicode         = _ (\\ r"u").flat!() _ @1;
-    unicodeExtended = _ (\\ r"U").flat!() _ @1;
-    literal         = _ (\\ r".").flat!() _ @1;
+    newline         = _ <\\ r"n"> _ @1;
+    carriageReturn  = _ <\\ r"r"> _ @1;
+    tab             = _ <\\ r"t"> _ @1;
+    formFeed        = _ <\\ r"f"> _ @1;
+    verticalTab     = _ <\\ r"v"> _ @1;
+    null            = _ <\\ r"0"> _ @1;
+    control         = _ <\\ r"c"> _ @1;
+    hex             = _ <\\ r"x"> _ @1;
+    unicode         = _ <\\ r"u"> _ @1;
+    unicodeExtended = _ <\\ r"U"> _ @1;
+    literal         = _ <\\ r"."> _ @1;
   };
 
   /// Literal tokens
   String () = choice! @fragment {
-    `..` = _ ".." _ @1;
+    `..` =  _ ".." _ @1;
     `::` = _ "::" _ @1;
     `%%` = _ "%%" _ @1;
     `=>` = _ "=>" _ @1;
@@ -571,19 +537,15 @@ dart {
   ///   1. `(\s)` - Matches any whitespace character.
   ///   2. `(\/{2}.*((\r?\n)|($)))` - Matches a single line comment.
   ///   3. `(\/\*((?!\*\/).)*\*\/)` - Matches a multi-line comment.
+  @rule {
+    String _    = (whitespace | &"/" comment)* |> "";
+    whitespace  = \s+                          |> "";
 
-  /// These entries are commented out as I think they are slower than regexp counterparts.
+    String comment = choice! {
+      single = "//" (~newlineOrEof)* |> "";
+      multi  = "/*" (~"*/")* "*/"    |> "";
+    };
 
-  // String _ = (whitespace | comment.singleLine | comment.multiLine)* |> "";
-  // String whitespace = \s+                                           |> "";
-  // String comment.singleLine = "//" (~(\r?\n|$))* &(\r?\n|$)         |> "";
-  // String comment.multiLine = "/*" (~"*/")* "*/"                     |> "";
-
-  // String _ = (whitespace | comment.singleLine | comment.multiLine)*  { "" };
-  // String whitespace = /\s+/;
-  // String comment.singleLine = /\/{2}((?!((\r?\n)|($))).)*(?=(\r?\n)|($))/;
-  // String comment.multiLine = /(\/\*((?!\*\/).)*\*\/)/;
-
-  @rule
-  String _ = /((\s+)|(\/{2}((?!((\r?\n)|($))).)*(?=(\r?\n)|($)))|((\/\*((?!\*\/).)*\*\/)))*/ |> "";
+    newlineOrEof = \r? \n \r? | $;
+  }
 }

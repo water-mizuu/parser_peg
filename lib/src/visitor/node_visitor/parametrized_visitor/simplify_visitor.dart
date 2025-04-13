@@ -90,7 +90,7 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
     if (stringNodes.length < 4 || averageLength < 8) {
       if (depth > 0) {
         return createFragment(
-          ChoiceNode([for (var child in node.children) child.acceptParametrizedVisitor(this, 0)]),
+          ChoiceNode([for (var child in node.children) child.acceptParametrizedVisitor(this, 1)]),
         );
       } else {
         return ChoiceNode([
@@ -156,7 +156,9 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
 
   @override
   Node visitOptionalNode(OptionalNode node, int depth) {
-    return OptionalNode(node.child.acceptParametrizedVisitor(this, depth));
+    /// If we are nested in something, just make it a fragment.
+    ///   Then, make the thing nullable.
+    return OptionalNode(createFragment(node.child.acceptParametrizedVisitor(this, 0)));
   }
 
   @override
