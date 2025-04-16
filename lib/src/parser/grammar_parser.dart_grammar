@@ -55,23 +55,25 @@ Statement statement =
 ///   that can be used as a basis for types or tags.
   | :kw.decorator? :type? names:(`,`..name+) `;`
     |> DeclarationTypeStatement(type, names, tag: decorator)
-  | :kw.decorator? kw.var? :name `:` :type `;`
-    |> DeclarationTypeStatement(type, [name], tag: decorator)
 
 /// A declaration is a statement that can be referenced by other declarations.
 ///   Formally, it is a non-terminal.
-
-  | :kw.decorator? kw.var? :name :body
-    |> DeclarationStatement(null, name, body, tag: decorator)
   | :kw.decorator? :type :name :body
     |> DeclarationStatement(type, name, body, tag: decorator)
-  | :kw.decorator? kw.var? :name `:` :type :body
-    |> DeclarationStatement(type, name, body, tag: decorator);
+
+  | :kw.decorator? :name :body
+    |> DeclarationStatement(null, name, body, tag: decorator)
+  ;
 
 /// A choice parser is a parser that tries to match one of the options.
 /// Despite the syntax, the parser is ordered choice.
-Node choice = (`|` `|`?)? options:(`|` `|`?)..acted+
-  |> options.length == 1 ? options.single : ChoiceNode(options);
+// Node choice = (`|` `|`?)? options:(`|` `|`?)..acted+
+//   |> options.length == 1 ? options.single : ChoiceNode(options);
+// Node choice = (`|` `|`?)? car:acted cdr:((`|` `|`?) ~> acted)*
+//   |> cdr.isEmpty ? car : ChoiceNode([car, ...cdr]);
+Node choice =
+  | :choice CHOICE_OP :acted { ChoiceNode([choice, acted]) }
+  | CHOICE_OP? :acted { acted };
 
 /// A parser with a bound action.
 Node acted =
@@ -106,10 +108,8 @@ Node acted =
 ///   By default, a sequence parser returns a [Record] of the results of the parsers.
 /// By specifying which item to keep, the specific item can be returned.
 Node sequence =
-  | body:_..dropped+ chosen:(`@` number @1)? {
-      body.length == 1 ? body.single : SequenceNode(body, chosenIndex: chosen)
-    }
-;
+  | body:_..dropped+ chosen:(`@` number @1)?
+    |> body.length == 1 ? body.single : SequenceNode(body, chosenIndex: chosen);
 
 /// A parser that is prefixed or suffixed by another parser.
 Node dropped =
@@ -224,25 +224,21 @@ Node atom =
 ;
 
 code {
-  String curly =
-    | "`" ~"`"* "`" @1 { $.join() }
-    | code:(
-        | dart.literal.string
-        | "{" balanced "}" @1 {"{" + $ + "}"}
-        | "(" balanced ")" @1 {"(" + $ + ")"}
-        | "[" balanced "]" @1 {"[" + $ + "]"}
-        | ~("}")
-      )* { code.join() };
+  String curly = (
+    | dart.literal.string
+    | "{" balanced "}" @1 {"{" + $ + "}"}
+    | "(" balanced ")" @1 {"(" + $ + ")"}
+    | "[" balanced "]" @1 {"[" + $ + "]"}
+    | ~("}")
+  )* { $.join() };
 
-  String nl =
-    | "`" ~"`"* "`" @1 { $.join() }
-    | (
-        | dart.literal.string
-        | "{" balanced "}" @1 {"{" + $ + "}"}
-        | "(" balanced ")" @1 {"(" + $ + ")"}
-        | "[" balanced "]" @1 {"[" + $ + "]"}
-        | ~(\n | ";" | ")")
-      )* { $.join() };
+  String nl = (
+    | dart.literal.string
+    | "{" balanced "}" @1 {"{" + $ + "}"}
+    | "(" balanced ")" @1 {"(" + $ + ")"}
+    | "[" balanced "]" @1 {"[" + $ + "]"}
+    | ~(\n | ";" | ")")
+  )* { $.join() };
 
   String balanced = (
     | dart.literal.string
@@ -309,15 +305,15 @@ dart {
     string {
       @inline body =
         /// Raw string literals
-        | 1"r" '"""' ~'"""'* '"""' |> ()
-        | 1"r" "'''" ~"'''"* "'''" |> ()
-        | 1"r" '"'   ~'"'*   '"'   |> ()
-        | 1"r" "'"   ~"'"*   "'"   |> ()
+        | 1"r" '"""' ~'"""'* '"""'
+        | 1"r" "'''" ~"'''"* "'''"
+        | 1"r" '"'   ~'"'*   '"'
+        | 1"r" "'"   ~"'"*   "'"
         /// Escaped string literals
-        | '"""' (\\ . @1 | &"$" interpolation | ~'"""')* '"""' |> ()
-        | "'''" (\\ . @1 | &"$" interpolation | ~"'''")* "'''" |> ()
-        | '"'   (\\ . @1 | &"$" interpolation | ~'"'  )* '"'   |> ()
-        | "'"   (\\ . @1 | &"$" interpolation | ~"'"  )* "'"   |> ()
+        | '"""' (\\ . @1 | &"$" interpolation | ~'"""')* '"""'
+        | "'''" (\\ . @1 | &"$" interpolation | ~"'''")* "'''"
+        | '"'   (\\ . @1 | &"$" interpolation | ~'"'  )* '"'
+        | "'"   (\\ . @1 | &"$" interpolation | ~"'"  )* "'"
         ;
 
       interpolation =
@@ -327,7 +323,7 @@ dart {
 
       String balanced = (
         | string
-        | "{" balanced "}" @1 {"{" + $ + "}"}
+        | "{" ~> balanced <~ "}" {"{" + $ + "}"}
         | ~"}"
       )* |> $.join();
     }
@@ -346,10 +342,6 @@ dart {
       /// A record type.
       ///   The fields can be positional or named.
       ///   The fields are special by commas.
-      // (int, int b, {int a,})
-      // (int, int b,)
-      // ({int a,})
-      // ()
       String record = choice! {
         all = `(` positional:fields.positional `,` named:parameters.named `)`
           |> "(" + positional + ", " + named + ")";
@@ -396,8 +388,11 @@ dart {
     }
 
     fields {
-      String positional = `,`..field.positional+ { $.join(", ") };
-      String named      = `,`..field.named+      { $.join(", ") };
+      String positional = car:field.positional `,` cdr:(`,`..field.positional*)
+        { [car, ...cdr].join(", ") };
+
+      String named = `,`..field.named+
+        { $.join(", ") };
     }
 
     field {
@@ -430,18 +425,18 @@ dart {
   String namespacedRaw = namespaceReference literal.raw       |> $0.isEmpty ? $1 : "${$0}::${$1}";
   String namespacedIdentifier = namespaceReference identifier |> $0.isEmpty ? $1 : "${$0}::${$1}";
 
-  Node body = ((1..2`:`)? `=` | `<-` | `->`) :choice `;` @1;
+  Node body = `=` :choice `;` @1;
 }
 
 /// Tokens used in the grammar.
 ///   Since they are not recursive, they are not defined as rules.
 @fragment {
-  String identifier ::= <[a-zA-Z_$] [a-zA-Z0-9_$]*>;
-  String raw        := "`" <0..(~"`")> "`" @1;
-  int number        -> \d+ { int.parse($.join()) };
+  String identifier = <[a-zA-Z_$] [a-zA-Z0-9_$]*>;
+  String raw        = "`" <0..(~"`")> "`" @1;
+  int number        = \d+ { int.parse($.join()) };
 
   kw {
-    Tag decorator <-
+    Tag decorator =
       | _ "@rule" _     { Tag.rule }
       | _ "@fragment" _ { Tag.fragment }
       | _ "@inline" _   { Tag.inline }
@@ -491,6 +486,8 @@ dart {
 
   /// Literal tokens
   String () = choice! @fragment {
+    CHOICE_OP = `|` `|`? { "" };
+
     `..` =  _ ".." _ @1;
     `::` = _ "::" _ @1;
     `%%` = _ "%%" _ @1;
