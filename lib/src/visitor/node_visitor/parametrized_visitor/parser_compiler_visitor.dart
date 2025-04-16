@@ -143,11 +143,18 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitSequenceNode(node, parameters) {
-    var Parameters(:withNames, :inner, :declarationName, :markSaved, :isNullAllowed) = parameters;
+    var Parameters(:withNames, :inner, :declarationName, :markSaved) = parameters;
 
-    // isNullAllowed should be used.
+    var chosenIndex = node.chosenIndex;
+    for (var (i, child) in node.children.indexed) {
+      if (child case NamedNode(name: r"$")) {
+        chosenIndex = i;
+        break;
+      }
+    }
+
     var names = List.generate(node.children.length, (_) => {"_"});
-    if (node.chosenIndex case var index?) {
+    if (chosenIndex case var index?) {
       names[index].add("\$$index");
     } else if (inner == null) {
       /// If the inner is null, take it easy.
@@ -178,14 +185,14 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
     var body =
         inner ?? //
-        node.chosenIndex?.apply((v) => "return \$$v;") ??
+        chosenIndex?.apply((v) => "return \$$v;") ??
         names.map((s) => s.singleName).join(", ").apply((v) => "return ($v);");
 
     if (withNames != null) {
       /// Since we have a name ordered by our parent, we need to expose
       ///   it to our [inner].
 
-      var leftHand = switch (node.chosenIndex) {
+      var leftHand = switch (chosenIndex) {
         null => "[${names.map((s) => s.singleName).join(", ")}]",
         var choose => "\$$choose",
       };

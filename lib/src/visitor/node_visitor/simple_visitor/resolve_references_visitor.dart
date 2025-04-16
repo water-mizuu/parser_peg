@@ -137,7 +137,7 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
 
   @override
   Node visitFragmentNode(FragmentNode node) {
-    return resolveReference(node.fragmentName);
+    throw UnsupportedError("At this stage of compilation, only reference nodes should exist.");
   }
 
   @override

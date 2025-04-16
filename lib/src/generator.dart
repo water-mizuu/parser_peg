@@ -70,8 +70,8 @@ final class ParserGenerator {
     /// This basically resolves all of the declarations in the grammar,
     ///   flattening the namespaces into a single map.
     for (var statement in workingStatements) {
-      var stack = Queue<(Statement, List<String>, Tag?)>.from([
-        (statement, ["global"], null),
+      var stack = Queue.of([
+        (statement, ["global"], null as Tag?),
       ]);
 
       while (stack.isNotEmpty) {
@@ -109,8 +109,8 @@ final class ParserGenerator {
 
     /// Resolve the references from inside namespaces.
     for (var statement in workingStatements) {
-      var stack = Queue<(Statement, List<String>, Tag?)>.from([
-        (statement, ["global"], null),
+      var stack = Queue.of([
+        (statement, ["global"], null as Tag?),
       ]);
 
       while (stack.isNotEmpty) {
@@ -610,49 +610,58 @@ final class ParserGenerator {
         fullBuffer.writeln(inner.toString().indent());
       }
 
-      fullBuffer.writeln();
+      fullBuffer
+        ..writeln()
+        ..writeln("}");
 
       if (compilerVisitor.regexps.isNotEmpty) {
-        fullBuffer.writeln("static final _regexp = (".indent());
-        for (String regExp in compilerVisitor.regexps) {
-          fullBuffer.writeln("RegExp(${encode(regExp)}),".indent(2));
+        fullBuffer.writeln("class _regexp {");
+        for (var (i, regExp) in compilerVisitor.regexps.indexed) {
+          fullBuffer.writeln("  /// `/$regExp/`");
+          fullBuffer.writeln("  static final \$${i + 1} = RegExp(${encode(regExp)});");
         }
-        fullBuffer.writeln(");".indent());
+        fullBuffer.writeln("}");
       }
 
       if (compilerVisitor.tries.isNotEmpty) {
-        fullBuffer.writeln("static final _trie = (".indent());
-        for (List<String> options in compilerVisitor.tries) {
-          fullBuffer.writeln("Trie.from(${encode(options)}),".indent(2));
+        fullBuffer.writeln("class _trie {");
+        for (var (i, options) in compilerVisitor.tries.indexed) {
+          fullBuffer.writeln("  /// $options");
+          fullBuffer.writeln("  final \$$i = Trie.from(${encode(options)});");
         }
-        fullBuffer.writeln(");".indent());
+        fullBuffer.writeln("}");
       }
 
       if (compilerVisitor.strings.isNotEmpty) {
-        fullBuffer.writeln("static const _string = (".indent());
-        for (String string in compilerVisitor.strings) {
-          fullBuffer.writeln("${encode(string)},".indent(2));
+        fullBuffer.writeln("class _string {");
+        for (var (i, string) in compilerVisitor.strings.indexed) {
+          fullBuffer.writeln("  /// `${encode(string)}`");
+          fullBuffer.writeln("static const \$${i + 1} = ${encode(string)};".indent());
         }
-        fullBuffer.writeln(");".indent());
+        fullBuffer.writeln("}");
       }
 
       if (compilerVisitor.ranges.isNotEmpty) {
-        fullBuffer.writeln("static const _range = (".indent());
-        for (var ranges in compilerVisitor.ranges) {
-          fullBuffer.write("    { ");
-          for (var (i, (low, high)) in ranges.indexed) {
-            fullBuffer.write("($low, $high)");
-
-            if (i < ranges.length - 1) {
+        fullBuffer.writeln("class _range {");
+        for (var (i, ranges) in compilerVisitor.ranges.indexed) {
+          fullBuffer.writeln(
+            "  /// `[${ranges.map((r) => switch (r) {
+              (var l, var r) when l == r => String.fromCharCode(l),
+              (var l, var r) => "${String.fromCharCode(l)}-${String.fromCharCode(r)}",
+            }).join()}]`",
+          );
+          fullBuffer.write("  static const \$${i + 1} = { ");
+          for (var (j, (low, high)) in ranges.indexed) {
+            if (j > 0) {
               fullBuffer.write(", ");
             }
-          }
-          fullBuffer.writeln(" },");
-        }
-        fullBuffer.writeln(");".indent());
-      }
 
-      fullBuffer.writeln("}");
+            fullBuffer.write("($low, $high)");
+          }
+          fullBuffer.writeln(" };");
+        }
+        fullBuffer.writeln("}");
+      }
 
       if (compilerVisitor.tries.isNotEmpty) {
         fullBuffer.writeln(trieCode);
