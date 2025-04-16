@@ -169,12 +169,17 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
-  int _mark() {
-    return this.pos;
+  (int, List<int>) _mark() {
+    return (this.pos, [...this.indent]);
   }
 
-  void _recover(int pos) {
-    this.pos = pos;
+  void _recover((int, List<int>) mark) {
+    if (mark case (var pos, var indent)) {
+      this.pos = pos;
+
+      this.indent.clear();
+      this.indent.addAll(indent);
+    }
   }
 
   void reset() {
@@ -209,6 +214,7 @@ abstract base class _PegParser<R extends Object> {
 
   late String buffer;
   int pos = 0;
+  final List<int> indent = [0];
 
   R? parse(String buffer) =>
       (
@@ -250,7 +256,7 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class Math extends _PegParser<num> {
+final class Math extends _PegParser<num > {
   Math();
 
   @override
@@ -327,7 +333,7 @@ final class Math extends _PegParser<num> {
   }
 
   /// `ROOT`
-  num? f3() {
+  num ? f3() {
     if (this.apply(this.r0) case var $?) {
       return $;
     }
@@ -443,7 +449,7 @@ final class Math extends _PegParser<num> {
   };
 
   /// `global::rule`
-  num? r0() {
+  num ? r0() {
     if (this.pos <= 0) {
       if (this.apply(this.r1) case var $1?) {
         if (this.pos >= this.buffer.length) {
@@ -454,7 +460,7 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::expr`
-  num? r1() {
+  num ? r1() {
     if (this._mark() case var _mark) {
       if (this.apply(this.r1) case var expr?) {
         if (this.apply(this.r5)! case _) {
@@ -487,7 +493,7 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::term`
-  num? r2() {
+  num ? r2() {
     if (this._mark() case var _mark) {
       if (this.matchPattern(_string.$11) case _?) {
         if (this.apply(this.r5)! case _) {
@@ -560,7 +566,7 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::factor`
-  num? r3() {
+  num ? r3() {
     if (this._mark() case var _mark) {
       if (this.apply(this.r4) case var primary?) {
         if (this.apply(this.r5)! case _) {
@@ -581,7 +587,7 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::primary`
-  num? r4() {
+  num ? r4() {
     if (this._mark() case var _mark) {
       if (this.matchPattern(_string.$22) case _?) {
         if (this.apply(this.r5)! case _) {
@@ -610,12 +616,12 @@ final class Math extends _PegParser<num> {
   /// `global::_`
   late final r5 = () {
     if (this._mark() case var _mark) {
-      if (matchPattern(_regexp.$1) case var _0) {
+      if (this.matchPattern(_regexp.$1) case var _0) {
         if ([if (_0 case var _0?) _0] case var _l1) {
           if (_l1.isNotEmpty) {
             for (;;) {
               if (this._mark() case var _mark) {
-                if (matchPattern(_regexp.$1) case var _0?) {
+                if (this.matchPattern(_regexp.$1) case var _0?) {
                   _l1.add(_0);
                   continue;
                 }
@@ -632,31 +638,54 @@ final class Math extends _PegParser<num> {
     }
   };
 
-  static final _regexp = (
-    RegExp("\\s"),
-  );
-  static const _string = (
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "-",
-    ".",
-    "E",
-    "e",
-    "+",
-    "*",
-    "/",
-    "%",
-    "~/",
-    "^",
-    ")",
-    "(",
-  );
+}
+class _regexp {
+  /// `/\s/`
+  static final $1 = RegExp("\\s");
+}
+class _string {
+  /// `"0"`
+  static const $1 = "0";
+  /// `"1"`
+  static const $2 = "1";
+  /// `"2"`
+  static const $3 = "2";
+  /// `"3"`
+  static const $4 = "3";
+  /// `"4"`
+  static const $5 = "4";
+  /// `"5"`
+  static const $6 = "5";
+  /// `"6"`
+  static const $7 = "6";
+  /// `"7"`
+  static const $8 = "7";
+  /// `"8"`
+  static const $9 = "8";
+  /// `"9"`
+  static const $10 = "9";
+  /// `"-"`
+  static const $11 = "-";
+  /// `"."`
+  static const $12 = ".";
+  /// `"E"`
+  static const $13 = "E";
+  /// `"e"`
+  static const $14 = "e";
+  /// `"+"`
+  static const $15 = "+";
+  /// `"*"`
+  static const $16 = "*";
+  /// `"/"`
+  static const $17 = "/";
+  /// `"%"`
+  static const $18 = "%";
+  /// `"~/"`
+  static const $19 = "~/";
+  /// `"^"`
+  static const $20 = "^";
+  /// `")"`
+  static const $21 = ")";
+  /// `"("`
+  static const $22 = "(";
 }

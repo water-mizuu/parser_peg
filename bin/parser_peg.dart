@@ -11,6 +11,8 @@ import "package:parser_peg/src/parser/grammar_parser.cst.dart";
 import "package:parser_peg/src/parser/grammar_parser.dart";
 import "package:path/path.dart" as path;
 
+import "../test.dart";
+
 String readFile(String path) => File(path).readAsStringSync().replaceAll("\r", "").trim();
 
 String displayTree(Object? node) => _displayTree(node);
@@ -95,6 +97,44 @@ String _displayTree(
   return buffer.toString();
 }
 
+// void main(List<String> arguments) {
+//   if (GrammarParser() case GrammarParser grammar) {
+//     const inputPath = "test.dart_grammar";
+//     if (readFile(inputPath) case String input) {
+//       switch (grammar.parse(input)) {
+//         case ParserGenerator generator:
+//           stdout.writeln("Successfully parsed grammar!");
+//           stdout.writeln("Generating parser.");
+
+//           /// Default output file
+//           var parentPath = path.dirname(inputPath);
+//           var fileName = path.basenameWithoutExtension(inputPath);
+
+//           print("Compiling parser to $parentPath/$fileName.dart");
+//           File(path.join(parentPath, "$fileName.dart"))
+//             ..createSync(recursive: true)
+//             ..writeAsStringSync(generator.compileParserGenerator("TestParser"));
+//           print("Compiled parser to $parentPath/$fileName.dart");
+
+//         case _:
+//           stdout.writeln(grammar.reportFailures());
+//       }
+//     }
+//   }
+
+//   var parser = TestParser();
+//   var input = """
+// b
+//   x
+//     y
+//   z""";
+//   if (parser.parse(input) case Object result) {
+//     print(result);
+//   } else {
+//     print(parser.reportFailures());
+//   }
+// }
+
 void main(List<String> arguments) {
   if (arguments.isEmpty) {
     stdout.writeln("No arguments provided.");
@@ -115,7 +155,7 @@ void main(List<String> arguments) {
 
 void _testCompiler() async {
   var parser = GrammarParser();
-  var input = readFile("parser.dart_grammar");
+  var input = readFile("lib/src/parser/grammar_parser.dart_grammar");
 
   /// It must be able to parse the grammar first.
   if (parser.parse(input) case ParserGenerator generator) {
@@ -169,7 +209,7 @@ void _testCompiler() async {
       onError: onError.sendPort,
       onExit: onExit.sendPort,
     );
-    File("test.dart")
+    File("test123.dart")
       ..createSync(recursive: true)
       ..writeAsStringSync(parserCode);
   }

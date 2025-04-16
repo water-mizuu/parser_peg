@@ -1,6 +1,10 @@
 import "package:parser_peg/src/node.dart";
 
 abstract class SimpleNodeVisitor<O> {
+  O visitIndentNode(IndentNode node);
+  O visitDedentNode(DedentNode node);
+  O visitSamedentNode(SamedentNode node);
+
   O visitEpsilonNode(EpsilonNode node);
   O visitTriePatternNode(TriePatternNode node);
   O visitStringLiteralNode(StringLiteralNode node);
@@ -29,6 +33,10 @@ abstract class SimpleNodeVisitor<O> {
 }
 
 abstract class ParametrizedNodeVisitor<O, I> {
+  O visitIndentNode(IndentNode node, I parameters);
+  O visitDedentNode(DedentNode node, I parameters);
+  O visitSamedentNode(SamedentNode node, I parameters);
+
   O visitEpsilonNode(EpsilonNode node, I parameters);
   O visitTriePatternNode(TriePatternNode node, I parameters);
   O visitStringLiteralNode(StringLiteralNode node, I parameters);

@@ -1,10 +1,11 @@
+// ignore_for_file: type=lint, body_might_complete_normally_nullable, unused_local_variable, inference_failure_on_function_return_type, unused_import, duplicate_ignore, unused_element, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
+
+// imports
 // ignore_for_file: collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
 
 import "dart:collection";
 import "dart:math" as math;
-
-/// IMPORTS-SPLIT
-
+// base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
 
@@ -322,103 +323,245 @@ class _Memo {
   int pos;
 }
 
-/// TRIE-SPLIT
+// GENERATED CODE
+final class TestParser extends _PegParser<Object > {
+  TestParser();
 
-typedef _Union<A, B> = (A? a, B? b);
-typedef _Key<K> = _Union<K, Symbol>;
+  @override
+  get start => r0;
 
-extension<R extends Object> on _PegParser<R> {
-  String? matchTrie(Trie trie) {
-    if (trie.matchLongest(buffer, pos) case (int start, int end)) {
-      pos = end;
 
-      return buffer.substring(start, end);
+  /// `ROOT`
+  Object ? f0() {
+    if (this.apply(this.r0) case var $?) {
+      return $;
     }
-
-    if (failures[pos] ??= <String>{} case Set<String> failures) {
-      trie._keys(trie._innerMap).map((v) => v.join()).forEach(failures.add);
-    }
-    return null;
-  }
-}
-
-class Trie {
-  Trie() : _innerMap = HashMap<_Key<String>, Object>();
-  factory Trie.from(Iterable<String> strings) => strings.fold(Trie(), (t, s) => t..add(s));
-  const Trie.complete(this._innerMap);
-
-  static final Symbol _safeGuard = Symbol(math.Random.secure().nextInt(32).toString());
-
-  final HashMap<_Key<String>, Object> _innerMap;
-
-  bool add(String value) {
-    _set(value.split(""), true);
-
-    return true;
   }
 
-  Trie? derive(String key) => switch (_innerMap[(key, null)]) {
-    HashMap<_Key<String>, Object> value => Trie.complete(value),
-    _ => null,
+  /// `fragment0`
+  late final f1 = () {
+    if (this.apply(this.r5) case var $0?) {
+      if (this._indent() case var $1?) {
+        return ($0, $1);
+      }
+    }
   };
 
-  Trie? deriveAll(String value) => value //
-      .split("")
-      .fold(this, (trie, char) => trie?.derive(char));
+  /// `fragment1`
+  late final f2 = () {
+    if (this.apply(this.r5) case var $?) {
+      return $;
+    }
+  };
 
-  (int, int)? matchLongest(String input, [int start = 0]) {
-    List<int> ends = <int>[];
-
-    int index = start;
-    Trie? derivation = this;
-    for (int i = index; i < input.length; ++i) {
-      derivation = derivation?.derive(input[i]);
-      if (derivation == null) {
-        break;
-      }
-
-      if (derivation._innerMap.containsKey((null, _safeGuard))) {
-        ends.add(i);
+  /// `fragment2`
+  late final f3 = () {
+    if (this.f2() case var $0) {
+      if (this._dedent() case var $1?) {
+        return ($0, $1);
       }
     }
+  };
 
-    if (ends.isEmpty) {
-      return null;
+  /// `fragment3`
+  late final f4 = () {
+    if (this.f1() case _?) {
+      if (this.apply(this.r2) case (var $1 && var $)?) {
+        if (this.f3() case _?) {
+          return $1;
+        }
+      }
     }
+  };
 
-    int max = ends.last + 1;
-
-    return (index, max);
-  }
-
-  HashMap<_Key<String>, Object> _derived(List<String> keys) {
-    HashMap<_Key<String>, Object> map = _innerMap;
-    for (int i = 0; i < keys.length; ++i) {
-      map =
-          map.putIfAbsent((keys[i], null), HashMap<_Key<String>, Object>.new)
-              as HashMap<_Key<String>, Object>;
+  /// `fragment4`
+  late final f5 = () {
+    if (this.apply(this.r5) case var $0?) {
+      if (this._samedent() case var $1?) {
+        return ($0, $1);
+      }
     }
+  };
 
-    return map;
-  }
-
-  bool _set(List<String> keys, bool value) => _derived(keys)[(null, _safeGuard)] = value;
-
-  Iterable<List<String>> _keys(HashMap<_Key<String>, Object> map) sync* {
-    if (map.containsKey((null, _safeGuard))) {
-      yield <String>[];
+  /// `fragment5`
+  late final f6 = () {
+    if (this._mark() case var _mark) {
+      if (this.matchRange(_range.$2) case (var $0 && null)) {
+        this._recover(_mark);
+        if (this.matchRange(_range.$1) case var $1?) {
+          return ($0, $1);
+        }
+      }
     }
+  };
 
-    for (var (String keys, _) in map.keys.whereType<(String, void)>()) {
-      /// Since it's not the safeguard,
-      ///  Get the derivative of the map.
-
-      switch (map[(keys, null)]) {
-        case HashMap<_Key<String>, Object> derivative:
-          yield* _keys(derivative).map((rest) => <String>[keys, ...rest]);
-        case null:
-          yield <String>[keys];
+  /// `global::root`
+  Object ? r0() {
+    if (this.pos <= 0) {
+      if (this.apply(this.r1) case var _0?) {
+        if ([_0] case (var $1 && var $ && var _l1)) {
+          for (;;) {
+            if (this._mark() case var _mark) {
+              if (this.apply(this.r4)! case _) {
+                if (this.apply(this.r1) case var _0?) {
+                  _l1.add(_0);
+                  continue;
+                }
+              }
+              this._recover(_mark);
+              break;
+            }
+          }
+          if (this.apply(this.r4)! case var $) {
+            if (this.pos >= this.buffer.length) {
+              return $1;
+            }
+          }
+        }
       }
     }
   }
+
+  /// `global::statement`
+  Object ? r1() {
+    if (this._mark() case var _mark) {
+      if (this.apply(this.r3) case var $0?) {
+        if (this.f4() case var $1?) {
+          return ($0, $1);
+        }
+      }
+      this._recover(_mark);
+      if (this.apply(this.r3) case var $?) {
+        return $;
+      }
+    }
+  }
+
+  /// `global::block`
+  Object ? r2() {
+    if (this.apply(this.r1) case var _0?) {
+      if ([_0] case var _l1) {
+        for (;;) {
+          if (this._mark() case var _mark) {
+            if (this.f5() case _?) {
+              if (this.apply(this.r1) case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+            }
+            this._recover(_mark);
+            break;
+          }
+        }
+        return _l1;
+      }
+    }
+  }
+
+  /// `global::identifier`
+  late final r3 = () {
+    if (this.pos case var from) {
+      if (this.matchRange(_range.$4) case _?) {
+        if (this._mark() case var _mark) {
+          if (this.matchRange(_range.$3) case var _0) {
+            if ([if (_0 case var _0?) _0] case var _l1) {
+              if (_l1.isNotEmpty) {
+                for (;;) {
+                  if (this._mark() case var _mark) {
+                    if (this.matchRange(_range.$3) case var _0?) {
+                      _l1.add(_0);
+                      continue;
+                    }
+                    this._recover(_mark);
+                    break;
+                  }
+                }
+              } else {
+                this._recover(_mark);
+              }
+              if (this.pos case var to) {
+                if (this.buffer.substring(from, to) case var span) {
+                  return span;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /// `global::NEWLINE_WS`
+  late final r4 = () {
+    if (this._mark() case var _mark) {
+      if (this.matchRange(_range.$5) case var _0) {
+        if ([if (_0 case var _0?) _0] case var _l1) {
+          if (_l1.isNotEmpty) {
+            for (;;) {
+              if (this._mark() case var _mark) {
+                if (this.matchRange(_range.$5) case var _0?) {
+                  _l1.add(_0);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
+              }
+            }
+          } else {
+            this._recover(_mark);
+          }
+          return _l1;
+        }
+      }
+    }
+  };
+
+  /// `global::NEWLINE`
+  late final r5 = () {
+    if (this.apply(this.r6)! case var $0) {
+      if (this.matchRange(_range.$6) case var $1?) {
+        return ($0, $1);
+      }
+    }
+  };
+
+  /// `global::WS`
+  late final r6 = () {
+    if (this._mark() case var _mark) {
+      if (this.f6() case var _0) {
+        if ([if (_0 case var _0?) _0] case var _l1) {
+          if (_l1.isNotEmpty) {
+            for (;;) {
+              if (this._mark() case var _mark) {
+                if (this.f6() case var _0?) {
+                  _l1.add(_0);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
+              }
+            }
+          } else {
+            this._recover(_mark);
+          }
+          return _l1;
+        }
+      }
+    }
+  };
+
+}
+class _range {
+  /// `[-\r]`
+  static const $1 = { (9, 13), (32, 32) };
+  /// `[\n\r]`
+  static const $2 = { (10, 10), (13, 13) };
+  /// `[A-Za-z_0-9]`
+  static const $3 = { (65, 90), (97, 122), (95, 95), (48, 57) };
+  /// `[A-Za-z_]`
+  static const $4 = { (65, 90), (97, 122), (95, 95) };
+  /// `[-\r\n\r]`
+  static const $5 = { (9, 13), (32, 32), (10, 10), (13, 13) };
+  /// `[\n]`
+  static const $6 = { (10, 10) };
 }

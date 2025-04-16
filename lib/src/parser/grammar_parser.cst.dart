@@ -190,12 +190,17 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
-  int _mark() {
-    return this.pos;
+  (int, List<int>) _mark() {
+    return (this.pos, [...this.indent]);
   }
 
-  void _recover(int pos) {
-    this.pos = pos;
+  void _recover((int, List<int>) mark) {
+    if (mark case (var pos, var indent)) {
+      this.pos = pos;
+
+      this.indent.clear();
+      this.indent.addAll(indent);
+    }
   }
 
   void reset() {
@@ -230,6 +235,7 @@ abstract base class _PegParser<R extends Object> {
 
   late String buffer;
   int pos = 0;
+  final List<int> indent = [0];
 
   R? parse(String buffer) =>
       (
@@ -4160,6 +4166,18 @@ final class CstGrammarParser extends _PegParser<Object> {
         }
       }
       this._recover(_mark);
+      if (this.matchPattern(_string.$72) case var $?) {
+        return ("<atom>", $);
+      }
+      this._recover(_mark);
+      if (this.matchPattern(_string.$73) case var $?) {
+        return ("<atom>", $);
+      }
+      this._recover(_mark);
+      if (this.matchPattern(_string.$74) case var $?) {
+        return ("<atom>", $);
+      }
+      this._recover(_mark);
       if (this.f6() case var $?) {
         return ("<atom>", $);
       }
@@ -4368,7 +4386,7 @@ final class CstGrammarParser extends _PegParser<Object> {
   Object? rm() {
     if (this.apply(this.rk) case (var nullable && var $0)?) {
       if (this.apply(this.r11)! case var $1) {
-        if (this.matchPattern(_string.$72) case var $2?) {
+        if (this.matchPattern(_string.$75) case var $2?) {
           if (this.apply(this.r11)! case var $3) {
             if (this.apply(this.ru) case (var fnParameters && var $4)?) {
               if ([nullable, $1, $2, $3, fnParameters] case var $) {
@@ -4736,7 +4754,7 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   /// `global::comment::single`
   Object? r14() {
-    if (this.matchPattern(_string.$73) case var $0?) {
+    if (this.matchPattern(_string.$76) case var $0?) {
       if (this._mark() case var _mark) {
         if (this.f47() case var _0) {
           if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
@@ -4765,7 +4783,7 @@ final class CstGrammarParser extends _PegParser<Object> {
 
   /// `global::comment::multi`
   Object? r15() {
-    if (this.matchPattern(_string.$74) case var $0?) {
+    if (this.matchPattern(_string.$77) case var $0?) {
       if (this._mark() case var _mark) {
         if (this.f48() case var _0) {
           if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
@@ -4967,12 +4985,18 @@ class _string {
   static const $70 = "^";
   /// `"ε"`
   static const $71 = "ε";
+  /// `"INDENT"`
+  static const $72 = "INDENT";
+  /// `"DEDENT"`
+  static const $73 = "DEDENT";
+  /// `"SAMEDENT"`
+  static const $74 = "SAMEDENT";
   /// `"Function"`
-  static const $72 = "Function";
+  static const $75 = "Function";
   /// `"//"`
-  static const $73 = "//";
+  static const $76 = "//";
   /// `"/*"`
-  static const $74 = "/*";
+  static const $77 = "/*";
 }
 class _range {
   /// `[a-zA-Z0-9_$]`

@@ -1,0 +1,14 @@
+/// Indentation based grammar.
+Object root, statement, block;
+
+root = ^ $:NEWLINE_WS..statement+? $;
+statement =
+  | identifier ((NEWLINE INDENT) $:block (NEWLINE? DEDENT)) |> ($0, $1)
+  | identifier;
+
+block = (NEWLINE SAMEDENT)..statement+;
+
+identifier = <[A-Za-z_][A-Za-z_0-9]*>;
+NEWLINE_WS = [\s\n\r]*;
+NEWLINE = WS [\n];
+WS = (![\n\r] [\s])*;

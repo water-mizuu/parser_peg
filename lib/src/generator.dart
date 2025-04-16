@@ -176,6 +176,28 @@ final class ParserGenerator {
     /// NOTE: This does not break the correctness of the grammar, since
     ///   recursive fragments can't be inlined as determined by the next visitor.
     if (const ReferencedVisitor() case var visitor) {
+      /// Remove all the unreachable declarations.
+      var queue = Queue.of([rootKey]);
+      var unseen = {..._rules.keys, ..._fragments.keys, ..._inline.keys}..remove(rootKey);
+      while (queue.isNotEmpty) {
+        var current = queue.removeFirst();
+        var node = _rules[current] ?? _fragments[current] ?? _inline[current];
+        if (node case (_, Node node)) {
+          for (var (_, name) in node.acceptSimpleVisitor(visitor)) {
+            if (unseen.contains(name)) {
+              queue.addLast(name);
+              unseen.remove(name);
+            }
+          }
+        }
+      }
+
+      for (var key in unseen) {
+        _rules.remove(key);
+        _fragments.remove(key);
+        _inline.remove(key);
+      }
+
       var rulesRefCount = {for (var rule in _rules.keys) rule: 0};
       var fragmentRefCount = {for (var fragment in _fragments.keys) fragment: 0};
       var inlineRefCount = {for (var inline in _inline.keys) inline: 0};
@@ -185,10 +207,10 @@ final class ParserGenerator {
           .followedBy(_rules.pairs)
           .followedBy(_inline.pairs);
 
-      var refCount = {for (var (name, _) in declarations) name: 0};
+      var fragmentOrInlineRefCount = <String, (int, Set<String>)>{};
 
       /// We count the references to each declaration (rule, fragment, inline).
-      for (var (_, (_, node)) in declarations) {
+      for (var (declaration, (_, node)) in declarations) {
         for (var (tag, name) in node.acceptSimpleVisitor(visitor)) {
           assert(tag != Tag.inline, "Inline tags should not be here.");
           if (tag == Tag.rule) {
@@ -198,7 +220,8 @@ final class ParserGenerator {
           }
 
           /// From here, we know that it is a fragment.
-          refCount[name] = refCount[name]! + 1;
+          var prev = fragmentOrInlineRefCount[name] ??= (0, {});
+          fragmentOrInlineRefCount[name] = (prev.$1 + 1, {...prev.$2, declaration});
 
           assert(
             fragmentRefCount.containsKey(name) ^ inlineRefCount.containsKey(name),
@@ -213,7 +236,7 @@ final class ParserGenerator {
       }
 
       /// Then, if the refCount of a fragment is 1, we choose to inline it.
-      for (var (name, count) in refCount.pairs) {
+      for (var (name, count) in fragmentOrInlineRefCount.pairs) {
         if (count != 1 || _fragments[name] == null) {
           continue;
         }
@@ -225,7 +248,7 @@ final class ParserGenerator {
 
       /// Remove the unreferenced rules,
       for (var (name, count) in rulesRefCount.pairs) {
-        if (name == rootKey || count > 0) {
+        if (count > 0) {
           continue;
         }
 
@@ -243,7 +266,7 @@ final class ParserGenerator {
 
       /// And the unused inline rules (optional, does not have any runtime bearing).
       for (var (name, count) in inlineRefCount.pairs) {
-        if (name == rootKey || count > 0) {
+        if (count > 0) {
           continue;
         }
 
@@ -485,7 +508,7 @@ final class ParserGenerator {
         ]),
         DeclarationStatement.predefined("string", StringLiteralNode(r'"([^"\\]|\\.)*"')),
       ]),
-    ], tag: Tag.fragment),
+    ], tag: Tag.inline),
   ];
 
   int redirectId = 0;
@@ -646,8 +669,8 @@ final class ParserGenerator {
         for (var (i, ranges) in compilerVisitor.ranges.indexed) {
           fullBuffer.writeln(
             "  /// `[${ranges.map((r) => switch (r) {
-              (var l, var r) when l == r => String.fromCharCode(l),
-              (var l, var r) => "${String.fromCharCode(l)}-${String.fromCharCode(r)}",
+              (var l, var r) when l == r => l.toChar,
+              (var l, var r) => "${l.toChar}-${r.toChar}",
             }).join()}]`",
           );
           fullBuffer.write("  static const \$${i + 1} = { ");
@@ -745,6 +768,9 @@ final class ParserGenerator {
   /// Returns `true` if the node should pass even if the answer was null.
   bool isNullable(Node node, String ruleName) {
     return _isNullable[node] ??= switch (node) {
+      IndentNode _ => false,
+      DedentNode _ => false,
+      SamedentNode _ => false,
       SpecialSymbolNode _ => false,
       EpsilonNode _ => true,
       RangeNode _ => false,
@@ -875,4 +901,12 @@ extension on String {
           : "(${encode("<${declarationName.unwrappedName}>")}, $this)";
 
   String get unwrappedName => startsWith("global::") ? substring(8) : this;
+}
+
+extension on int {
+  String get toChar {
+    var char = String.fromCharCode(this);
+
+    return {"\n": r"\n", "\r": r"\r"}[char] ?? char.trim();
+  }
 }

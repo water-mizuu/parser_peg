@@ -64,6 +64,21 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
   Node simplify(Node node) => node.acceptParametrizedVisitor(this, 0);
 
   @override
+  Node visitIndentNode(IndentNode node, int depth) {
+    return node;
+  }
+
+  @override
+  Node visitDedentNode(DedentNode node, int depth) {
+    return node;
+  }
+
+  @override
+  Node visitSamedentNode(SamedentNode node, int depth) {
+    return node;
+  }
+
+  @override
   Node visitEpsilonNode(EpsilonNode node, int depth) {
     return node;
   }

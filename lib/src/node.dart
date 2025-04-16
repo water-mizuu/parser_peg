@@ -9,6 +9,48 @@ sealed class Node {
 
 sealed class AtomicNode implements Node {}
 
+class IndentNode implements AtomicNode {
+  const IndentNode();
+
+  @override
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) {
+    return visitor.visitIndentNode(this, parameters);
+  }
+
+  @override
+  O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) {
+    return visitor.visitIndentNode(this);
+  }
+}
+
+class DedentNode implements AtomicNode {
+  const DedentNode();
+
+  @override
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) {
+    return visitor.visitDedentNode(this, parameters);
+  }
+
+  @override
+  O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) {
+    return visitor.visitDedentNode(this);
+  }
+}
+
+class SamedentNode implements AtomicNode {
+  const SamedentNode();
+
+  @override
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) {
+    return visitor.visitSamedentNode(this, parameters);
+  }
+
+  @override
+  O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) {
+    return visitor.visitSamedentNode(this);
+  }
+}
+
 class EpsilonNode implements AtomicNode {
   const EpsilonNode();
 
@@ -98,8 +140,7 @@ enum SimpleRegExpEscapeNode implements RegExpEscapeNode {
   newline(r"\n"),
   carriageReturn(r"\r"),
   formFeed(r"\f"),
-  verticalTab(r"\v"),
-  ;
+  verticalTab(r"\v");
 
   const SimpleRegExpEscapeNode(this.pattern);
 
