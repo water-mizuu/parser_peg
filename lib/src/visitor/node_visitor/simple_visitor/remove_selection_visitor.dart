@@ -1,6 +1,15 @@
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
+/// A visitor that strips all *selection* information from a node tree.
+///
+/// In a [SequenceNode], the `chosenIndex` field marks which child's value
+/// is promoted as the result of the sequence (the `#` selector in the
+/// grammar). This visitor returns a structurally identical tree where every
+/// [SequenceNode] has its `chosenIndex` reset to `null`, effectively
+/// removing the selection annotation.
+///
+/// All other node types are traversed recursively and returned unchanged.
 class RemoveSelectionVisitor implements SimpleNodeVisitor<Node> {
   const RemoveSelectionVisitor();
 

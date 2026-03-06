@@ -6,6 +6,24 @@ import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
+/// Compilation parameters threaded through a [ParserCompilerVisitor]
+/// traversal.
+///
+/// Each field controls a different aspect of how the code for a single
+/// grammar node is emitted:
+///
+/// - [isNullAllowed] — when `true`, the generated code may produce a
+///   nullable value (e.g., inside an optional branch). When `false`, a
+///   `null` result should be treated as a parse failure.
+/// - [withNames] — if non-null, the set of named capture labels that the
+///   generated code must bind so that semantic actions can reference them.
+/// - [inner] — an optional Dart expression string to be embedded inside
+///   the generated code, typically used to pass a continuation or inner
+///   action body.
+/// - [declarationName] — the name of the top-level rule or fragment
+///   currently being compiled, used to generate locally unique identifiers.
+/// - [markSaved] — when `true`, the generated code should save and restore
+///   the parser position around the node (needed for backtracking).
 class Parameters {
   const Parameters({
     required this.isNullAllowed,

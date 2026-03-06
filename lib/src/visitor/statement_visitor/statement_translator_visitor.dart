@@ -3,6 +3,21 @@ import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
 import "package:parser_peg/src/visitor/statement_visitor.dart";
 
+/// A [StatementVisitor] that normalises a raw statement tree into a flat,
+/// fully-resolved list of [Statement]s ready for code generation.
+///
+/// The visitor is responsible for:
+/// - Propagating declared return types and [Tag]s from
+///   [DeclarationTypeStatement]s down to the [DeclarationStatement]s they
+///   annotate (stored in [_declaredTypes] and [_declaredTags]).
+/// - Expanding [HybridNamespaceStatement]s into a synthetic top-level
+///   [DeclarationStatement] (a choice over all direct children) plus a
+///   [NamespaceStatement] that recursively normalises its children.
+/// - Recursively normalising nested [NamespaceStatement]s.
+///
+/// The [String?] input parameter carries an optional type hint that is
+/// inherited by child declarations when they have no explicit type of their
+/// own.
 class StatementTranslatorVisitor implements StatementVisitor<List<Statement>, String?> {
   final Map<String, String> _declaredTypes = {};
   final Map<String, Tag> _declaredTags = {};

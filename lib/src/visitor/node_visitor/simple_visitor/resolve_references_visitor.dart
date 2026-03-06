@@ -115,6 +115,23 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
     return ExceptNode(node.child.acceptSimpleVisitor(this));
   }
 
+  /// Resolves the raw [name] (as it appears in the grammar source) to the
+  /// most appropriate [Node] subtype by walking up the namespace prefix
+  /// chain.
+  ///
+  /// The resolution algorithm tries candidate qualified names from the most
+  /// specific (longest prefix) to the least specific (no prefix), joining
+  /// each prefix segment with [ParserGenerator.separator]. For each
+  /// candidate it checks, in order:
+  ///
+  /// 1. **Rules** (`rules` map) → returns a [ReferenceNode] for the
+  ///    qualified name.
+  /// 2. **Inline / fragments** (`inline` or `fragments` maps) → returns a
+  ///    [FragmentNode] for the qualified name.
+  ///
+  /// If no match is found at any prefix level, an [Exception] is thrown
+  /// identifying both the enclosing declaration ([declarationName]) and the
+  /// unresolvable [name].
   Node resolveReference(String name) {
     for (int i = prefixes.length; i >= 0; --i) {
       var potentialName = [...prefixes.sublist(0, i), name].join(ParserGenerator.separator);

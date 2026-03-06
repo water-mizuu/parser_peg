@@ -3,6 +3,18 @@
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
+/// A visitor that determines whether a given [Node] (and its entire subtree)
+/// can be safely inlined at every call site.
+///
+/// A node is considered inlineable when it contains no unresolvable or
+/// structurally complex references that would prevent code deduplication.
+/// Atomic nodes (literals, ranges, regexp escapes, etc.) are always
+/// inlineable. Composite nodes are inlineable only when every child is
+/// inlineable. Rule and fragment references are inlineable when the rule
+/// or fragment they resolve to is itself inlineable.
+///
+/// Results are memoised in an [_cache] [Expando] to avoid redundant
+/// traversals, especially important for recursive or shared rule graphs.
 class CanInlineVisitor implements SimpleNodeVisitor<bool> {
   CanInlineVisitor(this.rules, this.fragments, this.inline);
 
@@ -124,7 +136,6 @@ class CanInlineVisitor implements SimpleNodeVisitor<bool> {
 
     return _cache[node] = node.child.acceptSimpleVisitor<bool>(this);
   }
-
 
   @override
   bool visitExceptNode(ExceptNode node) {
