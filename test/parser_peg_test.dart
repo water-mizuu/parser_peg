@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_dynamic_calls
+// ignore_for_file: strict_raw_type, avoid_dynamic_calls
 
 import "dart:convert";
 import "dart:io";
@@ -1533,9 +1533,9 @@ int expr = "a" # :n |> n
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ (keyword # "(" [a-z]+ ")" | identifier) $;
+rule = ^ (keyword # "(" [a-z]+ ")" | identifier) $ @1;
 keyword = "fn";
-identifier = [a-z]+;
+identifier = <[a-z]+>;
 ''');
     });
 
