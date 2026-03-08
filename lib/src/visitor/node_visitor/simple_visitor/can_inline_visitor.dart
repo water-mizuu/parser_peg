@@ -26,6 +26,9 @@ class CanInlineVisitor implements SimpleNodeVisitor<bool> {
   final Map<String, (String?, Node)> inline;
 
   @override
+  bool visitCutNode(CutNode node) => true;
+
+  @override
   bool visitEpsilonNode(EpsilonNode node) {
     if (_cache[node] case bool b) return b;
 

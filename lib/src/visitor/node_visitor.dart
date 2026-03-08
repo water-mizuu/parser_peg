@@ -21,6 +21,10 @@ import "package:parser_peg/src/node.dart";
 /// }
 /// ```
 abstract class SimpleNodeVisitor<O> {
+  /// Visits a [CutNode], which prevents backtracking past this point on a
+  ///   failed match.
+  O visitCutNode(CutNode node);
+
   /// Visits an [EpsilonNode], which always succeeds while consuming no input.
   O visitEpsilonNode(EpsilonNode node);
 
@@ -129,6 +133,10 @@ abstract class SimpleNodeVisitor<O> {
 /// during traversal. If no extra parameter is needed, prefer the simpler
 /// [SimpleNodeVisitor].
 abstract class ParametrizedNodeVisitor<O, I> {
+  /// Visits a [CutNode], which prevents backtracking past this point on a
+  ///  failed match.
+  O visitCutNode(CutNode node, I parameters);
+
   /// Visits an [EpsilonNode] with the given [parameters].
   O visitEpsilonNode(EpsilonNode node, I parameters);
 

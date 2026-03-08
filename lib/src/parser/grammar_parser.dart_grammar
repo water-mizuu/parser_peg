@@ -196,14 +196,17 @@ Node prefix =
 ///   These are usually parsers that are delimited.
 Node atom =
   /// Basic atomic parsers.
-  | `(` ~> choice <~ `)`
-  | !`<~` `<` $:choice `>`     |> FlatNode($)
+  | `(` # $:choice `)`
+  | !`<~` `<` # $:choice `>`     |> FlatNode($)
 
   /// Special syntax for character classes.
   | `^`                        |> const StartOfInputNode()
   | `$`                        |> const EndOfInputNode()
   | `.`                        |> const AnyCharacterNode()
   | `ε`                        |> const EpsilonNode()
+
+  /// Cut Operator
+  | (`#` | `%`)                |> const CutNode()
 
   /// Regular Expression Literals
   | regexEscape.backslash      |> const StringLiteralNode(r"\")
@@ -495,6 +498,7 @@ dart {
   String () = choice! @fragment {
     CHOICE_OP = `|` `|`? { "" };
 
+    `#`  = _ "#" _ @1;
     `..` =  _ ".." _ @1;
     `::` = _ "::" _ @1;
     `%%` = _ "%%" _ @1;

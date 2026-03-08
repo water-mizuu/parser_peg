@@ -11,6 +11,7 @@ import "package:parser_peg/src/visitor/node_visitor/"
     "simple_visitor/can_inline_visitor.dart";
 import "package:parser_peg/src/visitor/node_visitor/"
     "simple_visitor/inline_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/simple_visitor/is_cut_visitor.dart";
 import "package:parser_peg/src/visitor/node_visitor/"
     "simple_visitor/referenced_visitor.dart";
 import "package:parser_peg/src/visitor/node_visitor/"
@@ -330,6 +331,15 @@ final class ParserGenerator {
       _fragments.addAll(visitor.addedFragments);
     }
 
+    if (const IsCutVisitor() case IsCutVisitor visitor) {
+      for (var (name, (_, node)) in _rules.pairs) {
+        _isCut[(Tag.rule, name)] = node.acceptSimpleVisitor(visitor);
+      }
+      for (var (name, (_, node)) in _fragments.pairs) {
+        _isCut[(Tag.fragment, name)] = node.acceptSimpleVisitor(visitor);
+      }
+    }
+
     /// We rename the rules and fragments.
     redirectId = 0;
     for (var (name, (type, node)) in _rules.pairs.toList()) {
@@ -547,6 +557,7 @@ final class ParserGenerator {
   final Map<String, (String?, Node)> _rules = {};
   final Map<String, (String?, Node)> _fragments = {};
   final Map<String, (String?, Node)> _inline = {};
+  final Map<(Tag, String), bool> _isCut = {};
 
   String _compile(
     String parserName, {
@@ -599,6 +610,7 @@ final class ParserGenerator {
 
         var inner = StringBuffer();
         var displayName = _reverseRenames[rawName]!;
+        var isCut = _isCut[(Tag.fragment, displayName)] == true;
         var body = node
             .acceptParametrizedVisitor(
               compilerVisitor,
@@ -607,7 +619,8 @@ final class ParserGenerator {
                 withNames: null,
                 inner: null,
                 declarationName: displayName,
-                markSaved: false,
+                isMarked: false,
+                isCuttable: false,
               ),
             )
             .indent();
@@ -619,7 +632,7 @@ final class ParserGenerator {
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln("$type${isPassIfNull(node, rawName) ? "" : "?"} $rawName() {");
+          inner.writeln("$type${isPassIfNull(node, rawName) && !isCut ? "" : "?"} $rawName() {");
           inner.writeln(body);
           inner.writeln("}");
         }
@@ -632,6 +645,7 @@ final class ParserGenerator {
 
         var inner = StringBuffer();
         var displayName = _reverseRenames[rawName]!;
+        var isCut = _isCut[(Tag.rule, displayName)] == true;
         var body = node
             .acceptParametrizedVisitor(
               compilerVisitor,
@@ -640,7 +654,8 @@ final class ParserGenerator {
                 withNames: null,
                 inner: null,
                 declarationName: displayName,
-                markSaved: false,
+                isMarked: false,
+                isCuttable: false,
               ),
             )
             .indent();
@@ -652,7 +667,7 @@ final class ParserGenerator {
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln("$type${isPassIfNull(node, rawName) ? "" : "?"} $rawName() {");
+          inner.writeln("$type${isPassIfNull(node, rawName) && !isCut ? "" : "?"} $rawName() {");
           inner.writeln(body);
           inner.writeln("}");
         }
@@ -698,7 +713,7 @@ final class ParserGenerator {
             "  /// `[${ranges.map((r) => switch (r) {
               (var l, var r) when l == r => String.fromCharCode(l),
               (var l, var r) => "${String.fromCharCode(l)}-${String.fromCharCode(r)}",
-            }).join()}]`",
+            }).map((s) => s.trim()).join()}]`",
           );
           fullBuffer.write("  static const \$${i + 1} = { ");
           for (var (j, (low, high)) in ranges.indexed) {
@@ -830,6 +845,8 @@ final class ParserGenerator {
     if (node is SpecialSymbolNode) {
       computed = false;
     } else if (node is EpsilonNode) {
+      computed = true;
+    } else if (node is CutNode) {
       computed = true;
     } else if (node is RangeNode) {
       computed = false;

@@ -12,6 +12,9 @@ class InlineVisitor implements SimpleNodeVisitor<(bool, Node)> {
   (bool, Node) inlineReferences(Node root) => root.acceptSimpleVisitor(this);
 
   @override
+  (bool, Node) visitCutNode(CutNode node) => (false, node);
+
+  @override
   (bool, Node) visitEpsilonNode(EpsilonNode node) {
     return (false, node);
   }

@@ -6,6 +6,11 @@ class RemoveActionNodeVisitor implements SimpleNodeVisitor<Node> {
   const RemoveActionNodeVisitor();
 
   @override
+  Node visitCutNode(CutNode node) {
+    return node;
+  }
+
+  @override
   Node visitEpsilonNode(EpsilonNode node) {
     return node;
   }

@@ -21,6 +21,11 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
   final Map<String, (String?, Node)> inline;
 
   @override
+  Node visitCutNode(CutNode node) {
+    return node;
+  }
+
+  @override
   Node visitEpsilonNode(EpsilonNode node) {
     return node;
   }

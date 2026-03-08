@@ -5,6 +5,7 @@ import "dart:convert";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/simple_visitor/is_cut_visitor.dart";
 
 /// Compilation parameters threaded through a [ParserCompilerVisitor]
 /// traversal.
@@ -22,7 +23,7 @@ import "package:parser_peg/src/visitor/node_visitor.dart";
 ///   action body.
 /// - [declarationName] — the name of the top-level rule or fragment
 ///   currently being compiled, used to generate locally unique identifiers.
-/// - [markSaved] — when `true`, the generated code should save and restore
+/// - [isMarked] — when `true`, the generated code should save and restore
 ///   the parser position around the node (needed for backtracking).
 class Parameters {
   const Parameters({
@@ -30,14 +31,16 @@ class Parameters {
     required this.withNames,
     required this.inner,
     required this.declarationName,
-    required this.markSaved,
+    required this.isMarked,
+    required this.isCuttable,
   });
 
   final bool isPassIfNull;
   final Set<String>? withNames;
   final String? inner;
   final String declarationName;
-  final bool markSaved;
+  final bool isMarked;
+  final bool isCuttable;
 }
 
 String encode(Object object) => jsonEncode(object).replaceAll(r"$", r"\$");
@@ -78,6 +81,17 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   /// These are used to store all the ranges.
   final List<Set<(int, int)>> ranges = <Set<(int, int)>>[];
   int rangeId = 0;
+
+  @override
+  String visitCutNode(node, parameters) {
+    StringBuffer buffer = .new();
+    if (parameters.isCuttable) {
+      buffer.writeln("_mark.isCut = true;");
+    }
+    buffer.writeln(parameters.inner ?? "return null;");
+
+    return buffer.toString().wrap("if (null case ${parameters.withNames.caseVarNames}) {", "}");
+  }
 
   @override
   String visitEpsilonNode(node, parameters) {
@@ -182,7 +196,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     /// 2. Handling the `$` marker for selective result returning.
     /// 3. Recursively wrapping each node's generated code such that the next node in the sequence
     ///    only runs if the previous one succeeded.
-    var Parameters(:withNames, :inner, :declarationName, :markSaved) = parameters;
+    var Parameters(:withNames, :inner, :declarationName, :isMarked, :isCuttable) = parameters;
 
     var chosenIndex = node.chosenIndex;
     for (var (i, child) in node.children.indexed) {
@@ -246,7 +260,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         inner: body,
         isPassIfNull: isPassIfNull(node, declarationName),
         declarationName: declarationName,
-        markSaved: index == 0 && markSaved,
+        isMarked: index == 0 && isMarked,
+        isCuttable: isCuttable,
       );
       body = node.acceptParametrizedVisitor(this, innerParameters);
     }
@@ -256,24 +271,36 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitChoiceNode(node, parameters) {
-    var Parameters(isPassIfNull: isNullAllowed, :withNames, :inner, :declarationName, :markSaved) =
-        parameters;
+    var Parameters(
+      isPassIfNull: isNullAllowed,
+      :withNames,
+      :inner,
+      :declarationName,
+      isMarked: markSaved,
+    ) = parameters;
 
-    var body = node.children
-        .map(
-          (c) => c.acceptParametrizedVisitor(
-            this,
-            Parameters(
-              isPassIfNull: isPassIfNull(c, declarationName),
-              withNames: withNames,
-              inner: inner,
-              declarationName: declarationName,
-              markSaved: true,
-            ),
+    // IsCutVisitor
+    var body = [
+      for (var (i, child) in node.children.indexed) ...[
+        child.acceptParametrizedVisitor(
+          this,
+          Parameters(
+            isPassIfNull: isPassIfNull(child, declarationName),
+            withNames: withNames,
+            inner: inner,
+            declarationName: declarationName,
+            isMarked: true,
+            isCuttable: true,
           ),
-        )
-        .join("\nthis._recover(_mark);\n");
-
+        ),
+        if (i < node.children.length - 1) ...[
+          if (child.acceptSimpleVisitor(const IsCutVisitor()))
+            "if (_mark.isCut) return null; else this._recover(_mark);"
+          else
+            "this._recover(_mark);",
+        ],
+      ],
+    ].join("\n");
     if (!markSaved) {
       body = body.prepend("var _mark = this._mark();");
       // body = body.wrap("if (this._mark() case var _mark) {", "}");
@@ -284,7 +311,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitCountedNode(node, parameters) {
-    var Parameters(:withNames, :inner, :declarationName, :markSaved) = parameters;
+    var Parameters(:withNames, :inner, :declarationName, isMarked: markSaved) = parameters;
     var variableName = "_${ruleId++}";
     var containerName = "_l${ruleId++}";
 
@@ -301,7 +328,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
               inner: "$containerName.add($variableName);\ncontinue;",
               isPassIfNull: isPassIfNull(node.child, declarationName),
               declarationName: declarationName,
-              markSaved: true,
+              isMarked: true,
+              isCuttable: false,
             ),
           )
           .append("this._recover(_mark);")
@@ -339,7 +367,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
           isPassIfNull: true,
           inner: loopIterationBody,
           declarationName: declarationName,
-          markSaved: markSaved,
+          isMarked: markSaved,
+          isCuttable: false,
         ),
       );
     } else {
@@ -351,7 +380,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
               inner: "$containerName.add($variableName);\ncontinue;",
               isPassIfNull: isPassIfNull(node.child, declarationName),
               declarationName: declarationName,
-              markSaved: true,
+              isMarked: true,
+              isCuttable: false,
             ),
           )
           .append("this._recover(_mark);")
@@ -381,7 +411,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
           inner: loopIterationBody,
           isPassIfNull: isPassIfNull(node.child, declarationName),
           declarationName: declarationName,
-          markSaved: markSaved,
+          isMarked: markSaved,
+          isCuttable: false,
         ),
       );
     }
@@ -389,7 +420,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitPlusSeparatedNode(node, parameters) {
-    var Parameters(:withNames, :inner, :declarationName, :markSaved) = parameters;
+    var Parameters(:withNames, :inner, :declarationName, isMarked: markSaved) = parameters;
     var variableName = "_${ruleId++}";
     var containerName = "_l${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
@@ -413,11 +444,13 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
                   inner: "$containerName.add($variableName);\ncontinue;",
                   isPassIfNull: isPassIfNull(node.child, declarationName),
                   declarationName: declarationName,
-                  markSaved: false,
+                  isMarked: false,
+                  isCuttable: false,
                 ),
               ),
               declarationName: declarationName,
-              markSaved: true,
+              isMarked: true,
+              isCuttable: false,
             ),
           )
           .indent(2),
@@ -438,7 +471,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
                 withNames: {"null"},
                 inner: "this._recover(_mark);",
                 declarationName: declarationName,
-                markSaved: true,
+                isMarked: true,
+                isCuttable: false,
               ),
             )
             .indent(),
@@ -455,14 +489,15 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         inner: loopBuffer.toString(),
         isPassIfNull: isPassIfNull(node.child, declarationName),
         declarationName: declarationName,
-        markSaved: markSaved,
+        isMarked: markSaved,
+        isCuttable: false,
       ),
     );
   }
 
   @override
   String visitStarSeparatedNode(node, parameters) {
-    var Parameters(:withNames, :inner, :declarationName, :markSaved) = parameters;
+    var Parameters(:withNames, :inner, :declarationName, isMarked: markSaved) = parameters;
     var variableName = "_${ruleId++}";
     var containerName = "_l${ruleId++}";
     (withNames ??= <String>{}).add(containerName);
@@ -490,12 +525,14 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
                   inner: "$containerName.add($variableName);\ncontinue;",
                   isPassIfNull: isPassIfNull(node.child, declarationName),
                   declarationName: declarationName,
-                  markSaved: false,
+                  isMarked: false,
+                  isCuttable: false,
                 ),
               ),
               isPassIfNull: isPassIfNull(node.separator, declarationName),
               declarationName: declarationName,
-              markSaved: true,
+              isMarked: true,
+              isCuttable: false,
             ),
           )
           .indent(4),
@@ -504,7 +541,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     loopBuffer.writeln("      break;");
     // loopBuffer.writeln("      }");
     loopBuffer.writeln("    }");
-    if (!isPassIfNull(node, declarationName) && node.isTrailingAllowed) {
+
+    if (node.isTrailingAllowed) {
       // loopBuffer.writeln("    if (this._mark() case var _mark) {");
       loopBuffer.writeln("    var _mark = this._mark();");
       loopBuffer.writeln(
@@ -516,7 +554,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
                 withNames: {"null"},
                 inner: "this._recover(_mark);",
                 declarationName: declarationName,
-                markSaved: true,
+                isMarked: true,
+                isCuttable: false,
               ),
             )
             .indent(2),
@@ -540,7 +579,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         isPassIfNull: true,
         inner: loopBuffer.toString(),
         declarationName: declarationName,
-        markSaved: true,
+        isMarked: true,
+        isCuttable: false,
       ),
     );
 
@@ -554,7 +594,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitPlusNode(node, parameters) {
-    var Parameters(:withNames, :inner, :declarationName, :markSaved) = parameters;
+    var Parameters(:withNames, :inner, :declarationName, isMarked: markSaved) = parameters;
     var variableName = "_${ruleId++}";
     var containerName = "_l${ruleId++}";
     (withNames ??= {}).add(containerName);
@@ -574,7 +614,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
                 inner: "$containerName.add($variableName);\ncontinue;",
                 isPassIfNull: isPassIfNull(node.child, declarationName),
                 declarationName: declarationName,
-                markSaved: true,
+                isMarked: true,
+                isCuttable: false,
               ),
             )
             .indent(2),
@@ -593,14 +634,15 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         inner: loopBuffer.toString(),
         isPassIfNull: isPassIfNull(node.child, declarationName),
         declarationName: declarationName,
-        markSaved: markSaved,
+        isMarked: markSaved,
+        isCuttable: false,
       ),
     );
   }
 
   @override
   String visitStarNode(node, parameters) {
-    var Parameters(:withNames, :inner, :declarationName, :markSaved) = parameters;
+    var Parameters(:withNames, :inner, :declarationName, isMarked: markSaved) = parameters;
     var variableName = "_${ruleId++}";
     var containerName = "_l${ruleId++}";
     (withNames ??= {}).add(containerName);
@@ -625,7 +667,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
                 inner: "$containerName.add($variableName);\ncontinue;",
                 isPassIfNull: isPassIfNull(node.child, declarationName),
                 declarationName: declarationName,
-                markSaved: true,
+                isMarked: true,
+                isCuttable: false,
               ),
             )
             .indent(3),
@@ -654,7 +697,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
               isPassIfNull: true,
               inner: loopBuffer.toString(),
               declarationName: declarationName,
-              markSaved: true,
+              isMarked: true,
+              isCuttable: false,
             ),
           )
           .indent(1, !markSaved),
@@ -668,7 +712,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitAndPredicateNode(node, parameters) {
-    var Parameters(:withNames, :inner, :declarationName, :markSaved) = parameters;
+    var Parameters(:withNames, :inner, :declarationName, isMarked: markSaved) = parameters;
     var buffer = [
       // if (!markSaved) "if (this._mark() case var _mark) {",
       if (!markSaved) "var _mark = this._mark();",
@@ -679,7 +723,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
           inner: "this._recover(_mark);\n${inner ?? ""}",
           isPassIfNull: isPassIfNull(node.child, declarationName),
           declarationName: declarationName,
-          markSaved: true,
+          isMarked: true,
+          isCuttable: false,
         ),
       ),
       // .indent(1, !markSaved),
@@ -691,7 +736,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitNotPredicateNode(node, parameters) {
-    var Parameters(:withNames, :inner, :declarationName, :markSaved) = parameters;
+    var Parameters(:withNames, :inner, :declarationName, isMarked: markSaved) = parameters;
     var buffer = StringBuffer();
 
     if (!markSaved) {
@@ -706,7 +751,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
           withNames: {...?withNames, "null"},
           inner: "this._recover(_mark);\n${inner ?? "return null;"}",
           declarationName: declarationName,
-          markSaved: true,
+          isMarked: true,
+          isCuttable: false,
         ),
       ),
       // .indent(1, !markSaved),
@@ -720,7 +766,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitOptionalNode(node, parameters) {
-    var Parameters(:withNames, :inner, :declarationName, :markSaved) = parameters;
+    var Parameters(:withNames, :inner, :declarationName, isMarked: markSaved) = parameters;
     return node.child.acceptParametrizedVisitor(
       this,
       Parameters(
@@ -728,14 +774,15 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         inner: inner,
         isPassIfNull: true,
         declarationName: declarationName,
-        markSaved: markSaved,
+        isMarked: markSaved,
+        isCuttable: false,
       ),
     );
   }
 
   @override
   String visitExceptNode(node, parameters) {
-    var Parameters(:withNames, :inner, :declarationName, :markSaved) = parameters;
+    var Parameters(:withNames, :inner, :declarationName, isMarked: markSaved) = parameters;
     var buffer = StringBuffer();
     if (!markSaved) {
       buffer.writeln("var _mark = this._mark();");
@@ -767,7 +814,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
                     ..writeln("}"))
                   .toString(),
           declarationName: declarationName,
-          markSaved: true,
+          isMarked: true,
+          isCuttable: false,
         ),
       ),
       // .indent(1, !markSaved),
@@ -809,8 +857,13 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitNamedNode(node, parameters) {
-    var Parameters(isPassIfNull: isNullAllowed, :withNames, :inner, :declarationName, :markSaved) =
-        parameters;
+    var Parameters(
+      isPassIfNull: isNullAllowed,
+      :withNames,
+      :inner,
+      :declarationName,
+      isMarked: markSaved,
+    ) = parameters;
 
     return node.child.acceptParametrizedVisitor(
       this,
@@ -819,14 +872,15 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         withNames: {...?withNames, node.name},
         inner: inner,
         declarationName: declarationName,
-        markSaved: markSaved,
+        isMarked: markSaved,
+        isCuttable: false,
       ),
     );
   }
 
   @override
   String visitActionNode(node, parameters) {
-    var Parameters(:withNames, :declarationName, :markSaved) = parameters;
+    var Parameters(:withNames, :declarationName, isMarked: markSaved) = parameters;
 
     if (node.action.contains(RegExp(r"\b\$(?![A-Za-z0-9_\$\{])"))) {
       (withNames ??= {}).add(r"$");
@@ -860,7 +914,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         inner: inner,
         isPassIfNull: isPassIfNull(node.child, declarationName),
         declarationName: declarationName,
-        markSaved: markSaved,
+        isMarked: markSaved,
+        isCuttable: false,
       ),
     );
 
@@ -878,7 +933,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitInlineActionNode(node, parameters) {
-    var Parameters(:withNames, :declarationName, :markSaved) = parameters;
+    var Parameters(:withNames, :declarationName, isMarked: markSaved) = parameters;
 
     if (node.action.contains(RegExp(r"\$(?![A-Za-z0-9_\$\{])"))) {
       (withNames ??= {}).add(r"$");
@@ -911,7 +966,8 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         inner: inner,
         isPassIfNull: isPassIfNull(node.child, declarationName),
         declarationName: declarationName,
-        markSaved: markSaved,
+        isMarked: markSaved,
+        isCuttable: false,
       ),
     );
 

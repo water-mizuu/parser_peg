@@ -19,6 +19,11 @@ class RenameDeclarationVisitor implements SimpleNodeVisitor<Node> {
   Node renameDeclarations(Node node) => node.acceptSimpleVisitor(this);
 
   @override
+  Node visitCutNode(CutNode node) {
+    return node;
+  }
+
+  @override
   Node visitEpsilonNode(EpsilonNode node) {
     return node;
   }

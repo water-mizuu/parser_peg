@@ -1,4 +1,4 @@
-// ignore_for_file: unnecessary_this, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
+// ignore_for_file: avoid_positional_boolean_parameters, unnecessary_this, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
 
 import "dart:collection";
 import "dart:math" as math;
@@ -166,12 +166,12 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
-  int _mark() {
-    return this.pos;
+  _Mark _mark() {
+    return _Mark(false, this.pos);
   }
 
-  void _recover(int pos) {
-    this.pos = pos;
+  void _recover(_Mark mark) {
+    this.pos = mark.pos;
   }
 
   void reset() {
@@ -222,6 +222,13 @@ extension NullableExtension<T extends Object> on T {
 }
 
 typedef _Rule<T extends Object> = T? Function();
+
+class _Mark {
+  _Mark(this.isCut, this.pos);
+
+  bool isCut;
+  final int pos;
+}
 
 class _Head<T extends Object> {
   const _Head({required this.rule, required this.involvedSet, required this.evalSet});

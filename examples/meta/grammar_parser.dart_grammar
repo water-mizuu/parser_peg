@@ -25,8 +25,7 @@ extension on Node {
 }
 
 /// A grammar file contains an optional preamble and statements.
-ParserGenerator document;
-document = ^ preamble? _..statement+ _? $
+ParserGenerator document = ^ preamble? _..statement+ _? $
   |> ParserGenerator.fromParsed(preamble: $1, statements: $2);
 
 /// The preamble is simple.
@@ -197,7 +196,7 @@ Node prefix =
 ///   These are usually parsers that are delimited.
 Node atom =
   /// Basic atomic parsers.
-  | `(` ~> choice <~ `)`
+  | `(` # $:choice `)`
   | !`<~` `<` $:choice `>`     |> FlatNode($)
 
   /// Special syntax for character classes.
@@ -234,6 +233,9 @@ Node atom =
   | literal.regexp             |> RegExpNode($)
   | literal.string             |> StringLiteralNode($)
   | name                       |> ReferenceNode($)
+
+  /// Cut Operator
+  | `#`                        |> const CutNode()
 ;
 
 code {
@@ -415,28 +417,29 @@ dart {
   }
 }
 
-String type =
-  | _ raw _ @1
-  | dart.type.main;
+@fragment /* Shared code between declarations */ {
+  String type =
+    | _ raw _ @1
+    | dart.type.main;
 
-/// [namespaceReference] is a reference to a namespace.
-///   It is a sequence of identifiers separated by "::" or ".".
-///   It should not match a macro.
-String namespaceReference =
-  | 1..(identifier ("::" | !".." ".") !mac @0) |> $.join(ParserGenerator.separator)
-  | std.epsilon;
+  /// [namespaceReference] is a reference to a namespace.
+  ///   It is a sequence of identifiers separated by "::" or ".".
+  ///   It should not match a macro.
+  String namespaceReference =
+    | 1..(identifier ("::" | !".." ".") !mac @0) |> $.join(ParserGenerator.separator)
+    | std.epsilon;
 
-/// A [name] can be a single name, or multiple aliases.
-///  The aliases are separated by `&&`, surrounded by parentheses.
-String name =
-  | namespacedRaw
-  | namespacedIdentifier;
+  /// A [name] can be a single name, or multiple aliases.
+  ///  The aliases are separated by `&&`, surrounded by parentheses.
+  String name =
+    | namespacedRaw
+    | namespacedIdentifier;
 
-/// [namespacedRaw] refers to a name which may have accessed a namespace,
-///   using a raw trailing name ``<example>``
-String namespacedRaw = namespaceReference literal.raw       |> $0.isEmpty ? $1 : "${$0}::${$1}";
-String namespacedIdentifier = namespaceReference identifier |> $0.isEmpty ? $1 : "${$0}::${$1}";
-
+  /// [namespacedRaw] refers to a name which may have accessed a namespace,
+  ///   using a raw trailing name ``<example>``
+  String namespacedRaw = namespaceReference literal.raw       |> $0.isEmpty ? $1 : "${$0}::${$1}";
+  String namespacedIdentifier = namespaceReference identifier |> $0.isEmpty ? $1 : "${$0}::${$1}";
+}
 
 /// Tokens used in the grammar.
 ///   Since they are not recursive, they are not defined as rules.
@@ -466,7 +469,7 @@ String namespacedIdentifier = namespaceReference identifier |> $0.isEmpty ? $1 :
   };
 
   String regexEscape = choice! @fragment {
-    backslash       = _ <\\ r"\"> _ @1;
+    backslash       = _ ~> <\\ r"\"> <~ _;
 
     digit           = _ <\\ r"d"> _ @1;
     word            = _ <\\ r"w"> _ @1;
@@ -495,6 +498,7 @@ String namespacedIdentifier = namespaceReference identifier |> $0.isEmpty ? $1 :
   String () = choice! @fragment {
     CHOICE_OP = `|` `|`? { "" };
 
+    `#`  = _ "#" _ @1;
     `..` =  _ ".." _ @1;
     `::` = _ "::" _ @1;
     `%%` = _ "%%" _ @1;

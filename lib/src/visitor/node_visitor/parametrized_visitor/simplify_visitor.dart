@@ -64,6 +64,11 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
   Node simplify(Node node) => node.acceptParametrizedVisitor(this, 0);
 
   @override
+  Node visitCutNode(CutNode node, int depth) {
+    return node;
+  }
+
+  @override
   Node visitEpsilonNode(EpsilonNode node, int depth) {
     return node;
   }
@@ -119,7 +124,7 @@ class ParametrizedSimplifyVisitor implements ParametrizedNodeVisitor<Node, int> 
     if (stringNodes.length < 4 || averageLength < 8) {
       if (depth > 0) {
         return createFragment(
-          ChoiceNode([for (var child in node.children) child.acceptParametrizedVisitor(this, 1)]),
+          ChoiceNode([for (var child in node.children) child.acceptParametrizedVisitor(this, 0)]),
         );
       } else {
         return ChoiceNode([

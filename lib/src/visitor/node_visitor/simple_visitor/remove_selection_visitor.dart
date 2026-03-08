@@ -14,6 +14,11 @@ class RemoveSelectionVisitor implements SimpleNodeVisitor<Node> {
   const RemoveSelectionVisitor();
 
   @override
+  Node visitCutNode(CutNode node) {
+    return node;
+  }
+
+  @override
   Node visitEpsilonNode(EpsilonNode node) {
     return node;
   }

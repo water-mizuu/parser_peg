@@ -12,6 +12,9 @@ class ReferencedVisitor implements SimpleNodeVisitor<Iterable<(Tag, String)>> {
   Iterable<(Tag, String)> referencedDeclarations(Node root) => root.acceptSimpleVisitor(this);
 
   @override
+  Iterable<(Tag, String)> visitCutNode(CutNode node) sync* {}
+
+  @override
   Iterable<(Tag, String)> visitEpsilonNode(EpsilonNode node) sync* {}
 
   @override
@@ -84,7 +87,7 @@ class ReferencedVisitor implements SimpleNodeVisitor<Iterable<(Tag, String)>> {
   Iterable<(Tag, String)> visitOptionalNode(OptionalNode node) sync* {
     yield* node.child.acceptSimpleVisitor(this);
   }
-  
+
   @override
   Iterable<(Tag, String)> visitExceptNode(ExceptNode node) sync* {
     yield* node.child.acceptSimpleVisitor(this);

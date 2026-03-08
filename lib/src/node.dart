@@ -9,6 +9,17 @@ sealed class Node {
 
 sealed class AtomicNode implements Node {}
 
+class CutNode implements AtomicNode {
+  const CutNode();
+
+  @override
+  O acceptSimpleVisitor<O>(SimpleNodeVisitor<O> visitor) => visitor.visitCutNode(this);
+
+  @override
+  O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
+      visitor.visitCutNode(this, parameters);
+}
+
 class EpsilonNode implements AtomicNode {
   const EpsilonNode();
 
@@ -98,8 +109,7 @@ enum SimpleRegExpEscapeNode implements RegExpEscapeNode {
   newline(r"\n"),
   carriageReturn(r"\r"),
   formFeed(r"\f"),
-  verticalTab(r"\v"),
-  ;
+  verticalTab(r"\v");
 
   const SimpleRegExpEscapeNode(this.pattern);
 

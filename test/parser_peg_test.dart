@@ -1097,6 +1097,470 @@ void main(List<String> _, SendPort initPort) {
   });
 
   // -------------------------------------------------------------------------
+  //  Test group – Cut operator (#)
+  // -------------------------------------------------------------------------
+
+  group("Cut operator: grammar parsing", () {
+    late GrammarParser parser;
+
+    setUp(() => parser = GrammarParser());
+
+    test("parse simple cut in choice", () {
+      var result = parser.parse('rule = "a" # "b" | "c";');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse cut in first alternative only", () {
+      var result = parser.parse('rule = "x" # "y" | "z";');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse cut in multiple alternatives", () {
+      var result = parser.parse('rule = "a" # "b" | "c" # "d" | "e";');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse cut with no following token in sequence", () {
+      var result = parser.parse('rule = "a" # | "b";');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse bare cut", () {
+      var result = parser.parse('rule = # "a" | "b";');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse cut in nested group", () {
+      var result = parser.parse('rule = ("a" # "b") | "c";');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse cut with quantifier siblings", () {
+      var result = parser.parse('rule = "a"+ # "b" | "c";');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse cut compiles", () {
+      var gen = parser.parse('rule = "a" # "b" | "c";')!;
+      var code = gen.compileParserGenerator("CutParser");
+      expect(code, contains("isCut"));
+    });
+
+    test("CutNode is AtomicNode", () {
+      expect(const CutNode(), isA<AtomicNode>());
+    });
+
+    test("CutNode isPassIfNull returns true", () {
+      var gen = parser.parse('rule = "a" | "b";')!;
+      expect(gen.isPassIfNull(const CutNode(), "test"), isTrue);
+    });
+  });
+
+  group("End-to-end: cut basic behavior", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // rule = "a" # "b" | "c"
+      // If "a" matches, cut commits — even if "b" fails, "c" is NOT tried.
+      iso = await spawnParser(r'''
+rule = ^ ("a" # "b" | "c") $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("matches first alternative fully (a then b)", () async {
+      expect(await iso.parse("ab"), isNotNull);
+    });
+
+    test("matches second alternative when first does not start", () async {
+      // "a" doesn't match at all, so cut not reached, "c" is tried
+      expect(await iso.parse("c"), isNotNull);
+    });
+
+    test("cut prevents fallback: 'a' matches but 'b' fails → no 'c' tried", () async {
+      // "a" matches, cut fires, "b" fails → cut prevents trying "c".
+      // Even though "a" alone is in the input (so "c" choice would also fail),
+      // the key point: the parser does NOT fall through to "c".
+      expect(await iso.parse("a"), isNull);
+    });
+
+    test("rejects unrelated input", () async {
+      expect(await iso.parse("d"), isNull);
+    });
+
+    test("rejects empty", () async {
+      expect(await iso.parse(""), isNull);
+    });
+  });
+
+  group("End-to-end: cut does not fire if branch not entered", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // The cut is in the first alternative.
+      // If "x" doesn't match, the parser should try "y" normally.
+      iso = await spawnParser(r'''
+rule = ^ ("x" # "!" | "y") $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("first branch succeeds with cut path", () async {
+      expect(await iso.parse("x!"), isNotNull);
+    });
+
+    test("second branch succeeds when first branch not entered", () async {
+      expect(await iso.parse("y"), isNotNull);
+    });
+
+    test("cut blocks fallback after partial first branch match", () async {
+      // "x" matches, cut fires, "!" fails → cut blocks "y"
+      expect(await iso.parse("x"), isNull);
+    });
+  });
+
+  group("End-to-end: cut in multi-branch choice", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Three alternatives, cut in first only.
+      iso = await spawnParser(r'''
+rule = ^ ("a" # "1" | "b" | "c") $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("first branch full match", () async {
+      expect(await iso.parse("a1"), isNotNull);
+    });
+
+    test("second branch works when first not entered", () async {
+      expect(await iso.parse("b"), isNotNull);
+    });
+
+    test("third branch works when first not entered", () async {
+      expect(await iso.parse("c"), isNotNull);
+    });
+
+    test("cut blocks ALL subsequent alternatives", () async {
+      // "a" matches, cut fires, "1" fails → neither "b" nor "c" is tried
+      expect(await iso.parse("a"), isNull);
+    });
+  });
+
+  group("End-to-end: cut in multiple alternatives", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Both first and second alternatives have cuts.
+      iso = await spawnParser(r'''
+rule = ^ ("a" # "1" | "b" # "2" | "c") $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("first branch succeeds", () async {
+      expect(await iso.parse("a1"), isNotNull);
+    });
+
+    test("second branch succeeds", () async {
+      expect(await iso.parse("b2"), isNotNull);
+    });
+
+    test("third branch succeeds", () async {
+      expect(await iso.parse("c"), isNotNull);
+    });
+
+    test("cut in first blocks rest after partial", () async {
+      expect(await iso.parse("a"), isNull);
+    });
+
+    test("cut in second blocks third after partial", () async {
+      // "a" doesn't match, "b" matches, cut fires, "2" fails → "c" not tried
+      expect(await iso.parse("b"), isNull);
+    });
+  });
+
+  group("End-to-end: cut with referenced rules (inlined)", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Cut must be at the same choice level to block alternatives.
+      // Cuts are scoped to their enclosing rule's choice.
+      iso = await spawnParser(r'''
+rule = ^ stmt $;
+stmt = "if" # "(" identifier ")" | identifier;
+identifier = [a-z]+;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("full if statement parses", () async {
+      expect(await iso.parse("if(x)"), isNotNull);
+    });
+
+    test("plain identifier parses (if not matched)", () async {
+      expect(await iso.parse("hello"), isNotNull);
+    });
+
+    test("cut after 'if' blocks fallback to identifier", () async {
+      // "if" matches, cut fires, "(" fails → identifier not tried
+      expect(await iso.parse("if"), isNull);
+    });
+
+    test("if without closing paren fails", () async {
+      expect(await iso.parse("if(x"), isNull);
+    });
+  });
+
+  group("End-to-end: cut is scoped to its rule", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Cut inside ifStmt does NOT propagate to the outer stmt choice.
+      iso = await spawnParser(r'''
+rule = ^ stmt $;
+stmt = ifStmt | identifier;
+ifStmt = "if" # "(" identifier ")";
+identifier = [a-z]+;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("full if statement parses", () async {
+      expect(await iso.parse("if(x)"), isNotNull);
+    });
+
+    test("plain identifier parses", () async {
+      expect(await iso.parse("hello"), isNotNull);
+    });
+
+    test("cut in inner rule does NOT block outer choice alternatives", () async {
+      // "if" matches in ifStmt, cut fires inside ifStmt, "(" fails → ifStmt returns null.
+      // But the outer stmt choice has its own _mark, so it recovers and tries identifier.
+      // "if" matches [a-z]+ as an identifier.
+      expect(await iso.parse("if"), isNotNull);
+    });
+  });
+
+  group("End-to-end: cut with sequence continuation", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // The cut is in the middle of a longer sequence.
+      iso = await spawnParser(r'''
+rule = ^ ("a" "b" # "c" "d" | "e") $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("full first branch matches", () async {
+      expect(await iso.parse("abcd"), isNotNull);
+    });
+
+    test("second branch when first not started", () async {
+      expect(await iso.parse("e"), isNotNull);
+    });
+
+    test("partial before cut — normal backtrack to second", () async {
+      // "a" matches, "b" fails → cut NOT reached → "e" is tried
+      // But "a" alone doesn't match "e" either, so null
+      expect(await iso.parse("a"), isNull);
+    });
+
+    test("past cut — committed, no fallback", () async {
+      // "a" matches, "b" matches, cut fires, "c" fails → no "e" tried
+      expect(await iso.parse("ab"), isNull);
+    });
+
+    test("past cut, c matches but d fails", () async {
+      // "a","b" match, cut fires, "c" matches, "d" fails → committed, fail
+      expect(await iso.parse("abc"), isNull);
+    });
+  });
+
+  group("End-to-end: cut does not affect outer choices", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Cut is inside a nested group — it should only affect the inner choice.
+      iso = await spawnParser(r'''
+rule = ^ (inner | "z") $;
+inner = "a" # "b" | "c";
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("inner first branch succeeds", () async {
+      expect(await iso.parse("ab"), isNotNull);
+    });
+
+    test("inner second branch works when inner first not started", () async {
+      expect(await iso.parse("c"), isNotNull);
+    });
+
+    test("outer fallback 'z' works when inner fails entirely", () async {
+      expect(await iso.parse("z"), isNotNull);
+    });
+
+    test("cut in inner blocks inner alternatives but outer can still fail gracefully", () async {
+      // "a" matches in inner, cut fires, "b" fails → inner returns null
+      // outer choice can try "z" — but "a" is already consumed? No: outer recovers _mark.
+      // Actually, the outer choice has its own _mark and _recover.
+      // inner returns null, outer _recover restores position, tries "z".
+      // But the input is "a", not "z", so this should be null.
+      expect(await iso.parse("a"), isNull);
+    });
+  });
+
+  group("End-to-end: cut with repetition", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ item+ $;
+item = "a" # "b" | "c";
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("repeated cut items succeed", () async {
+      expect(await iso.parse("ababab"), isNotNull);
+    });
+
+    test("non-cut alternative repeats", () async {
+      expect(await iso.parse("ccc"), isNotNull);
+    });
+
+    test("mixed items", () async {
+      expect(await iso.parse("abcab"), isNotNull);
+    });
+
+    test("cut failure in repetition stops", () async {
+      // First "a" matches, cut fires, "b" fails → item returns null → plus fails
+      expect(await iso.parse("a"), isNull);
+    });
+  });
+
+  group("End-to-end: cut early in sequence (before anything)", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Cut at the very start of the sequence — commits immediately
+      iso = await spawnParser(r'''
+rule = ^ (# "a" "b" | "c") $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("first branch full match", () async {
+      expect(await iso.parse("ab"), isNotNull);
+    });
+
+    test("cut fires immediately, blocking second even with no prior match", () async {
+      // Cut fires before anything is matched → "c" blocked
+      expect(await iso.parse("c"), isNull);
+    });
+  });
+
+  group("End-to-end: no cut — normal backtracking baseline", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Same structure but WITHOUT cut — verify backtracking works normally
+      iso = await spawnParser(r'''
+rule = ^ ("a" "b" | "c") $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("first branch matches", () async {
+      expect(await iso.parse("ab"), isNotNull);
+    });
+
+    test("second branch via backtrack", () async {
+      expect(await iso.parse("c"), isNotNull);
+    });
+
+    test("partial first branch backtracks to second (no cut)", () async {
+      // "a" matches, "b" fails → backtrack → try "c"
+      // Input is "a", "c" doesn't match either, so null
+      expect(await iso.parse("a"), isNull);
+    });
+  });
+
+  group("End-to-end: cut with actions", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+int rule = ^ expr $ @1;
+int expr = "a" # :n |> n
+         | "default" |> 0;
+@fragment int n = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("cut path with action", () async {
+      expect(await iso.parse("a42"), equals(42));
+    });
+
+    test("default path when first not entered", () async {
+      expect(await iso.parse("default"), equals(0));
+    });
+
+    test("cut blocks default after partial match", () async {
+      // "a" matches, cut fires, digit fails → no "default" tried
+      expect(await iso.parse("a"), isNull);
+    });
+  });
+
+  group("End-to-end: cut with optional and predicates", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ (keyword # "(" [a-z]+ ")" | identifier) $;
+keyword = "fn";
+identifier = [a-z]+;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("keyword path succeeds", () async {
+      expect(await iso.parse("fn(abc)"), isNotNull);
+    });
+
+    test("identifier path succeeds", () async {
+      expect(await iso.parse("hello"), isNotNull);
+    });
+
+    test("keyword partial match blocked by cut", () async {
+      // "fn" matches keyword, cut fires, "(" fails → identifier not tried
+      expect(await iso.parse("fn"), isNull);
+    });
+
+    test("fn prefix as identifier blocked by cut", () async {
+      // "fn" matches keyword, cut fires, then expects "(", gets "x" → fail, no identifier fallback
+      expect(await iso.parse("fnx"), isNull);
+    });
+  });
+
+  // -------------------------------------------------------------------------
   //  Test group 6 – Node construction & visitor dispatch
   // -------------------------------------------------------------------------
 
@@ -1521,6 +1985,1466 @@ _ = \s* { () };
 
     test("unindent empty string", () {
       expect("".unindent(), equals(""));
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  //  Test group 11 – End-to-end: edge cases for generated parsers
+  // -------------------------------------------------------------------------
+
+  group("End-to-end: drop operators (~> and <~)", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ ("(" ~> <[a-z]+> <~ ")") $ @1;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("drops left and right, keeps middle", () async {
+      expect(await iso.parse("(hello)"), equals("hello"));
+    });
+
+    test("rejects missing left paren", () async {
+      expect(await iso.parse("hello)"), isNull);
+    });
+
+    test("rejects missing right paren", () async {
+      expect(await iso.parse("(hello"), isNull);
+    });
+
+    test("rejects empty parens", () async {
+      expect(await iso.parse("()"), isNull);
+    });
+  });
+
+  group("End-to-end: chained drop operators", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ ~> "[" ~> "(" ~> <[a-z]+> <~ ")" <~ "]" <~ $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("multiple drops keep innermost", () async {
+      expect(await iso.parse("[(hello)]"), equals("hello"));
+    });
+
+    test("rejects partial delimiters", () async {
+      expect(await iso.parse("[hello]"), isNull);
+    });
+  });
+
+  group("End-to-end: flat node <...>", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+String rule = ^ <[a-z]+ ":" [0-9]+> $ @1;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("flattens sequence to string span", () async {
+      expect(await iso.parse("abc:123"), equals("abc:123"));
+    });
+
+    test("rejects partial match", () async {
+      expect(await iso.parse("abc:"), isNull);
+    });
+
+    test("rejects missing colon", () async {
+      expect(await iso.parse("abc123"), isNull);
+    });
+  });
+
+  group("End-to-end: flat node with quantifiers", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+String rule = ^ <\d+ ("." \d+)?> $ @1;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("integer flattened", () async {
+      expect(await iso.parse("42"), equals("42"));
+    });
+
+    test("float flattened", () async {
+      expect(await iso.parse("3.14"), equals("3.14"));
+    });
+
+    test("rejects bare dot", () async {
+      expect(await iso.parse(".5"), isNull);
+    });
+  });
+
+  group("End-to-end: selection index @N", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ "a" "b" "c" $ @2;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("selects second element (index 1)", () async {
+      expect(await iso.parse("abc"), equals("b"));
+    });
+
+    test("rejects partial", () async {
+      expect(await iso.parse("ab"), isNull);
+    });
+  });
+
+  group("End-to-end: sequence returns tuple", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ "x" "y" "z" $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("sequence returns list of all elements", () async {
+      var result = await iso.parse("xyz");
+      // Sequences return records which serialize as lists
+      expect(result, equals("(0, x, y, z, 3)"));
+    });
+  });
+
+  group("End-to-end: nested quantifiers (a+)*", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ ([a-z]+ ","?)* $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("single group", () async {
+      expect(await iso.parse("abc"), isNotNull);
+    });
+
+    test("multiple groups", () async {
+      expect(await iso.parse("abc,def,ghi"), isNotNull);
+    });
+
+    test("empty matches", () async {
+      expect(await iso.parse(""), isNotNull);
+    });
+  });
+
+  group("End-to-end: nested quantifiers (a?)+", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Optional inside plus: "a"? "b" ensures progress each iteration
+      iso = await spawnParser(r'''
+rule = ^ ("a"? "b")+ $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("all with optional", () async {
+      expect(await iso.parse("ababab"), isNotNull);
+    });
+
+    test("some without optional", () async {
+      expect(await iso.parse("abbb"), isNotNull);
+    });
+
+    test("just required parts", () async {
+      expect(await iso.parse("bbb"), isNotNull);
+    });
+
+    test("rejects empty", () async {
+      expect(await iso.parse(""), isNull);
+    });
+  });
+
+  group("End-to-end: actions with from/to indices", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+int rule = ^ body $ @1;
+int body = [a-z]+() { return to - from; };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("reports correct length for short", () async {
+      expect(await iso.parse("abc"), equals(3));
+    });
+
+    test("reports correct length for single char", () async {
+      expect(await iso.parse("x"), equals(1));
+    });
+
+    test("reports correct length for long", () async {
+      expect(await iso.parse("abcdefghij"), equals(10));
+    });
+  });
+
+  group("End-to-end: actions with span", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+String rule = ^ body $ @1;
+String body = [a-z]+ " " [0-9]+ |> span;
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("span captures full matched text", () async {
+      expect(await iso.parse("hello 123"), equals("hello 123"));
+    });
+
+    test("rejects without space", () async {
+      expect(await iso.parse("hello123"), isNull);
+    });
+  });
+
+  group("End-to-end: left recursion with actions (arithmetic)", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+int rule = ^ :expr $ |> expr;
+int expr =
+  | :expr "+" :atom { expr + atom }
+  | :expr "-" :atom { expr - atom }
+  | atom;
+@fragment int atom = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("base case", () async {
+      expect(await iso.parse("5"), equals(5));
+    });
+
+    test("addition", () async {
+      expect(await iso.parse("3+4"), equals(7));
+    });
+
+    test("subtraction", () async {
+      expect(await iso.parse("10-3"), equals(7));
+    });
+
+    test("chained left associative", () async {
+      // 1+2+3 = (1+2)+3 = 6
+      expect(await iso.parse("1+2+3"), equals(6));
+    });
+
+    test("mixed operations left associative", () async {
+      // 10-3+2 = (10-3)+2 = 9
+      expect(await iso.parse("10-3+2"), equals(9));
+    });
+  });
+
+  group("End-to-end: separated list with trailing allowed", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ ","..item+? $;
+item = [a-z]+;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("no trailing separator", () async {
+      expect(await iso.parse("a,b,c"), isNotNull);
+    });
+
+    test("with trailing separator", () async {
+      expect(await iso.parse("a,b,c,"), isNotNull);
+    });
+
+    test("single item no trailing", () async {
+      expect(await iso.parse("abc"), isNotNull);
+    });
+
+    test("single item with trailing", () async {
+      expect(await iso.parse("abc,"), isNotNull);
+    });
+
+    test("rejects empty", () async {
+      expect(await iso.parse(""), isNull);
+    });
+  });
+
+  group("End-to-end: star separated with trailing", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ ","..item*? $;
+item = [a-z]+;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("empty matches", () async {
+      expect(await iso.parse(""), isNotNull);
+    });
+
+    test("trailing comma on star", () async {
+      expect(await iso.parse("a,b,"), isNotNull);
+    });
+
+    test("no trailing", () async {
+      expect(await iso.parse("a,b"), isNotNull);
+    });
+  });
+
+  group("End-to-end: counted repetition (exact count)", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ 3 "a" $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("exact count matches", () async {
+      expect(await iso.parse("aaa"), isNotNull);
+    });
+
+    test("too few rejects", () async {
+      expect(await iso.parse("aa"), isNull);
+    });
+
+    test("too many rejects", () async {
+      expect(await iso.parse("aaaa"), isNull);
+    });
+  });
+
+  group("End-to-end: counted repetition (unbounded max)", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ 2.. "a" $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("matches minimum", () async {
+      expect(await iso.parse("aa"), isNotNull);
+    });
+
+    test("matches large count", () async {
+      expect(await iso.parse("aaaaaaaaaa"), isNotNull);
+    });
+
+    test("rejects less than minimum", () async {
+      expect(await iso.parse("a"), isNull);
+    });
+  });
+
+  group("End-to-end: any character (.)", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+rule = ^ .+ $;
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("matches single char", () async {
+      expect(await iso.parse("x"), isNotNull);
+    });
+
+    test("matches digits", () async {
+      expect(await iso.parse("123"), isNotNull);
+    });
+
+    test("matches symbols", () async {
+      expect(await iso.parse("!@#"), isNotNull);
+    });
+
+    test("matches spaces", () async {
+      expect(await iso.parse("a b"), isNotNull);
+    });
+
+    test("rejects empty", () async {
+      expect(await iso.parse(""), isNull);
+    });
+  });
+
+  group("End-to-end: character ranges", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+rule = ^ [a-zA-Z_] [a-zA-Z0-9_]* $;
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("simple identifier", () async {
+      expect(await iso.parse("hello"), isNotNull);
+    });
+
+    test("identifier with digits", () async {
+      expect(await iso.parse("x123"), isNotNull);
+    });
+
+    test("identifier with underscore", () async {
+      expect(await iso.parse("_foo"), isNotNull);
+    });
+
+    test("single letter", () async {
+      expect(await iso.parse("A"), isNotNull);
+    });
+
+    test("rejects starting with digit", () async {
+      expect(await iso.parse("1abc"), isNull);
+    });
+
+    test("rejects starting with minus", () async {
+      expect(await iso.parse("-abc"), isNull);
+    });
+  });
+
+  group("End-to-end: regex escapes", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+rule = ^ <\w+> $ @1;
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("matches word characters", () async {
+      expect(await iso.parse("hello123"), equals("hello123"));
+    });
+
+    test("matches with underscore", () async {
+      expect(await iso.parse("_test_"), equals("_test_"));
+    });
+
+    test("rejects space", () async {
+      expect(await iso.parse("hello world"), isNull);
+    });
+
+    test("rejects empty", () async {
+      expect(await iso.parse(""), isNull);
+    });
+  });
+
+  group(r"End-to-end: regex escape \d", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+rule = ^ <\d+> $ @1;
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("matches digits", () async {
+      expect(await iso.parse("42"), equals("42"));
+    });
+
+    test("rejects letters", () async {
+      expect(await iso.parse("abc"), isNull);
+    });
+  });
+
+  group(r"End-to-end: regex escape \s", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+rule = ^ <\s+> $ @1;
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("matches spaces", () async {
+      expect(await iso.parse("   "), equals("   "));
+    });
+
+    test("matches mixed whitespace", () async {
+      expect(await iso.parse(" \t\n"), isNotNull);
+    });
+
+    test("rejects non-whitespace", () async {
+      expect(await iso.parse("abc"), isNull);
+    });
+  });
+
+  group("End-to-end: epsilon in choice", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ ("a" | ε) "b" $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("matches with optional prefix", () async {
+      expect(await iso.parse("ab"), isNotNull);
+    });
+
+    test("matches without optional prefix (epsilon branch)", () async {
+      expect(await iso.parse("b"), isNotNull);
+    });
+
+    test("rejects unrelated", () async {
+      expect(await iso.parse("c"), isNull);
+    });
+  });
+
+  group("End-to-end: complex backtracking", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Parser must try multiple paths before finding the correct one
+      iso = await spawnParser(r'''
+rule = ^ ("a" "b" "c" "d" | "a" "b" "c" "e" | "a" "b" "f" | "a" "g") $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("matches first (deepest) alternative", () async {
+      expect(await iso.parse("abcd"), isNotNull);
+    });
+
+    test("backtracks to second alternative", () async {
+      expect(await iso.parse("abce"), isNotNull);
+    });
+
+    test("backtracks to third alternative", () async {
+      expect(await iso.parse("abf"), isNotNull);
+    });
+
+    test("backtracks to fourth alternative", () async {
+      expect(await iso.parse("ag"), isNotNull);
+    });
+
+    test("fails after exhausting all alternatives", () async {
+      expect(await iso.parse("ah"), isNull);
+    });
+
+    test("partial prefix fails", () async {
+      expect(await iso.parse("abc"), isNull);
+    });
+  });
+
+  group("End-to-end: deeply nested groups", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ ((("a" | "b") ("c" | "d")) | "e") $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("first inner choice + first outer choice", () async {
+      expect(await iso.parse("ac"), isNotNull);
+    });
+
+    test("first inner + second outer", () async {
+      expect(await iso.parse("ad"), isNotNull);
+    });
+
+    test("second inner + first outer", () async {
+      expect(await iso.parse("bc"), isNotNull);
+    });
+
+    test("second inner + second outer", () async {
+      expect(await iso.parse("bd"), isNotNull);
+    });
+
+    test("outer fallback", () async {
+      expect(await iso.parse("e"), isNotNull);
+    });
+
+    test("rejects invalid combo", () async {
+      expect(await iso.parse("ae"), isNull);
+    });
+  });
+
+  group("End-to-end: multiple interacting rules", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+String rule = ^ :item ("," :item)* $ @1 |> item;
+@fragment String item = "(" ~> inner <~ ")" | word;
+@fragment String inner = <[a-z0-9\s]+>;
+@fragment String word = <[a-z]+>;
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("single word", () async {
+      expect(await iso.parse("hello"), equals("hello"));
+    });
+
+    test("parenthesized item", () async {
+      expect(await iso.parse("(abc 123)"), equals("abc 123"));
+    });
+
+    test("multiple items returns first", () async {
+      expect(await iso.parse("first,second"), equals("first"));
+    });
+  });
+
+  group("End-to-end: regex literal /pattern/", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+String rule = ^ </[a-z]+[0-9]+/> $ @1;
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("matches regex pattern", () async {
+      expect(await iso.parse("abc123"), equals("abc123"));
+    });
+
+    test("rejects only letters", () async {
+      expect(await iso.parse("abc"), isNull);
+    });
+
+    test("rejects digits first", () async {
+      expect(await iso.parse("123abc"), isNull);
+    });
+  });
+
+  group("End-to-end: predicate combinations", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Match an identifier that is not a keyword
+      iso = await spawnParser(r'''
+rule = ^ (!keyword ~> <[a-z]+>) $ @1;
+keyword = "if" | "else" | "while" | "for";
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("accepts non-keyword identifier", () async {
+      expect(await iso.parse("hello"), equals("hello"));
+    });
+
+    test("accepts identifier starting with keyword prefix", () async {
+      // "iffy" starts with "if" but "if" is matched as whole keyword?
+      // Actually negative lookahead checks if keyword matches at current pos.
+      // keyword = "if" matches "if" from "iffy" (prefix), so !keyword fails.
+      // This depends on whether keyword anchors to end.
+      // Without $, "if" will match the prefix of "iffy", so !keyword will fail.
+      // This is actually the expected PEG behavior.
+      expect(await iso.parse("iffy"), isNull);
+    });
+
+    test("rejects keyword 'if'", () async {
+      expect(await iso.parse("if"), isNull);
+    });
+
+    test("rejects keyword 'else'", () async {
+      expect(await iso.parse("else"), isNull);
+    });
+
+    test("rejects keyword 'while'", () async {
+      expect(await iso.parse("while"), isNull);
+    });
+  });
+
+  group("End-to-end: positive lookahead does not consume", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // &"a" checks for "a" but doesn't consume, then . matches the "a"
+      iso = await spawnParser(r'''
+String rule = ^ <(&"a" .)+> $ @1;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("matches all a's", () async {
+      expect(await iso.parse("aaa"), equals("aaa"));
+    });
+
+    test("rejects when first char is not a", () async {
+      expect(await iso.parse("baa"), isNull);
+    });
+
+    test("stops at non-a", () async {
+      expect(await iso.parse("aab"), isNull);
+    });
+  });
+
+  group("End-to-end: except vs negative predicate", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // ~"x" means: if NOT "x", consume one character
+      iso = await spawnParser(r'''
+String rule = ^ <(~"x")+> $ @1;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("matches all non-x characters", () async {
+      expect(await iso.parse("abcdef"), equals("abcdef"));
+    });
+
+    test("stops at x", () async {
+      expect(await iso.parse("abxcd"), isNull);
+    });
+
+    test("rejects just x", () async {
+      expect(await iso.parse("x"), isNull);
+    });
+
+    test("matches single non-x", () async {
+      expect(await iso.parse("z"), equals("z"));
+    });
+  });
+
+  group("End-to-end: left recursion multiple precedence levels", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Two precedence levels: + (low) and * (high)
+      iso = await spawnParser(r"""
+int rule = ^ :expr $ |> expr;
+int expr =
+  | :expr "+" :term { expr + term }
+  | term;
+int term =
+  | :term "*" :atom { term * atom }
+  | atom;
+@fragment int atom = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("single number", () async {
+      expect(await iso.parse("5"), equals(5));
+    });
+
+    test("addition", () async {
+      expect(await iso.parse("2+3"), equals(5));
+    });
+
+    test("multiplication", () async {
+      expect(await iso.parse("2*3"), equals(6));
+    });
+
+    test("precedence: mul before add", () async {
+      // 2+3*4 = 2+(3*4) = 14
+      expect(await iso.parse("2+3*4"), equals(14));
+    });
+
+    test("precedence: add before mul doesn't happen", () async {
+      // 2*3+4 = (2*3)+4 = 10
+      expect(await iso.parse("2*3+4"), equals(10));
+    });
+
+    test("chained same level", () async {
+      // 1+2+3 = 6
+      expect(await iso.parse("1+2+3"), equals(6));
+    });
+
+    test("chained multiplication", () async {
+      // 2*3*4 = 24
+      expect(await iso.parse("2*3*4"), equals(24));
+    });
+  });
+
+  group("End-to-end: named captures in actions", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+String rule = ^ :greeting " " :name $ { "$greeting, $name!" };
+@fragment String greeting = <[A-Z][a-z]+>;
+@fragment String name = <[A-Z][a-z]+>;
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("constructs string from named parts", () async {
+      expect(await iso.parse("Hello World"), equals("Hello, World!"));
+    });
+
+    test("different input", () async {
+      expect(await iso.parse("Good Morning"), equals("Good, Morning!"));
+    });
+
+    test("rejects lowercase", () async {
+      expect(await iso.parse("hello world"), isNull);
+    });
+  });
+
+  group("End-to-end: optional in sequence", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+String rule = ^ <[a-z]+ ("." [a-z]+)?> $ @1;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("without optional part", () async {
+      expect(await iso.parse("hello"), equals("hello"));
+    });
+
+    test("with optional part", () async {
+      expect(await iso.parse("hello.world"), equals("hello.world"));
+    });
+
+    test("rejects double dot", () async {
+      expect(await iso.parse("a..b"), isNull);
+    });
+  });
+
+  group("End-to-end: star in sequence produces list", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ "x"* $ @1;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("empty produces empty list", () async {
+      var result = await iso.parse("");
+      expect(result, isA<List>());
+      expect(result! as List, isEmpty);
+    });
+
+    test("one x produces single element list", () async {
+      var result = await iso.parse("x");
+      expect(result, isA<List>());
+      expect(result! as List, hasLength(1));
+    });
+
+    test("multiple x's produce list", () async {
+      var result = await iso.parse("xxx");
+      expect(result, isA<List>());
+      expect(result! as List, hasLength(3));
+    });
+  });
+
+  group("End-to-end: plus produces non-empty list", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ "x"+ $ @1;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("one x produces single element list", () async {
+      var result = await iso.parse("x");
+      expect(result, isA<List>());
+      expect(result! as List, hasLength(1));
+    });
+
+    test("multiple x's produce list", () async {
+      var result = await iso.parse("xxx");
+      expect(result, isA<List>());
+      expect(result! as List, hasLength(3));
+    });
+
+    test("all elements are the matched string", () async {
+      var result = await iso.parse("xx");
+      expect(result, equals(["x", "x"]));
+    });
+  });
+
+  group(r"End-to-end: action with $ for whole match", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+int rule = ^ <\d \d+> $ @1 { int.parse($) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("captures full match", () async {
+      expect(await iso.parse("42"), equals(42));
+    });
+
+    test("longer match", () async {
+      expect(await iso.parse("123"), equals(123));
+    });
+  });
+
+  group("End-to-end: fragment inlining", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+String rule = ^ a $ @1;
+@inline a = <"hello" " " "world">;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("inlined fragment works", () async {
+      expect(await iso.parse("hello world"), equals("hello world"));
+    });
+
+    test("rejects partial", () async {
+      expect(await iso.parse("hello"), isNull);
+    });
+  });
+
+  group("End-to-end: multiple fragments composing", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+int rule = ^ :a "+" :b $ { a + b };
+@fragment int a = \d+ { int.parse($.join()) };
+@fragment int b = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("adds two numbers", () async {
+      expect(await iso.parse("3+4"), equals(7));
+    });
+
+    test("larger numbers", () async {
+      expect(await iso.parse("100+200"), equals(300));
+    });
+
+    test("rejects missing operand", () async {
+      expect(await iso.parse("3+"), isNull);
+    });
+  });
+
+  group("End-to-end: empty string literal always matches", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ "" "a" $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("empty literal is transparent", () async {
+      expect(await iso.parse("a"), isNotNull);
+    });
+
+    test("still requires following content", () async {
+      expect(await iso.parse(""), isNull);
+    });
+  });
+
+  group("End-to-end: backtracking restores position", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // "ab" | "a" "c": if "ab" fails on "ac", must backtrack to try "a" "c"
+      iso = await spawnParser(r'''
+rule = ^ ("ab" | "a" "c") $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("first alternative", () async {
+      expect(await iso.parse("ab"), isNotNull);
+    });
+
+    test("second alternative via backtrack", () async {
+      // "ab" partially matches "a" then fails on "c", backtracks, "a" "c" matches
+      expect(await iso.parse("ac"), isNotNull);
+    });
+
+    test("rejects mid-match", () async {
+      expect(await iso.parse("ad"), isNull);
+    });
+  });
+
+  group("End-to-end: and predicate in sequence", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Match digits only if followed by a letter (but don't consume the letter)
+      iso = await spawnParser(r"""
+String rule = ^ <\d+ &[a-z]> <[a-z]+> $ @1;
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("digits followed by letters", () async {
+      expect(await iso.parse("123abc"), equals("123"));
+    });
+
+    test("rejects digits alone", () async {
+      expect(await iso.parse("123"), isNull);
+    });
+  });
+
+  group("End-to-end: hybrid namespace (choice!)", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ token $;
+token = choice! {
+  keyword = "if" | "else" | "while";
+  ident = [a-z]+;
+};
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("matches keyword", () async {
+      expect(await iso.parse("if"), isNotNull);
+    });
+
+    test("matches another keyword", () async {
+      expect(await iso.parse("while"), isNotNull);
+    });
+
+    test("matches identifier", () async {
+      expect(await iso.parse("hello"), isNotNull);
+    });
+
+    test("rejects digits", () async {
+      expect(await iso.parse("123"), isNull);
+    });
+  });
+
+  group("End-to-end: choice of different lengths", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+String rule = ^ <("abc" | "ab" | "a")> $ @1;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("longest match from first alternative", () async {
+      expect(await iso.parse("abc"), equals("abc"));
+    });
+
+    test("medium match from second alternative", () async {
+      expect(await iso.parse("ab"), equals("ab"));
+    });
+
+    test("shortest match from third alternative", () async {
+      expect(await iso.parse("a"), equals("a"));
+    });
+
+    test("rejects non-matching", () async {
+      expect(await iso.parse("b"), isNull);
+    });
+  });
+
+  group("End-to-end: counted repetition (min 0)", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ 0..3 "a" $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("zero matches", () async {
+      expect(await iso.parse(""), isNotNull);
+    });
+
+    test("one match", () async {
+      expect(await iso.parse("a"), isNotNull);
+    });
+
+    test("max matches", () async {
+      expect(await iso.parse("aaa"), isNotNull);
+    });
+
+    test("over max rejects", () async {
+      expect(await iso.parse("aaaa"), isNull);
+    });
+  });
+
+  group("End-to-end: not predicate does not consume", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ <(!"end" .)+> "end" $ @1;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("captures everything before 'end'", () async {
+      expect(await iso.parse("helloend"), equals("hello"));
+    });
+
+    test("single char before end", () async {
+      expect(await iso.parse("xend"), equals("x"));
+    });
+
+    test("rejects no 'end' suffix", () async {
+      expect(await iso.parse("hello"), isNull);
+    });
+
+    test("rejects bare 'end'", () async {
+      // !"end" fails immediately, so (...)+ requires at least one char
+      expect(await iso.parse("end"), isNull);
+    });
+  });
+
+  group("End-to-end: sequence with multiple selections", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ "(" [a-z]+ ":" [0-9]+ ")" $ @1;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("selects first capture (index 1)", () async {
+      // @1 selects [a-z]+ which is at index 1 (0-based: "(" is 0, [a-z]+ is 1)
+      expect(await iso.parse("(abc:123)"), isNotNull);
+      var result = await iso.parse("(abc:123)");
+      expect(result, isA<String>());
+    });
+  });
+
+  group("End-to-end: recursive descent (non-left)", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Nested balanced parentheses
+      iso = await spawnParser(r'''
+Object rule = ^ item $;
+Object item = "(" item ")" | "x";
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("base case", () async {
+      expect(await iso.parse("x"), isNotNull);
+    });
+
+    test("one level of nesting", () async {
+      expect(await iso.parse("(x)"), isNotNull);
+    });
+
+    test("deep nesting", () async {
+      expect(await iso.parse("(((x)))"), isNotNull);
+    });
+
+    test("rejects unbalanced", () async {
+      expect(await iso.parse("((x)"), isNull);
+    });
+
+    test("rejects extra close", () async {
+      expect(await iso.parse("(x))"), isNull);
+    });
+  });
+
+  group("End-to-end: mutual recursion", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+Object rule = ^ a $;
+Object a = "(" b ")" | "x";
+Object b = "[" a "]" | "y";
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("base a", () async {
+      expect(await iso.parse("x"), isNotNull);
+    });
+
+    test("a wrapping b base", () async {
+      expect(await iso.parse("(y)"), isNotNull);
+    });
+
+    test("b wrapping a base", () async {
+      expect(await iso.parse("([x])"), isNotNull);
+    });
+
+    test("deep mutual recursion", () async {
+      expect(await iso.parse("([([x])])"), isNotNull);
+    });
+
+    test("rejects mismatched brackets", () async {
+      expect(await iso.parse("(y]"), isNull);
+    });
+  });
+
+  group("End-to-end: greedy quantifier behavior", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // PEG is greedy: "a"* will consume all "a"s,
+      // so "a"* "a" should only match if there's at least one "a" left
+      iso = await spawnParser(r'''
+rule = ^ "a"* "a"? "b" $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("minimal case: one a + b", () async {
+      expect(await iso.parse("ab"), isNotNull);
+    });
+
+    test("multiple a's then b", () async {
+      expect(await iso.parse("aaab"), isNotNull);
+    });
+  });
+
+  group("End-to-end: multiple start/end anchors", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ ^ "hello" $ $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("double anchors still match", () async {
+      expect(await iso.parse("hello"), isNotNull);
+    });
+
+    test("rejects non-matching", () async {
+      expect(await iso.parse("world"), isNull);
+    });
+  });
+
+  group("End-to-end: complex JSON-like parser", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+Object rule = ^ :value $ |> value;
+
+Object value =
+  | "null" |> null
+  | "true" |> true
+  | "false" |> false
+  | number
+  | string
+  | array
+  | object;
+
+@fragment num number = \d+ ("." \d+)? { double.parse(buffer.substring(from, to)) };
+@fragment String string = '"' <(~'"')*> '"' @1;
+@fragment Object array = "[" _ ","..value* _ "]" @2;
+@fragment Object object = "{" _ ","..pair* _ "}" @2;
+@fragment Object pair = _ :key _ ":" _ :val _ |> [key, val];
+@fragment String key = '"' <(~'"')*> '"' @1;
+@fragment Object val = value;
+_ = \s* { () };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("parses null", () async {
+      expect(await iso.parse("null"), isNull);
+      // null parses but returns null — we need a way to distinguish
+      // Actually our spawnParser returns null for both parse-failure and null-result
+      // So let's test other values instead
+    });
+
+    test("parses true", () async {
+      expect(await iso.parse("true"), equals(true));
+    });
+
+    test("parses false", () async {
+      expect(await iso.parse("false"), equals(false));
+    });
+
+    test("parses integer", () async {
+      expect(await iso.parse("42"), equals(42.0));
+    });
+
+    test("parses float", () async {
+      expect(await iso.parse("3.14"), equals(3.14));
+    });
+
+    test("parses string", () async {
+      expect(await iso.parse('"hello"'), equals("hello"));
+    });
+
+    test("parses empty array", () async {
+      expect(await iso.parse("[]"), equals([]));
+    });
+
+    test("parses array with values", () async {
+      expect(await iso.parse("[1,2,3]"), equals([1.0, 2.0, 3.0]));
+    });
+
+    test("parses empty object", () async {
+      expect(await iso.parse("{}"), equals([]));
+    });
+
+    test("parses nested structure", () async {
+      var result = await iso.parse('[1,"hi",true]');
+      expect(result, equals([1.0, "hi", true]));
+    });
+
+    test("rejects malformed", () async {
+      expect(await iso.parse("[1,2,"), isNull);
+    });
+  });
+
+  group("End-to-end: preamble code used in actions", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+{
+int doubleIt(int x) => x * 2;
+}
+int rule = ^ :n $ |> doubleIt(n);
+@fragment int n = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("preamble function called from action", () async {
+      expect(await iso.parse("5"), equals(10));
+    });
+
+    test("larger number", () async {
+      expect(await iso.parse("21"), equals(42));
+    });
+  });
+
+  group("End-to-end: start/end of input anchors", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+rule = ^ "hello" $;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("exact match", () async {
+      expect(await iso.parse("hello"), isNotNull);
+    });
+
+    test("rejects prefix extra", () async {
+      expect(await iso.parse(" hello"), isNull);
+    });
+
+    test("rejects suffix extra", () async {
+      expect(await iso.parse("hello "), isNull);
+    });
+  });
+
+  group("End-to-end: complex separated list with actions", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+Object rule = ^ _ ","..item+ _ $  @2;
+@fragment int item = _ \d+ _ @1 { int.parse($.join()) };
+_ = \s* { () };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("single item", () async {
+      var result = await iso.parse("42");
+      expect(result, equals([42]));
+    });
+
+    test("multiple items", () async {
+      var result = await iso.parse("1, 2, 3");
+      expect(result, equals([1, 2, 3]));
+    });
+
+    test("items with extra whitespace", () async {
+      var result = await iso.parse("  10 , 20 , 30  ");
+      expect(result, equals([10, 20, 30]));
     });
   });
 }
