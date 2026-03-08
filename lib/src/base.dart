@@ -1,4 +1,4 @@
-// ignore_for_file: collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
+// ignore_for_file: unnecessary_this, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
 
 import "dart:collection";
 import "dart:math" as math;
@@ -207,13 +207,12 @@ abstract base class _PegParser<R extends Object> {
   late String buffer;
   int pos = 0;
 
-  R? parse(String buffer) =>
-      (
-        this
-          ..buffer = buffer
-          ..reset(),
-        apply(start),
-      ).$2;
+  R? parse(String buffer) => (
+    this
+      ..buffer = buffer
+      ..reset(),
+    apply(start),
+  ).$2;
   _Rule<R> get start;
 }
 
@@ -286,9 +285,10 @@ class Trie {
     _ => null,
   };
 
-  Trie? deriveAll(String value) => value //
-      .split("")
-      .fold(this, (trie, char) => trie?.derive(char));
+  Trie? deriveAll(String value) =>
+      value //
+          .split("")
+          .fold(this, (trie, char) => trie?.derive(char));
 
   (int, int)? matchLongest(String input, [int start = 0]) {
     List<int> ends = <int>[];

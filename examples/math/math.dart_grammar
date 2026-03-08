@@ -2,7 +2,7 @@
 import "dart:math" as math show pow;
 }
 
-num rule = ^ :expr $ { expr };
+num rule = ^ _ :expr _ $ { expr };
 
 num expr =
   | :expr _ "+" _ :term { expr + term }

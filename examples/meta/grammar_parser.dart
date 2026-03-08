@@ -1,10 +1,9 @@
-// ignore_for_file: type=lint, body_might_complete_normally_nullable, unused_local_variable, inference_failure_on_function_return_type, unused_import, duplicate_ignore, unused_element, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
+// ignore_for_file: type=lint, body_might_complete_normally_nullable, unused_local_variable, inference_failure_on_function_return_type, unused_import, duplicate_ignore, unused_element, unused_element
 
 // imports
-// ignore_for_file: collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
+// ignore_for_file: unnecessary_this, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
 
 import "dart:collection";
-import "dart:math" as math;
 
 import "package:parser_peg/src/generator.dart";
 // PREAMBLE
@@ -5271,7 +5270,7 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
 
   /// `global::dart::type::nonNullable::function`
   String? rm() {
-    if (this.apply(this.rk) case (var nullable && var $0)?) {
+    if (this.apply(this.rk)! case (var nullable && var $0)) {
       if (this.apply(this.r11)! case _) {
         if (this.matchPattern(_string.$60) case _?) {
           if (this.apply(this.r11)! case _) {

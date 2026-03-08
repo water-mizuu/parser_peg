@@ -24,8 +24,15 @@ import "package:parser_peg/src/visitor/node_visitor/"
 import "package:parser_peg/src/visitor/statement_visitor/"
     "statement_translator_visitor.dart";
 
+/// A grammar rule entry mapping a [(namespace, name)] pair to its [Node].
+///
+/// The namespace component is `null` for top-level (global) declarations.
 typedef DeclarationEntry = MapEntry<(String?, String), Node>;
 
+/// The reserved rule name inserted as the synthetic entry point of the grammar.
+///
+/// A `ROOT` fragment is automatically created to delegate to the first
+/// declared rule or fragment, giving the generator a unified starting node.
 const String rootKey = "ROOT";
 
 final String base = File("lib/src/base.dart").readAsStringSync();
@@ -34,6 +41,8 @@ final String importCode = splits[0].trim();
 final String baseCode = splits[1].trim();
 final String trieCode = splits[2].trim();
 
+/// JSON-encodes [object] and escapes `$` so the result is safe to embed
+/// inside a Dart string literal.
 String encode(Object object) => jsonEncode(object).replaceAll(r"$", r"\$");
 
 const List<String> ignores = [
@@ -49,7 +58,29 @@ const List<String> ignores = [
   "use_setters_to_change_properties",
 ];
 
+/// Transforms parsed grammar [Statement]s into Dart parser source code.
+///
+/// Construct with [ParserGenerator.fromParsed] and then call one of the
+/// three compile methods to produce the final Dart source string:
+///
+/// - [compileParserGenerator] — preserves semantic actions.
+/// - [compileAstParserGenerator] — strips actions; returns an `Object` AST.
+/// - [compileCstParserGenerator] — strips actions and selections; returns a
+///   labelled CST.
+///
+/// During construction all optimization passes run eagerly: reference
+/// resolution, dead-rule elimination, fragment inlining, tree simplification,
+/// and short-name renaming.
 final class ParserGenerator {
+  /// Creates a [ParserGenerator] from the output of a grammar parser.
+  ///
+  /// [statements] is the ordered list of top-level grammar declarations
+  /// produced by parsing a `.dart_grammar` file.
+  /// [preamble] is an optional block of raw Dart source emitted verbatim
+  /// before the generated parser class (useful for imports or type aliases
+  /// that grammar action code depends on).
+  ///
+  /// All optimization passes run immediately inside this constructor.
   ParserGenerator.fromParsed({required this.statements, required this.preamble}) {
     var workingStatements = statements;
 
@@ -176,78 +207,62 @@ final class ParserGenerator {
     /// NOTE: This does not break the correctness of the grammar, since
     ///   recursive fragments can't be inlined as determined by the next visitor.
     if (const ReferencedVisitor() case var visitor) {
-      var rulesRefCount = {for (var rule in _rules.keys) rule: 0};
-      var fragmentRefCount = {for (var fragment in _fragments.keys) fragment: 0};
-      var inlineRefCount = {for (var inline in _inline.keys) inline: 0};
+      var (_, rootRule) = _fragments[rootKey]!;
+      var stack = Queue.of([rootRule]);
+      var visited = <Node>{};
+      var referenceCounts = <(Tag, String), int>{
+        for (var name in _rules.keys) (Tag.rule, name): 0,
+        for (var name in _fragments.keys) (Tag.fragment, name): 0,
+        for (var name in _inline.keys) (Tag.fragment, name): 0,
 
-      var declarations = _fragments
-          .pairs //
-          .followedBy(_rules.pairs)
-          .followedBy(_inline.pairs);
+        (Tag.fragment, rootKey): 1,
+      };
 
-      var refCount = {for (var (name, _) in declarations) name: 0};
+      /// Collect all of the reachable rules and fragments starting from the root rule.
+      while (stack.isNotEmpty) {
+        var node = stack.removeLast();
+        if (visited.contains(node)) {
+          continue;
+        }
 
-      /// We count the references to each declaration (rule, fragment, inline).
-      for (var (_, (_, node)) in declarations) {
+        visited.add(node);
         for (var (tag, name) in node.acceptSimpleVisitor(visitor)) {
-          assert(tag != Tag.inline, "Inline tags should not be here.");
+          referenceCounts[(tag, name)] = referenceCounts[(tag, name)]! + 1;
+
           if (tag == Tag.rule) {
-            /// Since it is a rule, we just have to increment its count in the rulesRefCount.
-            rulesRefCount[name] = rulesRefCount[name]! + 1;
-            continue;
-          }
-
-          /// From here, we know that it is a fragment.
-          refCount[name] = refCount[name]! + 1;
-
-          assert(
-            fragmentRefCount.containsKey(name) ^ inlineRefCount.containsKey(name),
-            "The fragment '$name' should be in either the fragments or the inline, but not both.",
-          );
-          if (fragmentRefCount[name] case int count) {
-            fragmentRefCount[name] = count + 1;
-          } else if (inlineRefCount[name] case int count) {
-            inlineRefCount[name] = count + 1;
+            if (_rules[name] case (_, var rule)) {
+              stack.addLast(rule);
+            } else {
+              throw Exception("Rule '$name' not found.");
+            }
+          } else if (tag == Tag.fragment) {
+            if (_fragments[name] case (_, var fragment)) {
+              stack.addLast(fragment);
+            } else if (_inline[name] case (_, var inline)) {
+              stack.addLast(inline);
+            } else {
+              throw Exception("Fragment '$name' not found.");
+            }
           }
         }
       }
 
-      /// Then, if the refCount of a fragment is 1, we choose to inline it.
-      for (var (name, count) in refCount.pairs) {
-        if (count != 1 || _fragments[name] == null) {
-          continue;
+      /// Remove the others that are not reachable.
+      for (var ((tag, name), count) in referenceCounts.pairs) {
+        if (count == 0) {
+          if (tag == Tag.rule) {
+            _rules.remove(name);
+          } else if (tag == Tag.fragment) {
+            _fragments.remove(name);
+          } else if (tag == Tag.inline) {
+            _inline.remove(name);
+          }
         }
 
-        var (type, node) = _fragments[name]!;
-        _inline[name] = (type, node);
-        _fragments.remove(name);
-      }
-
-      /// Remove the unreferenced rules,
-      for (var (name, count) in rulesRefCount.pairs) {
-        if (name == rootKey || count > 0) {
-          continue;
+        if (count == 1 && tag == Tag.fragment && _fragments[name] != null) {
+          var (type, node) = _fragments[name]!;
+          _inline[name] = (type, node);
         }
-
-        _rules.remove(name);
-      }
-
-      /// Remove the unreferenced fragments,
-      for (var (name, count) in fragmentRefCount.pairs) {
-        if (name == rootKey || count > 0) {
-          continue;
-        }
-
-        _fragments.remove(name);
-      }
-
-      /// And the unused inline rules (optional, does not have any runtime bearing).
-      for (var (name, count) in inlineRefCount.pairs) {
-        if (name == rootKey || count > 0) {
-          continue;
-        }
-
-        _inline.remove(name);
       }
     }
 
@@ -330,8 +345,20 @@ final class ParserGenerator {
     }
   }
 
+  /// The delimiter used between namespace components in fully-qualified rule names.
+  ///
+  /// For example, the `lower` rule inside the `alpha` namespace is stored as
+  /// `alpha::lower`.
   static const String separator = "::";
-  static const List<Statement> predefined = <Statement>[
+
+  /// Built-in grammar statements automatically prepended to every grammar.
+  ///
+  /// Defines two predefined namespaces:
+  /// - `@inline std` — common character classes: `any`, `epsilon`, `start`,
+  ///   `end`, `whitespace`, `digit`, `hex`, `alpha` (and their sub-rules).
+  /// - `@fragment json.atom` — basic JSON value patterns: `null`, `true`,
+  ///   `false`, `number`, and `string`.
+  static const List<Statement> predefined = [
     /// @inline std {
     ///   any = .;
     ///   epsilon = ε;
@@ -418,21 +445,21 @@ final class ParserGenerator {
           DeclarationStatement.predefined(
             "integer",
             ChoiceNode([
-              ReferenceNode("digit"),
               SequenceNode([ReferenceNode("onenine"), ReferenceNode("digits")], chosenIndex: null),
-              SequenceNode([StringLiteralNode("-"), ReferenceNode("digit")], chosenIndex: null),
+              ReferenceNode("digit"),
               SequenceNode([
                 StringLiteralNode("-"),
                 ReferenceNode("onenine"),
                 ReferenceNode("digits"),
               ], chosenIndex: null),
+              SequenceNode([StringLiteralNode("-"), ReferenceNode("digit")], chosenIndex: null),
             ]),
             type: "Object",
           ),
           DeclarationStatement.predefined(
             "digits",
             ChoiceNode([
-              SequenceNode([ReferenceNode("digits"), ReferenceNode("digit")], chosenIndex: null),
+              SequenceNode([ReferenceNode("digit"), ReferenceNode("digits")], chosenIndex: null),
               ReferenceNode("digit"),
             ]),
             type: "Object",
@@ -488,15 +515,22 @@ final class ParserGenerator {
     ], tag: Tag.fragment),
   ];
 
+  /// Running counter used by the renaming pass to produce short, sequential
+  /// identifiers for rules (`r0`, `r1`, …) and fragments (`f0`, `f1`, …).
   int redirectId = 0;
 
+  /// Optional raw Dart source prepended verbatim to the generated parser file.
+  ///
+  /// Set via [ParserGenerator.fromParsed]. `null` means no preamble is emitted.
   final String? preamble;
+
+  /// The top-level grammar [Statement]s supplied at construction time.
   final List<Statement> statements;
-  final Map<String, String> _renames = <String, String>{};
-  final Map<String, String> _reverseRenames = <String, String>{};
-  final Map<String, (String?, Node)> _rules = <String, (String?, Node)>{};
-  final Map<String, (String?, Node)> _fragments = <String, (String?, Node)>{};
-  final Map<String, (String?, Node)> _inline = <String, (String?, Node)>{};
+  final Map<String, String> _renames = {};
+  final Map<String, String> _reverseRenames = {};
+  final Map<String, (String?, Node)> _rules = {};
+  final Map<String, (String?, Node)> _fragments = {};
+  final Map<String, (String?, Node)> _inline = {};
 
   String _compile(
     String parserName, {
@@ -510,6 +544,8 @@ final class ParserGenerator {
         rules.values.firstOrNull?.$1 ??
         fragments.values.firstOrNull?.$1 ??
         "Object";
+    parserTypeString = parserTypeString.trim();
+
     var parserStartRule =
         start ?? //
         rules.keys.firstOrNull ??
@@ -540,26 +576,25 @@ final class ParserGenerator {
     fullBuffer.writeln("  get start => $parserStartRule;");
     fullBuffer.writeln();
 
-    if (ParserCompilerVisitor(isNullable: isNullable, reported: true)
+    if (ParserCompilerVisitor(isPassIfNull: isPassIfNull, reported: true)
         case ParserCompilerVisitor compilerVisitor) {
       for (var (rawName, (type, node)) in fragments.pairs) {
         compilerVisitor.ruleId = 0;
 
         var inner = StringBuffer();
         var displayName = _reverseRenames[rawName]!;
-        var body =
-            node
-                .acceptParametrizedVisitor(
-                  compilerVisitor,
-                  Parameters(
-                    isNullAllowed: isNullable(node, displayName),
-                    withNames: null,
-                    inner: null,
-                    declarationName: displayName,
-                    markSaved: false,
-                  ),
-                )
-                .indent();
+        var body = node
+            .acceptParametrizedVisitor(
+              compilerVisitor,
+              Parameters(
+                isPassIfNull: isPassIfNull(node, displayName),
+                withNames: null,
+                inner: null,
+                declarationName: displayName,
+                markSaved: false,
+              ),
+            )
+            .indent();
 
         inner.writeln();
         inner.writeln("/// `$displayName`");
@@ -568,7 +603,7 @@ final class ParserGenerator {
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln("$type${isNullable(node, rawName) ? "" : "?"} $rawName() {");
+          inner.writeln("$type${isPassIfNull(node, rawName) ? "" : "?"} $rawName() {");
           inner.writeln(body);
           inner.writeln("}");
         }
@@ -581,19 +616,18 @@ final class ParserGenerator {
 
         var inner = StringBuffer();
         var displayName = _reverseRenames[rawName]!;
-        var body =
-            node
-                .acceptParametrizedVisitor(
-                  compilerVisitor,
-                  Parameters(
-                    isNullAllowed: isNullable(node, rawName),
-                    withNames: null,
-                    inner: null,
-                    declarationName: displayName,
-                    markSaved: false,
-                  ),
-                )
-                .indent();
+        var body = node
+            .acceptParametrizedVisitor(
+              compilerVisitor,
+              Parameters(
+                isPassIfNull: isPassIfNull(node, rawName),
+                withNames: null,
+                inner: null,
+                declarationName: displayName,
+                markSaved: false,
+              ),
+            )
+            .indent();
 
         inner.writeln();
         inner.writeln("/// `$displayName`");
@@ -602,7 +636,7 @@ final class ParserGenerator {
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln("$type${isNullable(node, rawName) ? "" : "?"} $rawName() {");
+          inner.writeln("$type${isPassIfNull(node, rawName) ? "" : "?"} $rawName() {");
           inner.writeln(body);
           inner.writeln("}");
         }
@@ -671,10 +705,25 @@ final class ParserGenerator {
     return fullBuffer.toString();
   }
 
+  /// Generates a full Dart parser class named [parserName].
+  ///
+  /// The generated class preserves every semantic action defined in the grammar.
+  /// [start] overrides the first declared rule as the entry point.
+  /// [type] overrides the inferred return type of the parser's `start` method.
+  ///
+  /// Returns the complete Dart source as a string, ready to be written to a file.
   String compileParserGenerator(String parserName, {String? start, String? type}) {
     return _compile(parserName, rules: _rules, fragments: _fragments, start: start, type: type);
   }
 
+  /// Generates a Dart parser that produces an untyped Abstract Syntax Tree.
+  ///
+  /// All semantic action nodes are stripped; every parse rule returns `Object`.
+  /// Useful as a starting point before adding typed action code, or for tooling
+  /// that only needs the tree shape.
+  /// [start] overrides the default entry rule.
+  ///
+  /// Returns the complete Dart source as a string.
   String compileAstParserGenerator(String parserName, {String? start}) {
     RemoveActionNodeVisitor removeActionNodeVisitor = const RemoveActionNodeVisitor();
     Map<String, (String?, Node)> rules = <String, (String?, Node)>{
@@ -689,6 +738,15 @@ final class ParserGenerator {
     return _compile(parserName, rules: rules, fragments: fragments, start: start, type: "Object");
   }
 
+  /// Generates a Dart parser that produces a Concrete Syntax Tree (CST).
+  ///
+  /// Semantic actions and ordered-choice selections are stripped; every matched
+  /// sub-tree is wrapped with its display name, yielding a labelled tree that
+  /// mirrors the grammar structure. Useful for syntax highlighting, source
+  /// mapping, or other tasks that require the full parse context.
+  /// [start] overrides the default entry rule.
+  ///
+  /// Returns the complete Dart source as a string.
   String compileCstParserGenerator(String parserName, {String? start}) {
     var removeActionNodeVisitor = const RemoveActionNodeVisitor();
     var removeSelectionVisitor = const RemoveSelectionVisitor();
@@ -742,46 +800,79 @@ final class ParserGenerator {
 
   final Expando<bool> _isNullable = Expando<bool>();
 
-  /// Returns `true` if the node should pass even if the answer was null.
-  bool isNullable(Node node, String ruleName) {
-    return _isNullable[node] ??= switch (node) {
-      SpecialSymbolNode _ => false,
-      EpsilonNode _ => true,
-      RangeNode _ => false,
-      TriePatternNode _ => false,
+  /// Returns `true` if [node] can produce a successful match whose value is `null`.
+  ///
+  /// Used during code generation to decide whether the emitted method should
+  /// have a nullable return type. Results are memoised in [_isNullable].
+  /// Throws via [notFound] if a referenced rule or fragment cannot be resolved.
+  bool isPassIfNull(Node node, String ruleName) {
+    if (_isNullable[node] case bool isPassIfNull) {
+      return isPassIfNull;
+    }
 
+    bool computed;
+    if (node is SpecialSymbolNode) {
+      computed = false;
+    } else if (node is EpsilonNode) {
+      computed = true;
+    } else if (node is RangeNode) {
+      computed = false;
+    } else if (node is TriePatternNode) {
+      computed = false;
+    } else if (node is RegExpNode) {
       /// Absolutely false, because [matchPattern] is nullable.
-      RegExpNode _ => false,
-      RegExpEscapeNode _ => false,
-      CountedNode _ => node.min <= 0 || isNullable(node.child, ruleName),
-      StringLiteralNode _ => node.literal.isEmpty,
-      SequenceNode _ =>
-        (_isNullable[node] = false, node.children.every((node) => isNullable(node, ruleName))).$2,
-      ChoiceNode _ =>
-        (_isNullable[node] = false, node.children.any((node) => isNullable(node, ruleName))).$2,
-      PlusSeparatedNode _ =>
-        isNullable(node.child, ruleName) && isNullable(node.separator, ruleName),
-      StarSeparatedNode _ => true,
-      PlusNode _ => isNullable(node.child, ruleName),
-      StarNode _ => true,
-      AndPredicateNode _ => isNullable(node.child, ruleName),
-      NotPredicateNode _ => isNullable(node.child, ruleName),
-      ExceptNode _ => false,
-      OptionalNode _ => isNullable(node.child, ruleName),
-      ReferenceNode _ => isNullable(
+      computed = false;
+    } else if (node is RegExpEscapeNode) {
+      computed = false;
+    } else if (node is CountedNode) {
+      computed = node.min <= 0 || isPassIfNull(node.child, ruleName);
+    } else if (node is StringLiteralNode) {
+      computed = node.literal.isEmpty;
+    } else if (node is SequenceNode) {
+      _isNullable[node] = false;
+      computed = node.children.every((node) => isPassIfNull(node, ruleName));
+    } else if (node is ChoiceNode) {
+      _isNullable[node] = false;
+      computed = node.children.any((node) => isPassIfNull(node, ruleName));
+    } else if (node is PlusSeparatedNode) {
+      computed = isPassIfNull(node.child, ruleName) && isPassIfNull(node.separator, ruleName);
+    } else if (node is StarSeparatedNode) {
+      computed = true;
+    } else if (node is PlusNode) {
+      computed = isPassIfNull(node.child, ruleName);
+    } else if (node is StarNode) {
+      computed = true;
+    } else if (node is AndPredicateNode) {
+      computed = isPassIfNull(node.child, ruleName);
+    } else if (node is NotPredicateNode) {
+      computed = isPassIfNull(node.child, ruleName);
+    } else if (node is ExceptNode) {
+      computed = false;
+    } else if (node is OptionalNode) {
+      computed = true;
+    } else if (node is ReferenceNode) {
+      computed = isPassIfNull(
         _rules[node.ruleName]?.$2 ?? notFound(node.ruleName, Tag.rule, ruleName),
         ruleName,
-      ),
-      FragmentNode _ => isNullable(
+      );
+    } else if (node is FragmentNode) {
+      computed = isPassIfNull(
         _fragments[node.fragmentName]?.$2 ??
             _inline[node.fragmentName]?.$2 ??
             notFound(node.fragmentName, Tag.fragment, ruleName),
         ruleName,
-      ),
-      NamedNode _ => isNullable(node.child, ruleName),
-      ActionNode _ => isNullable(node.child, ruleName),
-      InlineActionNode _ => isNullable(node.child, ruleName),
-    };
+      );
+    } else if (node is NamedNode) {
+      computed = isPassIfNull(node.child, ruleName);
+    } else if (node is ActionNode) {
+      computed = isPassIfNull(node.child, ruleName);
+    } else if (node is InlineActionNode) {
+      computed = isPassIfNull(node.child, ruleName);
+    } else {
+      throw StateError("Unhandled node type: ${node.runtimeType}");
+    }
+
+    return _isNullable[node] = computed;
   }
 }
 
@@ -789,13 +880,21 @@ Never notFound(String name, Tag tag, [String? root]) {
   throw ArgumentError.value(name, "name", "$tag not found${root == null ? "" : " in $root"}");
 }
 
+/// Indentation and de-indentation helpers for generated Dart source strings.
 extension IndentationExtension on String {
   // ignore: avoid_positional_boolean_parameters
-  String indent([int count = 1, bool shouldIndent = true]) =>
-      shouldIndent
-          ? trimRight().split("\n").map((v) => v.isEmpty ? v : "${"  " * count}$v").join("\n")
-          : this;
+  /// Indents every non-empty line by [count] levels of two spaces each.
+  ///
+  /// If [shouldIndent] is `false`, the string is returned unchanged.
+  // ignore: avoid_positional_boolean_parameters
+  String indent([int count = 1, bool shouldIndent = true]) => shouldIndent
+      ? trimRight().split("\n").map((v) => v.isEmpty ? v : "${"  " * count}$v").join("\n")
+      : this;
 
+  /// Removes the common leading indentation shared by all non-empty lines.
+  ///
+  /// Also normalises `\r` characters and expands tabs to four spaces before
+  /// computing the minimum indentation level.
   String unindent() {
     if (isEmpty) {
       return this;
@@ -808,59 +907,83 @@ extension IndentationExtension on String {
     Iterable<String> lines = removed.split("\n").map((line) => line.trimRight());
 
     // Unindent the string.
-    int commonIndentation = lines //
-        .where((line) => line.isNotEmpty)
-        .map((line) => line.length - line.trimLeft().length)
-        .reduce((a, b) => a < b ? a : b);
+    int commonIndentation =
+        lines //
+            .where((line) => line.isNotEmpty)
+            .map((line) => line.length - line.trimLeft().length)
+            .reduce((a, b) => a < b ? a : b);
 
-    String unindented = lines //
-        .map((line) => line.isEmpty ? line : line.substring(commonIndentation))
-        .join("\n");
+    String unindented =
+        lines //
+            .map((line) => line.isEmpty ? line : line.substring(commonIndentation))
+            .join("\n");
 
     return unindented;
   }
 }
 
+/// Resolves a nullable set of binding names from a grammar action into Dart
+/// variable-declaration and pattern-matching syntax.
 extension NameShortcuts on Set<String>? {
-  /// This gets a single name from the set.
-  ///  If the set is null, it returns `$`.
+  /// Returns a single representative binding name from the set.
+  ///
+  /// Returns `$` when the set is `null`, when the set is empty, or when every
+  /// name is `_`. Otherwise returns the first non-`_` name.
   String get singleName => this == null ? r"$" : this!.where((v) => v != "_").firstOrNull ?? r"$";
 
+  /// Returns a `var` declaration string for use in a statement context.
+  ///
+  /// - `null` → `var $`
+  /// - `{"_"}` → `_` (discard)
+  /// - `{"x"}` → `var x`
+  /// - multiple non-`_` names → `var (x && y)`
   String get statementVarNames => switch (this) {
     null => r"var $",
     Set<String>(length: 1, single: "_") => "_",
     Set<String>(length: 1, single: "null") => "null",
     Set<String>(length: 1, single: String name) => "var $name",
-    Set<String> set => set //
-        .where((v) => v != "_")
-        .toList()
-        .apply(
-          (iter) => switch (iter) {
-            List<String>(length: 1, :String single) => single,
-            List<String>() => iter.join(" && ").apply((v) => "($v)"),
-          },
-        )
-        .apply((v) => "var $v"),
+    Set<String> set =>
+      set //
+          .where((v) => v != "_")
+          .toList()
+          .apply(
+            (iter) => switch (iter) {
+              List<String>(length: 1, :String single) => single,
+              List<String>() => iter.join(" && ").apply((v) => "($v)"),
+            },
+          )
+          .apply((v) => "var $v"),
   };
+
+  /// Returns a pattern-binding string for use inside a `case` clause.
+  ///
+  /// Similar to [statementVarNames] but prefixes each name individually with
+  /// `var` rather than wrapping the whole declaration.
   String get caseVarNames => switch (this) {
     null => r"var $",
     Set<String>(length: 1, single: "_") => "_",
     Set<String>(length: 1, single: "null") => "null",
     Set<String>(length: 1, single: String name) => "var $name",
-    Set<String> set => set //
-        .where((v) => v != "_")
-        .map((v) => v == "null" ? v : "var $v")
-        .toList()
-        .apply(
-          (iter) => switch (iter) {
-            List<String>(length: 1, :String single) => single,
-            List<String>() => iter.join(" && ").apply((v) => "($v)"),
-          },
-        ),
+    Set<String> set =>
+      set //
+          .where((v) => v != "_")
+          .map((v) => v == "null" ? v : "var $v")
+          .toList()
+          .apply(
+            (iter) => switch (iter) {
+              List<String>(length: 1, :String single) => single,
+              List<String>() => iter.join(" && ").apply((v) => "($v)"),
+            },
+          ),
   };
 }
 
+/// Adds a pipeline [apply] operation to every non-null value.
 extension MonadicTypeExtension<T extends Object> on T {
+  /// Passes `this` through [fn] and returns the result.
+  ///
+  /// Equivalent to `fn(this)`, but allows transformations to be chained
+  /// inline without introducing intermediate local variables.
   O apply<O extends Object>(O Function(T) fn) => fn(this);
 }
 
@@ -871,8 +994,8 @@ extension<K, V> on Map<K, V> {
 extension on String {
   String wrappedName(String declarationName) => //
       declarationName.startsWith("fragment") //
-          ? this
-          : "(${encode("<${declarationName.unwrappedName}>")}, $this)";
+      ? this
+      : "(${encode("<${declarationName.unwrappedName}>")}, $this)";
 
   String get unwrappedName => startsWith("global::") ? substring(8) : this;
 }

@@ -38,6 +38,12 @@ final class DeclarationTypeStatement implements Statement {
 final class DeclarationStatement implements Statement {
   const DeclarationStatement(this.type, this.name, this.node, {required this.tag});
   const DeclarationStatement.predefined(this.name, this.node, {this.type = "String"}) : tag = null;
+  const DeclarationStatement.predefinedWithTag(
+    this.name,
+    this.node, {
+    this.type = "String",
+    this.tag,
+  });
 
   final String? type;
   final String name;
