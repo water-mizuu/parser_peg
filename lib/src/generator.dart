@@ -112,7 +112,7 @@ final class ParserGenerator {
           /// If it is a declaration:
           ///   rule declaration, fragment declaration, inline declaration
 
-          case DeclarationStatement(:var type, :var name, :var node, tag: var declaredTag):
+          case DeclarationStatement(:var type, :var name, tag: var declaredTag):
             var realName = [...prefix, name].join(separator);
             var target = switch (declaredTag ?? tag) {
               Tag.inline => _inline,
@@ -120,8 +120,7 @@ final class ParserGenerator {
               Tag.rule || null => _rules,
             };
 
-            target[realName] = (type, node);
-
+            target[realName] = (type, ReferenceNode(realName));
           case NamespaceStatement(:var name?, :var children, tag: var declaredTag):
             for (var sub in children.reversed) {
               stack.addLast((sub, [...prefix, name], declaredTag ?? tag));
@@ -158,7 +157,24 @@ final class ParserGenerator {
               Tag.fragment => _fragments,
               Tag.rule || null => _rules,
             };
-            target[realName] = (type, resolvedNode);
+
+            if (target[realName] case (
+              var type,
+              ReferenceNode(:var ruleName),
+            ) when ruleName == realName) {
+              target[realName] = (type, resolvedNode);
+            } else if (target[realName] case (var type, var existingNode)) {
+              target[realName] = (
+                type,
+                switch (existingNode) {
+                  ChoiceNode(:var children) => ChoiceNode([...children, resolvedNode]),
+                  var other => ChoiceNode([other, resolvedNode]),
+                },
+              );
+            } else {
+              target[realName] = (type, resolvedNode);
+            }
+
           case NamespaceStatement(:var name?, :var children, tag: var declaredTag):
             for (var sub in children.reversed) {
               stack.addLast((sub, [...prefixes, name], declaredTag ?? tag));

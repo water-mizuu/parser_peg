@@ -162,7 +162,6 @@ void _buildParser(List<String> arguments, {bool complete = false}) {
 
     String input = readFile(inputPath);
     String name = (parsedArgs["name"] as String?) ?? Casing.pascalCase(fileName);
-    print("Hi");
     switch (grammar.parse(input)) {
       case ParserGenerator generator:
         stdout.writeln("Successfully parsed grammar!");

@@ -1,11 +1,10 @@
-// ignore_for_file: always_declare_return_types, always_put_control_body_on_new_line, always_specify_types, avoid_escaping_inner_quotes, avoid_redundant_argument_values, annotate_overrides, body_might_complete_normally_nullable, constant_pattern_never_matches_value_type, curly_braces_in_flow_control_structures, dead_code, directives_ordering, duplicate_ignore, inference_failure_on_function_return_type, constant_identifier_names, prefer_function_declarations_over_variables, prefer_interpolation_to_compose_strings, prefer_is_empty, no_leading_underscores_for_local_identifiers, non_constant_identifier_names, unnecessary_null_check_pattern, unnecessary_brace_in_string_interps, unnecessary_string_interpolations, unnecessary_this, unused_element, unused_import, prefer_double_quotes, unused_local_variable, unreachable_from_main, use_raw_strings, type_annotate_public_apis
+// ignore_for_file: type=lint, body_might_complete_normally_nullable, unused_local_variable, inference_failure_on_function_return_type, unused_import, duplicate_ignore, unused_element, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
 
 // imports
-// ignore_for_file: collection_methods_unrelated_type
+// ignore_for_file: unnecessary_this, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
 
 import "dart:collection";
 import "dart:math" as math;
-
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -118,7 +117,7 @@ abstract base class _PegParser<R extends Object> {
   }
 
   void consumeWhitespace({bool includeNewlines = false}) {
-    RegExp regex = includeNewlines ? whitespaceRegExp.$1 : whitespaceRegExp.$2;
+    var regex = includeNewlines ? whitespaceRegExp.$1 : whitespaceRegExp.$2;
     if (regex.matchAsPrefix(buffer, pos) case Match(:int end)) {
       this.pos = end;
     }
@@ -145,9 +144,17 @@ abstract base class _PegParser<R extends Object> {
 
   // ignore: body_might_complete_normally_nullable
   String? matchPattern(Pattern pattern, {bool isReported = true}) {
-    if (pattern.matchAsPrefix(buffer, pos) case Match(:int start, :int end)) {
+    if (_patternMemo[(pattern, this.pos)] case (int pos, String value)) {
+      this.pos = pos;
+      return value;
+    }
+
+    if (pattern.matchAsPrefix(this.buffer, this.pos) case Match(:int start, :int end)) {
+      String result = buffer.substring(start, end);
+      _patternMemo[(pattern, start)] = (end, result);
       this.pos = end;
-      return buffer.substring(start, end);
+
+      return result;
     }
 
     if (isReported) {
@@ -160,10 +167,21 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
+  int _mark() {
+    return this.pos;
+  }
+
+  void _recover(int pos) {
+    this.pos = pos;
+  }
+
   void reset() {
     this.pos = 0;
-    this._memo.clear();
+    this.failures.clear();
+    this._heads.clear();
     this._lrStack.clear();
+    this._memo.clear();
+    this._patternMemo.clear();
   }
 
   static (int column, int row) _columnRow(String buffer, int pos) {
@@ -185,18 +203,23 @@ abstract base class _PegParser<R extends Object> {
   final Map<int, _Head<void>> _heads = <int, _Head<void>>{};
   final Queue<_Lr<void>> _lrStack = DoubleLinkedQueue<_Lr<void>>();
   final Map<(_Rule<void>, int), _Memo> _memo = <(_Rule<void>, int), _Memo>{};
+  final Map<(Pattern, int), (int, String)> _patternMemo = <(Pattern, int), (int, String)>{};
 
   late String buffer;
   int pos = 0;
 
-  R? parse(String buffer) =>
-      (
-        this
-          ..buffer = buffer
-          ..reset(),
-        apply(start),
-      ).$2;
+  R? parse(String buffer) => (
+    this
+      ..buffer = buffer
+      ..reset(),
+    apply(start),
+  ).$2;
   _Rule<R> get start;
+}
+
+extension NullableExtension<T extends Object> on T {
+  @pragma("vm:prefer-inline")
+  T? nullable() => this;
 }
 
 typedef _Rule<T extends Object> = T? Function();
@@ -224,53 +247,56 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class PlaygroundParser extends _PegParser<Object> {
-  PlaygroundParser();
+final class Playground extends _PegParser<Object> {
+  Playground();
 
   @override
   get start => r0;
 
+
   /// `ROOT`
-  Object? f0() {
+  late final f0 = () {
     if (this.apply(this.r0) case var $?) {
       return $;
     }
-  }
+  };
 
-  /// `global::S`
-  Object? f1() {
-    if (this.pos case var mark) {
-      if (this.f1() case _?) {
-        if (matchPattern(_regexp.$1) case var $1?) {
-          if (pos < buffer.length) {
-            if (buffer[pos] case _) {
-              pos++;
-              if (matchPattern(_regexp.$1) case _?) {
-                return $1;
-              }
-            }
-          }
-        }
-      }
-      this.pos = mark;
-      if (pos < buffer.length) {
-        if (buffer[pos] case var $) {
-          pos++;
-          return $;
-        }
-      }
-    }
-  }
-
-  /// `global::main`
-  Object? r0() {
-    if (this.matchPattern(_string.$1) case var $0?) {
-      if (this.f1() case var $1?) {
+  /// `global::a`
+  late final r0 = () {
+    var _mark = this._mark();
+    if (this.matchPattern(_string.$2) case var $0?) {
+      if (this.matchPattern(_string.$1) case var $1?) {
         return ($0, $1);
       }
     }
-  }
+    this._recover(_mark);
+    if (this.matchPattern(_string.$2) case var $?) {
+      return $;
+    }
+    this._recover(_mark);
+    if (this.apply(this.r1) case var $?) {
+      return $;
+    }
+  };
 
-  static final _regexp = (RegExp("\\s"),);
-  static const _string = ("Hi",);
+  /// `global::b`
+  late final r1 = () {
+    var _mark = this._mark();
+    if (this.matchPattern(_string.$1) case var $0?) {
+      if (this.matchPattern(_string.$2) case var $1?) {
+        return ($0, $1);
+      }
+    }
+    this._recover(_mark);
+    if (this.matchPattern(_string.$2) case var $?) {
+      return $;
+    }
+  };
+
+}
+class _string {
+  /// `"b"`
+  static const $1 = "b";
+  /// `"a"`
+  static const $2 = "a";
 }
