@@ -196,6 +196,7 @@ abstract base class _PegParser<R extends Object> {
 
   void _recover(_Mark mark) {
     this.pos = mark.pos;
+    mark.isCut = false;
   }
 
   void reset() {
@@ -3730,7 +3731,6 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         }
       }
     }
-
     this._recover(_mark);
     if (this.pos case var from) {
       if (this.apply(this.r5) case var sequence?) {
@@ -3756,7 +3756,6 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         }
       }
     }
-
     this._recover(_mark);
     if (this.pos case var from) {
       if (this.apply(this.r5) case var sequence?) {
@@ -3786,7 +3785,6 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         }
       }
     }
-
     this._recover(_mark);
     if (this.apply(this.r5) case var $?) {
       return $;
@@ -4072,7 +4070,6 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
         }
       }
     }
-
     if (_mark.isCut) return null; else this._recover(_mark);
     if (this.apply(this.r16)! case _) {
       if (this.matchPattern(_string.$37) case var $1?) {
