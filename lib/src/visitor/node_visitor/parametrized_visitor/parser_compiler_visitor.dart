@@ -369,7 +369,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
             "$variableName];",
           )
           .append(
-            (inner ?? "return $containerName").wrap(
+            (inner ?? "return $containerName;").wrap(
               "if ($containerName case ${withNames.caseVarNames}) {",
               "}",
             ),
@@ -934,10 +934,10 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   String visitStartOfInputNode(node, parameters) {
     var Parameters(:withNames, :inner) = parameters;
     var buffer = switch (withNames.caseVarNames) {
-      "_" => ["if (this.pos <= 0) {", inner?.indent() ?? "return this.pos".indent(), "}"],
+      "_" => ["if (this.pos <= 0) {", inner?.indent() ?? "return this.pos;".indent(), "}"],
       String names => [
         "if (this.pos case $names && <= 0) {",
-        inner?.indent() ?? "return ${withNames.singleName}".indent(),
+        inner?.indent() ?? "return ${withNames.singleName};".indent(),
         "}",
       ],
     };

@@ -24,71 +24,99 @@ extension on Node {
 
 }
 
-/// ─────────────────────────────────────────────────────────────────────────────
-/// DOCUMENT STRUCTURE
-/// ─────────────────────────────────────────────────────────────────────────────
-
 /// A grammar file contains an optional preamble and statements.
 ParserGenerator document = ^ preamble? _..statement+ _? $
   |> ParserGenerator.fromParsed(preamble: $1, statements: $2);
 
-/// The preamble is a Dart code block enclosed in curly braces.
+/// The preamble is simple.
 String preamble = `{` _ code:code.curly _ `}` @2;
 
-/// ─────────────────────────────────────────────────────────────────────────────
-/// STATEMENTS
-/// ─────────────────────────────────────────────────────────────────────────────
-
-/// A statement can be one of:
-///   - Hybrid Namespace : a namespace that also acts as a rule (choice operation only).
-///   - Namespace        : a collection of statements under a name/tag.
-///   - Type Declaration : a standalone type/tag basis for names.
-///   - Declaration      : a non-terminal rule (supports left recursion & memoization).
+/// A statement can either be a namespace, a fragment or a rule.
+///  A hybrid namespace is a namespace that can be used as a rule.
+///   The operation for a hybrid namespace is only the choice operation.
+///  A namespace is a collection of statements.
+///  A fragment is a declaration that is faster, but doesn't support left recursion / memoization.
+///  A rule is a declaration, that supports left recursion & memoization.
 Statement statement =
-  /// Hybrid namespace — untyped, named, with choice body.
-  | outer_decorator:kw.decorator? name:identifier `=` mac.choice
-    inner_decorator:kw.decorator? `{` statements:_..statement+ `}` `;`?
-    |> HybridNamespaceStatement(
-      null, name, statements,
-      outerTag: outer_decorator, innerTag: inner_decorator
-    )
-  /// Hybrid namespace — typed, named, with choice body.
-  | outer_decorator:kw.decorator? :type name:identifier `=` mac.choice
-    inner_decorator:kw.decorator? `{` statements:_..statement+ `}` `;`?
-    |> HybridNamespaceStatement(
-      type, name, statements,
-      outerTag: outer_decorator, innerTag: inner_decorator
-    )
-  /// Hybrid namespace — typed, unnamed, with choice body.
-  | outer_decorator:kw.decorator? :type? `(` `)` `=` mac.choice
-    inner_decorator:kw.decorator? `{` statements:_..statement+ `}` `;`?
+  | untypedMacroChoice
+  | typedMacroChoice
+  | outer_decorator:kw.decorator?
+      :type? `(` `)` `=` mac.choice
+      inner_decorator:kw.decorator? `{` statements:_..statement+ `}`
+      `;`?
     |> HybridNamespaceStatement(
       type, null, statements,
       outerTag: outer_decorator, innerTag: inner_decorator
     )
-  /// Namespace — named, with optional tag.
+/// A namespace is a block of statements which can apply a tag and/or be encapsulated
+///   under a name.
   | :kw.decorator? name:identifier? `{` statements:_..statement+ `}`
     |> NamespaceStatement(name, statements, tag: decorator)
-  /// Type declaration — declares types/tags for names.
+
+/// A type declaration is a separate statement from the declaration
+///   that can be used as a basis for types or tags.
   | :kw.decorator? :type? names:(`,`..name+) `;`
     |> DeclarationTypeStatement(type, names, tag: decorator)
-  /// Typed declaration — non-terminal rule with explicit type.
+
+/// A declaration is a statement that can be referenced by other declarations.
+///   Formally, it is a non-terminal.
   | :kw.decorator? :type :name body:(`=` :choice `;` @1)
     |> DeclarationStatement(type, name, body, tag: decorator)
-  /// Untyped declaration — non-terminal rule without explicit type.
+
   | :kw.decorator? :name body:(`=` :choice `;` @1)
     |> DeclarationStatement(null, name, body, tag: decorator)
   ;
 
-/// ─────────────────────────────────────────────────────────────────────────────
-/// EXPRESSION GRAMMAR
-/// ─────────────────────────────────────────────────────────────────────────────
+/// This is used as a helper for the macro choice operator.
+///   Basically, it allows us to write things like a namespace, but then they're all
+///   collected as choices for a single declaration.
+/// This is used like:
+///   @fragment name = choice! @rule {
+///      a = "a";
+///      b = "b";
+///   }
+///
+/// This is equivalent to (and simplified to):
+///   @fragment name = name.a | name.b;
+///   @rule name.a = "a";
+///   @rule name.b = "b";
+///
+@inline untypedMacroChoice =
+  outer_decorator:kw.decorator?
+  name:identifier `=` mac.choice
+  inner_decorator:kw.decorator? `{` statements:_..statement+ `}` `;`?
+  |> HybridNamespaceStatement(
+      null, name, statements,
+      outerTag: outer_decorator, innerTag: inner_decorator
+    );
 
-/// Ordered choice: tries alternatives in order, returns the first match.
+/// This is equivalent to [untypedMacroChoice], but it allows us to specify the type of the declaration, which is useful for namespaces and such.
+/// This is used like:
+///   @fragment String name = choice! @rule {
+///      a = "a";
+///      b = "b";
+///   }
+///
+/// This is equivalent to (and simplified to):
+///   @fragment String name = name.a | name.b;
+///   @rule String name.a = "a";
+///   @rule String name.b = "b";
+///
+@inline typedMacroChoice =
+  outer_decorator:kw.decorator?
+  :type name:identifier `=` mac.choice
+  inner_decorator:kw.decorator? `{` statements:_..statement+ `}` `;`?
+  |> HybridNamespaceStatement(
+      type, name, statements,
+      outerTag: outer_decorator, innerTag: inner_decorator
+    );
+
+/// A choice parser is a parser that tries to match one of the options.
+/// Despite the syntax, the parser is ordered choice.
 Node choice = CHOICE_OP? options:CHOICE_OP..acted+
   |> options.length == 1 ? options.single : ChoiceNode(options);
 
-/// A sequence with a bound inline/block action, or a plain sequence.
+/// A parser with a bound action.
 Node acted =
   | :sequence `|>` _ code:code.nl _ {
       InlineActionNode(
@@ -115,49 +143,56 @@ Node acted =
       )
     }
   | sequence
-  ;
+;
 
-/// A sequence of parsers. Returns a Record by default, or a specific item via `@index`.
+/// A parser that parses a sequence of parsers.
+///   By default, a sequence parser returns a [Record] of the results of the parsers.
+/// By specifying which item to keep, the specific item can be returned.
 Node sequence =
   | body:_..dropped+ chosen:(`@` number @1)?
     |> body.length == 1 ? body.single : SequenceNode(body, chosenIndex: chosen);
 
-/// Drop operators: `<~` keeps the left, `~>` keeps the right.
+/// A parser that is prefixed or suffixed by another parser.
 Node dropped =
-  | captured:dropped `<~` dropped:special |> SequenceNode([captured, dropped], chosenIndex: 0)
-  | dropped:special `~>` captured:dropped |> SequenceNode([dropped, captured], chosenIndex: 1)
+  | captured:dropped `<~` dropped:special { SequenceNode([captured, dropped], chosenIndex: 0) }
+  | dropped:special `~>` captured:dropped { SequenceNode([dropped, captured], chosenIndex: 1) }
   | labeled
-  ;
+;
 
-/// Named bindings for parsed values. `:name` is shorthand for `name:name`.
+/// A parser that adds the label to the declaration of the value.
 Node labeled =
   | :identifier ":" _ :special (){
       return NamedNode(identifier, special);
     }
   | ":" id:namespacedIdentifier `?` (){
       var name = id.split(ParserGenerator.separator).last;
+
       return NamedNode(name, OptionalNode(ReferenceNode(id)));
     }
   | ":" id:namespacedIdentifier `*` (){
       var name = id.split(ParserGenerator.separator).last;
+
       return NamedNode(name, StarNode(ReferenceNode(id)));
     }
   | ":" id:namespacedIdentifier `+` (){
       var name = id.split(ParserGenerator.separator).last;
+
       return NamedNode(name, PlusNode(ReferenceNode(id)));
     }
   | ":" id:namespacedIdentifier (){
       var name = id.split(ParserGenerator.separator).last;
+
       return NamedNode(name, ReferenceNode(id));
     }
-  | ":" !namespacedIdentifier :special (){
-      return NamedNode(r"$", special);
-    }
+  | ":" node:special { NamedNode(r"$", node) }
   | special
   ;
 
-/// Separated-list syntax: `sep..expr+` (one-or-more), `sep..expr*` (zero-or-more).
-///   Append `?` to allow a trailing separator.
+/// Pegen style separators.
+///   Difference here, is that we can use `+` or `*` as quantifiers.
+///   `*`, like a normal kleene-star, means zero or more.
+///   `+`, like a normal kleene-plus, means one or more.
+///   So technically, _.."a"* is equivalent to "a"*.
 Node special =
   | sep:atom `..` expr:atom `+` `?` |> PlusSeparatedNode(sep, expr, isTrailingAllowed: true)
   | sep:atom `..` expr:atom `*` `?` |> StarSeparatedNode(sep, expr, isTrailingAllowed: true)
@@ -166,7 +201,8 @@ Node special =
   | postfix
   ;
 
-/// Postfix quantifiers: `?` (optional), `*` (zero-or-more), `+` (one-or-more).
+/// A parser that is quantified.
+///   Can be nested, but shouldn't be used in practice.
 Node postfix =
   | postfix <~ `?` |> OptionalNode($)
   | postfix <~ `*` |> StarNode($)
@@ -174,58 +210,63 @@ Node postfix =
   | prefix
   ;
 
-/// Prefix operators: counted repetition, `~` (except), `&` (and-predicate), `!` (not-predicate).
+/// A parser that is prefixed.
+///   Usually with disambiguators such as `and-predicate` and `not-predicate`.
 Node prefix =
   | min:number `..` max:number body:atom |> CountedNode(min, max, body)
   | min:number `..` body:atom            |> CountedNode(min, null, body)
   | :number body:atom                    |> CountedNode(number, number, body)
-  | `~` ~> prefix                        |> ExceptNode($)
-  | `&` ~> prefix                        |> AndPredicateNode($)
-  | `!` ~> prefix                        |> NotPredicateNode($)
+  | `~` ~> prefix |> ExceptNode($)
+  | `&` ~> prefix |> AndPredicateNode($)
+  | `!` ~> prefix |> NotPredicateNode($)
   | atom
   ;
 
-/// Atomic parsers: grouping, flat/span, anchors, character classes, escapes, literals, references.
+/// A parser that can be qualified as a group.
+///   These are usually parsers that are delimited.
 Node atom =
-  /// Grouping
-  | `(` ~> choice <~ `)`
-  | !`<~` `<` $:choice `>`              |> FlatNode($)
+  /// Basic atomic parsers.
+  | `(` # $:choice `)`
+  | !`<~` `<` # $:choice `>`     |> FlatNode($)
 
-  /// Anchors & special characters
-  | `^`                                  |> const StartOfInputNode()
-  | `$`                                  |> const EndOfInputNode()
-  | `.`                                  |> const AnyCharacterNode()
-  | `ε`                                  |> const EpsilonNode()
+  /// Special syntax for character classes.
+  | `^`                        |> const StartOfInputNode()
+  | `$`                        |> const EndOfInputNode()
+  | `.`                        |> const AnyCharacterNode()
+  | `ε`                        |> const EpsilonNode()
 
-  /// Regex escape — backslash literal
-  | regexEscape.backslash                |> const StringLiteralNode(r"\")
+  /// Cut Operator
+  | (`#` | `%`)                |> const CutNode()
 
-  /// Regex escape — basic character classes
-  | regexEscape.digit                    |> SimpleRegExpEscapeNode.digit
-  | regexEscape.word                     |> SimpleRegExpEscapeNode.word
-  | regexEscape.whitespace               |> SimpleRegExpEscapeNode.whitespace
+  /// Regular Expression Literals
+  | regexEscape.backslash      |> const StringLiteralNode(r"\")
 
-  /// Regex escape — inverted character classes
-  | regexEscape.notDigit                 |> SimpleRegExpEscapeNode.notDigit
-  | regexEscape.notWord                  |> SimpleRegExpEscapeNode.notWord
-  | regexEscape.notWhitespace            |> SimpleRegExpEscapeNode.notWhitespace
+  /// Basics
+  | regexEscape.digit          |> SimpleRegExpEscapeNode.digit
+  | regexEscape.word           |> SimpleRegExpEscapeNode.word
+  | regexEscape.whitespace     |> SimpleRegExpEscapeNode.whitespace
 
-  /// Regex escape — whitespace characters
-  | regexEscape.tab                      |> SimpleRegExpEscapeNode.tab
-  | regexEscape.newline                  |> SimpleRegExpEscapeNode.newline
-  | regexEscape.carriageReturn           |> SimpleRegExpEscapeNode.carriageReturn
-  | regexEscape.formFeed                 |> SimpleRegExpEscapeNode.formFeed
-  | regexEscape.verticalTab              |> SimpleRegExpEscapeNode.verticalTab
+  /// Inverses
+  | regexEscape.notDigit       |> SimpleRegExpEscapeNode.notDigit
+  | regexEscape.notWord        |> SimpleRegExpEscapeNode.notWord
+  | regexEscape.notWhitespace  |> SimpleRegExpEscapeNode.notWhitespace
 
-  /// Regex escape — assertions
-  | regexEscape.wordBoundary             |> SimpleRegExpEscapeNode.wordBoundary
+  /// Spaces
+  | regexEscape.tab            |> SimpleRegExpEscapeNode.tab
+  | regexEscape.newline        |> SimpleRegExpEscapeNode.newline
+  | regexEscape.carriageReturn |> SimpleRegExpEscapeNode.carriageReturn
+  | regexEscape.formFeed       |> SimpleRegExpEscapeNode.formFeed
+  | regexEscape.verticalTab    |> SimpleRegExpEscapeNode.verticalTab
 
-  /// Literal values & references
-  | literal.range                        |> RangeNode($)
-  | literal.regexp                       |> RegExpNode($)
-  | literal.string                       |> StringLiteralNode($)
-  | name                                 |> ReferenceNode($)
-  ;
+  /// Specials
+  | regexEscape.wordBoundary   |> SimpleRegExpEscapeNode.wordBoundary
+
+  /// Basic literals.
+  | literal.range              |> RangeNode($)
+  | literal.regexp             |> RegExpNode($)
+  | literal.string             |> StringLiteralNode($)
+  | name                       |> ReferenceNode($)
+;
 
 code {
   String curly = (
@@ -335,7 +376,7 @@ dart {
 
   type {
     String main = _ nullable _ @1;
-    String nullable = :nonNullable `?`? { "$nonNullable${$1 ?? ""}" };
+    String nullable = :nonNullable question:`?`? { "$nonNullable${question ?? ""}" };
     String nonNullable = choice! {
       /// Dart function type.
       function = :nullable _ "Function" _ :fnParameters |> "${$0} Function${$4}";
@@ -348,13 +389,13 @@ dart {
       ///   The fields are special by commas.
       record = choice! {
         all = `(` positional:fields.positional `,` named:parameters.named `)`
-          |> "($positional, $named)";
+          |> "(" + positional + ", " + named + ")";
 
         onlyPositional = `(` positional:fields.positional `,`? `)`
-          |> "($positional)";
+          |> "(" + positional + ")";
 
         onlyNamed = `(` named:parameters.named `)`
-          |> "($named)";
+          |> "(" + named + ")";
 
         empty = `(` `)`
           |> "()";
@@ -406,31 +447,33 @@ dart {
   }
 }
 
-@fragment /* Shared code between declarations */ {
-  String type =
-    | _ raw _ @1
-    | dart.type.main;
+/// Shared code between declarations
+String type =
+  | _ raw _ @1
+  | _ ~> dart.type.main <~ _;
 
-  /// [namespaceReference] is a reference to a namespace.
-  ///   It is a sequence of identifiers separated by "::" or ".".
-  ///   It should not match a macro.
-  String namespaceReference =
-    | 1..(identifier ("::" | !".." ".") !mac @0) |> $.join(ParserGenerator.separator)
-    | std.epsilon;
+/// [namespaceReference] is a reference to a namespace.
+///   It is a sequence of identifiers separated by "::" or ".".
+///   It should not match a macro.
+String namespaceReference =
+  | 1..(identifier ("::" | !".." ".") !mac @0) |> $.join(ParserGenerator.separator)
+  | std.epsilon;
 
-  /// A [name] can be a single name, or multiple aliases.
-  ///  The aliases are separated by `&&`, surrounded by parentheses.
-  String name =
-    | namespacedRaw
-    | namespacedIdentifier;
+/// A [name] can be a single name, or multiple aliases.
+///  The aliases are separated by `&&`, surrounded by parentheses.
+String name =
+  | namespacedRaw
+  | namespacedIdentifier;
 
-  /// [namespacedRaw] refers to a name which may have accessed a namespace,
-  ///   using a raw trailing name ``<example>``
-  String namespacedRaw = namespaceReference literal.raw       |> $0.isEmpty ? $1 : "${$0}::${$1}";
-  String namespacedIdentifier = namespaceReference identifier |> $0.isEmpty ? $1 : "${$0}::${$1}";
-}
+/// [namespacedRaw] refers to a name which may have accessed a namespace,
+///   using a raw trailing name ``<example>``
+String namespacedRaw = namespaceReference literal.raw       |> $0.isEmpty ? $1 : "${$0}::${$1}";
+String namespacedIdentifier = namespaceReference identifier |> $0.isEmpty ? $1 : "${$0}::${$1}";
 
-@fragment /* TOKENS */ {
+
+/// Tokens used in the grammar.
+///   Since they are not recursive, they are not defined as rules.
+@fragment {
   String identifier = <[a-zA-Z_$] std.epsilon..[a-zA-Z0-9_$]*>;
   String raw        = "`" <0..(~"`")> "`" @1;
   int number        = \d+ { int.parse($.join()) };
@@ -451,42 +494,42 @@ dart {
   }
 
   /// Tokens used in "macro-like" rules.
-  String mac = choice! @fragment {
+  String mac = choice! {
     choice = _ "choice!" _ @1;
   };
 
   String regexEscape = choice! @fragment {
     backslash       = _ ~> <\\ r"\"> <~ _;
 
-    digit           = _ <\\ r"d"> _ @1 | "DIGIT";
-    word            = _ <\\ r"w"> _ @1 | "WORD";
-    whitespace      = _ <\\ r"s"> _ @1 | "WHITESPACE";
-    wordBoundary    = _ <\\ r"b"> _ @1 | "WORDBOUNDARY";
+    digit           = _ :<\\ r"d"> _;
+    word            = _ :<\\ r"w"> _;
+    whitespace      = _ :<\\ r"s"> _;
+    wordBoundary    = _ :<\\ r"b"> _;
 
-    notDigit        = _ <\\ r"D"> _ @1 | "NOTDIGIT";
-    notWord         = _ <\\ r"W"> _ @1 | "NOTWORD";
-    notWhitespace   = _ <\\ r"S"> _ @1 | "NOTWHITESPACE";
-    notWordBoundary = _ <\\ r"b"> _ @1 | "NOTWORDBOUNDARY";
+    notDigit        = _ :<\\ r"D"> _;
+    notWord         = _ :<\\ r"W"> _;
+    notWhitespace   = _ :<\\ r"S"> _;
+    notWordBoundary = _ :<\\ r"b"> _;
 
-    newline         = _ <\\ r"n"> _ @1;
-    carriageReturn  = _ <\\ r"r"> _ @1;
-    tab             = _ <\\ r"t"> _ @1;
-    formFeed        = _ <\\ r"f"> _ @1;
-    verticalTab     = _ <\\ r"v"> _ @1;
-    null            = _ <\\ r"0"> _ @1;
-    control         = _ <\\ r"c"> _ @1;
-    hex             = _ <\\ r"x"> _ @1;
-    unicode         = _ <\\ r"u"> _ @1;
-    unicodeExtended = _ <\\ r"U"> _ @1;
-    literal         = _ <\\ r"."> _ @1;
+    newline         = _ :<\\ r"n"> _;
+    carriageReturn  = _ :<\\ r"r"> _;
+    tab             = _ :<\\ r"t"> _;
+    formFeed        = _ :<\\ r"f"> _;
+    verticalTab     = _ :<\\ r"v"> _;
+    null            = _ :<\\ r"0"> _;
+    control         = _ :<\\ r"c"> _;
+    hex             = _ :<\\ r"x"> _;
+    unicode         = _ :<\\ r"u"> _;
+    unicodeExtended = _ :<\\ r"U"> _;
+    literal         = _ :<\\ r"."> _;
   };
 
   /// Literal tokens
   String () = choice! @fragment {
     CHOICE_OP = `|` `|`? { "" };
 
+    `#`  = _ "#" _ @1;
     `..` =  _ ".." _ @1;
-
     `::` = _ "::" _ @1;
     `%%` = _ "%%" _ @1;
     `=>` = _ "=>" _ @1;

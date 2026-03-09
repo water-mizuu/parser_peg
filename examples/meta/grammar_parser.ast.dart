@@ -10,21 +10,24 @@ import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
 
-final _regexps = (from: RegExp(r"\bfrom\b"), to: RegExp(r"\bto\b"), span: RegExp(r"\bspan\b"));
+final _regexps = (
+  from: RegExp(r"\bfrom\b"),
+  to: RegExp(r"\bto\b"),
+  span: RegExp(r"\bspan\b"),
+);
 
 class FlatNode extends InlineActionNode {
-  const FlatNode(Node child) : super(child, "span", areIndicesProvided: true, isSpanUsed: true);
+  const FlatNode(Node child): super(child, "span", areIndicesProvided: true, isSpanUsed: true);
 }
 
 extension on Node {
   Node operator |(Node other) => switch ((this, other)) {
-    (ChoiceNode(children: var l), ChoiceNode(children: var r)) => ChoiceNode([...l, ...r]),
-    (ChoiceNode(children: var l), Node r) => ChoiceNode([...l, r]),
+    (ChoiceNode(children :var l), ChoiceNode(children: var r)) => ChoiceNode([...l, ...r]),
+    (ChoiceNode(children :var l), Node r) => ChoiceNode([...l, r]),
     (Node l, ChoiceNode(children: var r)) => ChoiceNode([l, ...r]),
     (Node l, Node r) => ChoiceNode([l, r]),
   };
 }
-
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -275,11 +278,12 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class AstGrammarParser extends _PegParser<Object> {
-  AstGrammarParser();
+final class GrammarParser extends _PegParser<Object> {
+  GrammarParser();
 
   @override
   get start => r0;
+
 
   /// `global::literal::regexp`
   Object? f0() {
@@ -387,26 +391,26 @@ final class AstGrammarParser extends _PegParser<Object> {
   Object? f5() {
     if (this.matchPattern(_string.$6) case _?) {
       var _mark = this._mark();
-      if (this.f3z() case var _0) {
-        if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
-          if (_l1.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f3z() case var _0?) {
-                _l1.add(_0);
-                continue;
+        if (this.f3z() case var _0) {
+          if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
+            if (_l1.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f3z() case var _0?) {
+                  _l1.add(_0);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$6) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$6) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
   }
 
@@ -419,12 +423,12 @@ final class AstGrammarParser extends _PegParser<Object> {
           if ($1.isNotEmpty) {
             for (;;) {
               var _mark = this._mark();
-              if ('' case _) {
-                if (this.matchRange(_range.$1) case var _0?) {
-                  _l1.add(_0);
-                  continue;
+                if ('' case _) {
+                  if (this.matchRange(_range.$1) case var _0?) {
+                    _l1.add(_0);
+                    continue;
+                  }
                 }
-              }
               this._recover(_mark);
               break;
             }
@@ -1085,26 +1089,26 @@ final class AstGrammarParser extends _PegParser<Object> {
         if (_l3 case var $0?) {
           if (this.matchPattern(_string.$39) case var $1?) {
             var _mark = this._mark();
-            if (this.f4n() case var _0) {
-              if ([if (_0 case var _0?) _0] case (var $2 && var _l1)) {
-                if (_l1.isNotEmpty) {
-                  for (;;) {
-                    var _mark = this._mark();
-                    if (this.f4n() case var _0?) {
-                      _l1.add(_0);
-                      continue;
+              if (this.f4n() case var _0) {
+                if ([if (_0 case var _0?) _0] case (var $2 && var _l1)) {
+                  if (_l1.isNotEmpty) {
+                    for (;;) {
+                      var _mark = this._mark();
+                      if (this.f4n() case var _0?) {
+                        _l1.add(_0);
+                        continue;
+                      }
+                      this._recover(_mark);
+                      break;
                     }
+                  } else {
                     this._recover(_mark);
-                    break;
                   }
-                } else {
-                  this._recover(_mark);
-                }
-                if (this.matchPattern(_string.$39) case var $3?) {
-                  return ($0, $1, $2, $3);
+                  if (this.matchPattern(_string.$39) case var $3?) {
+                    return ($0, $1, $2, $3);
+                  }
                 }
               }
-            }
           }
         }
       }
@@ -1129,26 +1133,26 @@ final class AstGrammarParser extends _PegParser<Object> {
         if (_l7 case var $0?) {
           if (this.matchPattern(_string.$41) case var $1?) {
             var _mark = this._mark();
-            if (this.f4o() case var _4) {
-              if ([if (_4 case var _4?) _4] case (var $2 && var _l5)) {
-                if (_l5.isNotEmpty) {
-                  for (;;) {
-                    var _mark = this._mark();
-                    if (this.f4o() case var _4?) {
-                      _l5.add(_4);
-                      continue;
+              if (this.f4o() case var _4) {
+                if ([if (_4 case var _4?) _4] case (var $2 && var _l5)) {
+                  if (_l5.isNotEmpty) {
+                    for (;;) {
+                      var _mark = this._mark();
+                      if (this.f4o() case var _4?) {
+                        _l5.add(_4);
+                        continue;
+                      }
+                      this._recover(_mark);
+                      break;
                     }
+                  } else {
                     this._recover(_mark);
-                    break;
                   }
-                } else {
-                  this._recover(_mark);
-                }
-                if (this.matchPattern(_string.$41) case var $3?) {
-                  return ($0, $1, $2, $3);
+                  if (this.matchPattern(_string.$41) case var $3?) {
+                    return ($0, $1, $2, $3);
+                  }
                 }
               }
-            }
           }
         }
       }
@@ -1173,26 +1177,26 @@ final class AstGrammarParser extends _PegParser<Object> {
         if (_l11 case var $0?) {
           if (this.matchPattern(_string.$42) case var $1?) {
             var _mark = this._mark();
-            if (this.f4p() case var _8) {
-              if ([if (_8 case var _8?) _8] case (var $2 && var _l9)) {
-                if (_l9.isNotEmpty) {
-                  for (;;) {
-                    var _mark = this._mark();
-                    if (this.f4p() case var _8?) {
-                      _l9.add(_8);
-                      continue;
+              if (this.f4p() case var _8) {
+                if ([if (_8 case var _8?) _8] case (var $2 && var _l9)) {
+                  if (_l9.isNotEmpty) {
+                    for (;;) {
+                      var _mark = this._mark();
+                      if (this.f4p() case var _8?) {
+                        _l9.add(_8);
+                        continue;
+                      }
+                      this._recover(_mark);
+                      break;
                     }
+                  } else {
                     this._recover(_mark);
-                    break;
                   }
-                } else {
-                  this._recover(_mark);
-                }
-                if (this.matchPattern(_string.$42) case var $3?) {
-                  return ($0, $1, $2, $3);
+                  if (this.matchPattern(_string.$42) case var $3?) {
+                    return ($0, $1, $2, $3);
+                  }
                 }
               }
-            }
           }
         }
       }
@@ -1217,26 +1221,26 @@ final class AstGrammarParser extends _PegParser<Object> {
         if (_l15 case var $0?) {
           if (this.matchPattern(_string.$43) case var $1?) {
             var _mark = this._mark();
-            if (this.f4q() case var _12) {
-              if ([if (_12 case var _12?) _12] case (var $2 && var _l13)) {
-                if (_l13.isNotEmpty) {
-                  for (;;) {
-                    var _mark = this._mark();
-                    if (this.f4q() case var _12?) {
-                      _l13.add(_12);
-                      continue;
+              if (this.f4q() case var _12) {
+                if ([if (_12 case var _12?) _12] case (var $2 && var _l13)) {
+                  if (_l13.isNotEmpty) {
+                    for (;;) {
+                      var _mark = this._mark();
+                      if (this.f4q() case var _12?) {
+                        _l13.add(_12);
+                        continue;
+                      }
+                      this._recover(_mark);
+                      break;
                     }
+                  } else {
                     this._recover(_mark);
-                    break;
                   }
-                } else {
-                  this._recover(_mark);
-                }
-                if (this.matchPattern(_string.$43) case var $3?) {
-                  return ($0, $1, $2, $3);
+                  if (this.matchPattern(_string.$43) case var $3?) {
+                    return ($0, $1, $2, $3);
+                  }
                 }
               }
-            }
           }
         }
       }
@@ -1244,98 +1248,98 @@ final class AstGrammarParser extends _PegParser<Object> {
     this._recover(_mark);
     if (this.matchPattern(_string.$39) case var $0?) {
       var _mark = this._mark();
-      if (this.f4r() case var _16) {
-        if ([if (_16 case var _16?) _16] case (var $1 && var _l17)) {
-          if (_l17.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f4r() case var _16?) {
-                _l17.add(_16);
-                continue;
+        if (this.f4r() case var _16) {
+          if ([if (_16 case var _16?) _16] case (var $1 && var _l17)) {
+            if (_l17.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f4r() case var _16?) {
+                  _l17.add(_16);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$39) case var $2?) {
-            return ($0, $1, $2);
+            if (this.matchPattern(_string.$39) case var $2?) {
+              return ($0, $1, $2);
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$41) case var $0?) {
       var _mark = this._mark();
-      if (this.f4s() case var _18) {
-        if ([if (_18 case var _18?) _18] case (var $1 && var _l19)) {
-          if (_l19.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f4s() case var _18?) {
-                _l19.add(_18);
-                continue;
+        if (this.f4s() case var _18) {
+          if ([if (_18 case var _18?) _18] case (var $1 && var _l19)) {
+            if (_l19.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f4s() case var _18?) {
+                  _l19.add(_18);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$41) case var $2?) {
-            return ($0, $1, $2);
+            if (this.matchPattern(_string.$41) case var $2?) {
+              return ($0, $1, $2);
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$42) case var $0?) {
       var _mark = this._mark();
-      if (this.f4t() case var _20) {
-        if ([if (_20 case var _20?) _20] case (var $1 && var _l21)) {
-          if (_l21.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f4t() case var _20?) {
-                _l21.add(_20);
-                continue;
+        if (this.f4t() case var _20) {
+          if ([if (_20 case var _20?) _20] case (var $1 && var _l21)) {
+            if (_l21.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f4t() case var _20?) {
+                  _l21.add(_20);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$42) case var $2?) {
-            return ($0, $1, $2);
+            if (this.matchPattern(_string.$42) case var $2?) {
+              return ($0, $1, $2);
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$43) case var $0?) {
       var _mark = this._mark();
-      if (this.f4u() case var _22) {
-        if ([if (_22 case var _22?) _22] case (var $1 && var _l23)) {
-          if (_l23.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f4u() case var _22?) {
-                _l23.add(_22);
-                continue;
+        if (this.f4u() case var _22) {
+          if ([if (_22 case var _22?) _22] case (var $1 && var _l23)) {
+            if (_l23.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f4u() case var _22?) {
+                  _l23.add(_22);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$43) case var $2?) {
-            return ($0, $1, $2);
+            if (this.matchPattern(_string.$43) case var $2?) {
+              return ($0, $1, $2);
+            }
           }
         }
-      }
     }
   }
 
@@ -1833,194 +1837,194 @@ final class AstGrammarParser extends _PegParser<Object> {
     var _mark = this._mark();
     if (this.matchPattern(_string.$50) case _?) {
       var _mark = this._mark();
-      if (this.f2j() case var _0) {
-        if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
-          if (_l1.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f2j() case var _0?) {
-                _l1.add(_0);
-                continue;
+        if (this.f2j() case var _0) {
+          if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
+            if (_l1.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f2j() case var _0?) {
+                  _l1.add(_0);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$39) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$39) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$51) case _?) {
       var _mark = this._mark();
-      if (this.f2k() case var _2) {
-        if ([if (_2 case var _2?) _2] case (var $1 && var _l3)) {
-          if (_l3.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f2k() case var _2?) {
-                _l3.add(_2);
-                continue;
+        if (this.f2k() case var _2) {
+          if ([if (_2 case var _2?) _2] case (var $1 && var _l3)) {
+            if (_l3.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f2k() case var _2?) {
+                  _l3.add(_2);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$41) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$41) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$52) case _?) {
       var _mark = this._mark();
-      if (this.f2l() case var _4) {
-        if ([if (_4 case var _4?) _4] case (var $1 && var _l5)) {
-          if (_l5.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f2l() case var _4?) {
-                _l5.add(_4);
-                continue;
+        if (this.f2l() case var _4) {
+          if ([if (_4 case var _4?) _4] case (var $1 && var _l5)) {
+            if (_l5.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f2l() case var _4?) {
+                  _l5.add(_4);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$42) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$42) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$53) case _?) {
       var _mark = this._mark();
-      if (this.f2m() case var _6) {
-        if ([if (_6 case var _6?) _6] case (var $1 && var _l7)) {
-          if (_l7.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f2m() case var _6?) {
-                _l7.add(_6);
-                continue;
+        if (this.f2m() case var _6) {
+          if ([if (_6 case var _6?) _6] case (var $1 && var _l7)) {
+            if (_l7.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f2m() case var _6?) {
+                  _l7.add(_6);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$43) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$43) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$39) case _?) {
       var _mark = this._mark();
-      if (this.f2n() case var _8) {
-        if ([if (_8 case var _8?) _8] case (var $1 && var _l9)) {
-          if (_l9.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f2n() case var _8?) {
-                _l9.add(_8);
-                continue;
+        if (this.f2n() case var _8) {
+          if ([if (_8 case var _8?) _8] case (var $1 && var _l9)) {
+            if (_l9.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f2n() case var _8?) {
+                  _l9.add(_8);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$39) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$39) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$41) case _?) {
       var _mark = this._mark();
-      if (this.f2o() case var _10) {
-        if ([if (_10 case var _10?) _10] case (var $1 && var _l11)) {
-          if (_l11.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f2o() case var _10?) {
-                _l11.add(_10);
-                continue;
+        if (this.f2o() case var _10) {
+          if ([if (_10 case var _10?) _10] case (var $1 && var _l11)) {
+            if (_l11.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f2o() case var _10?) {
+                  _l11.add(_10);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$41) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$41) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$42) case _?) {
       var _mark = this._mark();
-      if (this.f2p() case var _12) {
-        if ([if (_12 case var _12?) _12] case (var $1 && var _l13)) {
-          if (_l13.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f2p() case var _12?) {
-                _l13.add(_12);
-                continue;
+        if (this.f2p() case var _12) {
+          if ([if (_12 case var _12?) _12] case (var $1 && var _l13)) {
+            if (_l13.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f2p() case var _12?) {
+                  _l13.add(_12);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$42) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$42) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$43) case _?) {
       var _mark = this._mark();
-      if (this.f2q() case var _14) {
-        if ([if (_14 case var _14?) _14] case (var $1 && var _l15)) {
-          if (_l15.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f2q() case var _14?) {
-                _l15.add(_14);
-                continue;
+        if (this.f2q() case var _14) {
+          if ([if (_14 case var _14?) _14] case (var $1 && var _l15)) {
+            if (_l15.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f2q() case var _14?) {
+                  _l15.add(_14);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$43) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$43) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
   }
 
@@ -2405,26 +2409,26 @@ final class AstGrammarParser extends _PegParser<Object> {
   Object? f3g() {
     if (this.matchPattern(_string.$6) case _?) {
       var _mark = this._mark();
-      if (this.f3f() case var _0) {
-        if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
-          if (_l1.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f3f() case var _0?) {
-                _l1.add(_0);
-                continue;
+        if (this.f3f() case var _0) {
+          if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
+            if (_l1.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f3f() case var _0?) {
+                  _l1.add(_0);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$6) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$6) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
   }
 
@@ -2663,194 +2667,194 @@ final class AstGrammarParser extends _PegParser<Object> {
     var _mark = this._mark();
     if (this.matchPattern(_string.$50) case _?) {
       var _mark = this._mark();
-      if (this.f3o() case var _0) {
-        if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
-          if (_l1.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f3o() case var _0?) {
-                _l1.add(_0);
-                continue;
+        if (this.f3o() case var _0) {
+          if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
+            if (_l1.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f3o() case var _0?) {
+                  _l1.add(_0);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$39) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$39) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$51) case _?) {
       var _mark = this._mark();
-      if (this.f3p() case var _2) {
-        if ([if (_2 case var _2?) _2] case (var $1 && var _l3)) {
-          if (_l3.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f3p() case var _2?) {
-                _l3.add(_2);
-                continue;
+        if (this.f3p() case var _2) {
+          if ([if (_2 case var _2?) _2] case (var $1 && var _l3)) {
+            if (_l3.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f3p() case var _2?) {
+                  _l3.add(_2);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$41) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$41) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$52) case _?) {
       var _mark = this._mark();
-      if (this.f3q() case var _4) {
-        if ([if (_4 case var _4?) _4] case (var $1 && var _l5)) {
-          if (_l5.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f3q() case var _4?) {
-                _l5.add(_4);
-                continue;
+        if (this.f3q() case var _4) {
+          if ([if (_4 case var _4?) _4] case (var $1 && var _l5)) {
+            if (_l5.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f3q() case var _4?) {
+                  _l5.add(_4);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$42) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$42) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$53) case _?) {
       var _mark = this._mark();
-      if (this.f3r() case var _6) {
-        if ([if (_6 case var _6?) _6] case (var $1 && var _l7)) {
-          if (_l7.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f3r() case var _6?) {
-                _l7.add(_6);
-                continue;
+        if (this.f3r() case var _6) {
+          if ([if (_6 case var _6?) _6] case (var $1 && var _l7)) {
+            if (_l7.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f3r() case var _6?) {
+                  _l7.add(_6);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$43) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$43) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$39) case _?) {
       var _mark = this._mark();
-      if (this.f3s() case var _8) {
-        if ([if (_8 case var _8?) _8] case (var $1 && var _l9)) {
-          if (_l9.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f3s() case var _8?) {
-                _l9.add(_8);
-                continue;
+        if (this.f3s() case var _8) {
+          if ([if (_8 case var _8?) _8] case (var $1 && var _l9)) {
+            if (_l9.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f3s() case var _8?) {
+                  _l9.add(_8);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$39) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$39) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$41) case _?) {
       var _mark = this._mark();
-      if (this.f3t() case var _10) {
-        if ([if (_10 case var _10?) _10] case (var $1 && var _l11)) {
-          if (_l11.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f3t() case var _10?) {
-                _l11.add(_10);
-                continue;
+        if (this.f3t() case var _10) {
+          if ([if (_10 case var _10?) _10] case (var $1 && var _l11)) {
+            if (_l11.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f3t() case var _10?) {
+                  _l11.add(_10);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$41) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$41) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$42) case _?) {
       var _mark = this._mark();
-      if (this.f3u() case var _12) {
-        if ([if (_12 case var _12?) _12] case (var $1 && var _l13)) {
-          if (_l13.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f3u() case var _12?) {
-                _l13.add(_12);
-                continue;
+        if (this.f3u() case var _12) {
+          if ([if (_12 case var _12?) _12] case (var $1 && var _l13)) {
+            if (_l13.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f3u() case var _12?) {
+                  _l13.add(_12);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$42) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$42) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
     this._recover(_mark);
     if (this.matchPattern(_string.$43) case _?) {
       var _mark = this._mark();
-      if (this.f3v() case var _14) {
-        if ([if (_14 case var _14?) _14] case (var $1 && var _l15)) {
-          if (_l15.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f3v() case var _14?) {
-                _l15.add(_14);
-                continue;
+        if (this.f3v() case var _14) {
+          if ([if (_14 case var _14?) _14] case (var $1 && var _l15)) {
+            if (_l15.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f3v() case var _14?) {
+                  _l15.add(_14);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$43) case _?) {
-            return $1;
+            if (this.matchPattern(_string.$43) case _?) {
+              return $1;
+            }
           }
         }
-      }
     }
   }
 
@@ -3788,10 +3792,7 @@ final class AstGrammarParser extends _PegParser<Object> {
         }
       }
     }
-    if (_mark.isCut)
-      return null;
-    else
-      this._recover(_mark);
+    if (_mark.isCut) return null; else this._recover(_mark);
     if (this.ft() case null) {
       this._recover(_mark);
       if (this.fx() case _?) {
@@ -3805,10 +3806,7 @@ final class AstGrammarParser extends _PegParser<Object> {
         }
       }
     }
-    if (_mark.isCut)
-      return null;
-    else
-      this._recover(_mark);
+    if (_mark.isCut) return null; else this._recover(_mark);
     if (this.apply(this.r16)! case _) {
       if (this.matchPattern(_string.$37) case var $1?) {
         if (this.apply(this.r16)! case _) {
@@ -3961,70 +3959,70 @@ final class AstGrammarParser extends _PegParser<Object> {
   /// `global::code::curly`
   Object rc() {
     var _mark = this._mark();
-    if (this.f2s() case var _0) {
-      if ([if (_0 case var _0?) _0] case var _l1) {
-        if (_l1.isNotEmpty) {
-          for (;;) {
-            var _mark = this._mark();
-            if (this.f2s() case var _0?) {
-              _l1.add(_0);
-              continue;
+      if (this.f2s() case var _0) {
+        if ([if (_0 case var _0?) _0] case var _l1) {
+          if (_l1.isNotEmpty) {
+            for (;;) {
+              var _mark = this._mark();
+              if (this.f2s() case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+              this._recover(_mark);
+              break;
             }
+          } else {
             this._recover(_mark);
-            break;
           }
-        } else {
-          this._recover(_mark);
+          return _l1;
         }
-        return _l1;
       }
-    }
   }
 
   /// `global::code::nl`
   Object rd() {
     var _mark = this._mark();
-    if (this.f2u() case var _0) {
-      if ([if (_0 case var _0?) _0] case var _l1) {
-        if (_l1.isNotEmpty) {
-          for (;;) {
-            var _mark = this._mark();
-            if (this.f2u() case var _0?) {
-              _l1.add(_0);
-              continue;
+      if (this.f2u() case var _0) {
+        if ([if (_0 case var _0?) _0] case var _l1) {
+          if (_l1.isNotEmpty) {
+            for (;;) {
+              var _mark = this._mark();
+              if (this.f2u() case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+              this._recover(_mark);
+              break;
             }
+          } else {
             this._recover(_mark);
-            break;
           }
-        } else {
-          this._recover(_mark);
+          return _l1;
         }
-        return _l1;
       }
-    }
   }
 
   /// `global::code::balanced`
   Object re() {
     var _mark = this._mark();
-    if (this.f2w() case var _0) {
-      if ([if (_0 case var _0?) _0] case var _l1) {
-        if (_l1.isNotEmpty) {
-          for (;;) {
-            var _mark = this._mark();
-            if (this.f2w() case var _0?) {
-              _l1.add(_0);
-              continue;
+      if (this.f2w() case var _0) {
+        if ([if (_0 case var _0?) _0] case var _l1) {
+          if (_l1.isNotEmpty) {
+            for (;;) {
+              var _mark = this._mark();
+              if (this.f2w() case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+              this._recover(_mark);
+              break;
             }
+          } else {
             this._recover(_mark);
-            break;
           }
-        } else {
-          this._recover(_mark);
+          return _l1;
         }
-        return _l1;
       }
-    }
   }
 
   /// `global::dart::literal::string`
@@ -4077,24 +4075,24 @@ final class AstGrammarParser extends _PegParser<Object> {
   /// `global::dart::literal::string::balanced`
   Object ri() {
     var _mark = this._mark();
-    if (this.f2y() case var _0) {
-      if ([if (_0 case var _0?) _0] case var _l1) {
-        if (_l1.isNotEmpty) {
-          for (;;) {
-            var _mark = this._mark();
-            if (this.f2y() case var _0?) {
-              _l1.add(_0);
-              continue;
+      if (this.f2y() case var _0) {
+        if ([if (_0 case var _0?) _0] case var _l1) {
+          if (_l1.isNotEmpty) {
+            for (;;) {
+              var _mark = this._mark();
+              if (this.f2y() case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+              this._recover(_mark);
+              break;
             }
+          } else {
             this._recover(_mark);
-            break;
           }
-        } else {
-          this._recover(_mark);
+          return _l1;
         }
-        return _l1;
       }
-    }
   }
 
   /// `global::dart::type::main`
@@ -4349,12 +4347,12 @@ final class AstGrammarParser extends _PegParser<Object> {
             if ($2.isNotEmpty) {
               for (;;) {
                 var _mark = this._mark();
-                if (this.f1d() case _?) {
-                  if (this.apply(this.rz) case var _0?) {
-                    _l1.add(_0);
-                    continue;
+                  if (this.f1d() case _?) {
+                    if (this.apply(this.rz) case var _0?) {
+                      _l1.add(_0);
+                      continue;
+                    }
                   }
-                }
                 this._recover(_mark);
                 break;
               }
@@ -4491,24 +4489,24 @@ final class AstGrammarParser extends _PegParser<Object> {
   /// `global::_`
   Object r16() {
     var _mark = this._mark();
-    if (this.f3h() case var _0) {
-      if ([if (_0 case var _0?) _0] case var _l1) {
-        if (_l1.isNotEmpty) {
-          for (;;) {
-            var _mark = this._mark();
-            if (this.f3h() case var _0?) {
-              _l1.add(_0);
-              continue;
+      if (this.f3h() case var _0) {
+        if ([if (_0 case var _0?) _0] case var _l1) {
+          if (_l1.isNotEmpty) {
+            for (;;) {
+              var _mark = this._mark();
+              if (this.f3h() case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+              this._recover(_mark);
+              break;
             }
+          } else {
             this._recover(_mark);
-            break;
           }
-        } else {
-          this._recover(_mark);
+          return _l1;
         }
-        return _l1;
       }
-    }
   }
 
   /// `global::whitespace`
@@ -4545,24 +4543,24 @@ final class AstGrammarParser extends _PegParser<Object> {
   Object? r19() {
     if (this.matchPattern(_string.$63) case var $0?) {
       var _mark = this._mark();
-      if (this.f3i() case var _0) {
-        if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
-          if (_l1.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f3i() case var _0?) {
-                _l1.add(_0);
-                continue;
+        if (this.f3i() case var _0) {
+          if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
+            if (_l1.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f3i() case var _0?) {
+                  _l1.add(_0);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
+            return ($0, $1);
           }
-          return ($0, $1);
         }
-      }
     }
   }
 
@@ -4570,26 +4568,26 @@ final class AstGrammarParser extends _PegParser<Object> {
   Object? r1a() {
     if (this.matchPattern(_string.$64) case var $0?) {
       var _mark = this._mark();
-      if (this.f3j() case var _0) {
-        if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
-          if (_l1.isNotEmpty) {
-            for (;;) {
-              var _mark = this._mark();
-              if (this.f3j() case var _0?) {
-                _l1.add(_0);
-                continue;
+        if (this.f3j() case var _0) {
+          if ([if (_0 case var _0?) _0] case (var $1 && var _l1)) {
+            if (_l1.isNotEmpty) {
+              for (;;) {
+                var _mark = this._mark();
+                if (this.f3j() case var _0?) {
+                  _l1.add(_0);
+                  continue;
+                }
+                this._recover(_mark);
+                break;
               }
+            } else {
               this._recover(_mark);
-              break;
             }
-          } else {
-            this._recover(_mark);
-          }
-          if (this.matchPattern(_string.$55) case var $2?) {
-            return ($0, $1, $2);
+            if (this.matchPattern(_string.$55) case var $2?) {
+              return ($0, $1, $2);
+            }
           }
         }
-      }
     }
   }
 
@@ -4608,220 +4606,151 @@ final class AstGrammarParser extends _PegParser<Object> {
       return $;
     }
   }
-}
 
+}
 class _regexp {
   /// `/\d/`
   static final $1 = RegExp("\\d");
-
   /// `/\n/`
   static final $2 = RegExp("\\n");
-
   /// `/\r/`
   static final $3 = RegExp("\\r");
-
   /// `/\s/`
   static final $4 = RegExp("\\s");
 }
-
 class _string {
   /// `"/"`
   static const $1 = "/";
-
   /// `" "`
   static const $2 = " ";
-
   /// `"-"`
   static const $3 = "-";
-
   /// `"\\"`
   static const $4 = "\\";
-
   /// `"]"`
   static const $5 = "]";
-
   /// `"`"`
   static const $6 = "`";
-
   /// `"@rule"`
   static const $7 = "@rule";
-
   /// `"@fragment"`
   static const $8 = "@fragment";
-
   /// `"@inline"`
   static const $9 = "@inline";
-
   /// `"choice!"`
   static const $10 = "choice!";
-
   /// `"#"`
   static const $11 = "#";
-
   /// `".."`
   static const $12 = "..";
-
   /// `"~>"`
   static const $13 = "~>";
-
   /// `"<~"`
   static const $14 = "<~";
-
   /// `"|>"`
   static const $15 = "|>";
-
   /// `"%"`
   static const $16 = "%";
-
   /// `"@"`
   static const $17 = "@";
-
   /// `"<"`
   static const $18 = "<";
-
   /// `">"`
   static const $19 = ">";
-
   /// `"["`
   static const $20 = "[";
-
   /// `"}"`
   static const $21 = "}";
-
   /// `"{"`
   static const $22 = "{";
-
   /// `")"`
   static const $23 = ")";
-
   /// `"("`
   static const $24 = "(";
-
   /// `";"`
   static const $25 = ";";
-
   /// `"="`
   static const $26 = "=";
-
   /// `"?"`
   static const $27 = "?";
-
   /// `"!"`
   static const $28 = "!";
-
   /// `"~"`
   static const $29 = "~";
-
   /// `"&"`
   static const $30 = "&";
-
   /// `"*"`
   static const $31 = "*";
-
   /// `"+"`
   static const $32 = "+";
-
   /// `","`
   static const $33 = ",";
-
   /// `"|"`
   static const $34 = "|";
-
   /// `"."`
   static const $35 = ".";
-
   /// `"ε"`
   static const $36 = "ε";
-
   /// `"^"`
   static const $37 = "^";
-
   /// `"\$"`
   static const $38 = "\$";
-
   /// `"\"\"\""`
   static const $39 = "\"\"\"";
-
   /// `"r"`
   static const $40 = "r";
-
   /// `"'''"`
   static const $41 = "'''";
-
   /// `"\""`
   static const $42 = "\"";
-
   /// `"'"`
   static const $43 = "'";
-
   /// `"D"`
   static const $44 = "D";
-
   /// `"W"`
   static const $45 = "W";
-
   /// `"S"`
   static const $46 = "S";
-
   /// `"f"`
   static const $47 = "f";
-
   /// `"v"`
   static const $48 = "v";
-
   /// `"b"`
   static const $49 = "b";
-
   /// `"r\"\"\""`
   static const $50 = "r\"\"\"";
-
   /// `"r'''"`
   static const $51 = "r'''";
-
   /// `"r\""`
   static const $52 = "r\"";
-
   /// `"r'"`
   static const $53 = "r'";
-
   /// `"::"`
   static const $54 = "::";
-
   /// `"*/"`
   static const $55 = "*/";
-
   /// `"d"`
   static const $56 = "d";
-
   /// `"w"`
   static const $57 = "w";
-
   /// `"s"`
   static const $58 = "s";
-
   /// `"n"`
   static const $59 = "n";
-
   /// `"t"`
   static const $60 = "t";
-
   /// `":"`
   static const $61 = ":";
-
   /// `"Function"`
   static const $62 = "Function";
-
   /// `"//"`
   static const $63 = "//";
-
   /// `"/*"`
   static const $64 = "/*";
 }
-
 class _range {
   /// `[a-zA-Z0-9_$]`
-  static const $1 = {(97, 122), (65, 90), (48, 57), (95, 95), (36, 36)};
-
+  static const $1 = { (97, 122), (65, 90), (48, 57), (95, 95), (36, 36) };
   /// `[a-zA-Z_$]`
-  static const $2 = {(97, 122), (65, 90), (95, 95), (36, 36)};
+  static const $2 = { (97, 122), (65, 90), (95, 95), (36, 36) };
 }
