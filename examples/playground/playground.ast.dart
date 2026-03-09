@@ -262,14 +262,14 @@ final class Playground extends _PegParser<Object> {
 
 
   /// `ROOT`
-  late final f0 = () {
+  Object? f0() {
     if (this.apply(this.r0) case var $?) {
       return $;
     }
-  };
+  }
 
   /// `global::a`
-  late final r0 = () {
+  Object? r0() {
     var _mark = this._mark();
     if (this.matchPattern(_string.$2) case (var $0 && var $)?) {
       if (this.matchPattern(_string.$1) case _?) {
@@ -284,10 +284,10 @@ final class Playground extends _PegParser<Object> {
     if (this.apply(this.r1) case var $?) {
       return $;
     }
-  };
+  }
 
   /// `global::b`
-  late final r1 = () {
+  Object? r1() {
     var _mark = this._mark();
     if (this.matchPattern(_string.$1) case var $0?) {
       if (this.matchPattern(_string.$2) case var $1?) {
@@ -298,7 +298,7 @@ final class Playground extends _PegParser<Object> {
     if (this.matchPattern(_string.$2) case var $?) {
       return $;
     }
-  };
+  }
 
 }
 class _string {
