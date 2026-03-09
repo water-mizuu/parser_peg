@@ -172,6 +172,7 @@ abstract base class _PegParser<R extends Object> {
 
   void _recover(_Mark mark) {
     this.pos = mark.pos;
+    mark.isCut = false;
   }
 
   void reset() {

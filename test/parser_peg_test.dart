@@ -361,7 +361,7 @@ String rule = "x";
     });
 
     test("parse the metagrammar itself", () {
-      var input = readGrammarFile("lib/src/parser/grammar_parser.dart_grammar");
+      var input = readGrammarFile("examples/meta/grammar_parser.dart_grammar");
       var result = parser.parse(input);
       expect(result, isA<ParserGenerator>());
     });
@@ -452,7 +452,7 @@ String rule = "hello";
 
     test("metagrammar compiles", () {
       var parser = GrammarParser();
-      var gen = parser.parse(readGrammarFile("lib/src/parser/grammar_parser.dart_grammar"))!;
+      var gen = parser.parse(readGrammarFile("examples/meta/grammar_parser.dart_grammar"))!;
       var code = gen.compileParserGenerator("GrammarParser");
 
       expect(code, contains("class GrammarParser"));
@@ -1006,7 +1006,7 @@ int rule = ^ :val $ |> val;
 
   group("Self-hosting: metagrammar bootstrap", () {
     test("compiled grammar parser can parse the math grammar", () async {
-      var metagrammarSource = readGrammarFile("lib/src/parser/grammar_parser.dart_grammar");
+      var metagrammarSource = readGrammarFile("examples/meta/grammar_parser.dart_grammar");
 
       var parser = GrammarParser();
       var gen = parser.parse(metagrammarSource)!;
@@ -1019,7 +1019,7 @@ int rule = ^ :val $ |> val;
 
     test("metagrammar round-trips: parse → compile → parse", () async {
       // Step 1: Parse the metagrammar
-      var metagrammarSource = readGrammarFile("lib/src/parser/grammar_parser.dart_grammar");
+      var metagrammarSource = readGrammarFile("examples/meta/grammar_parser.dart_grammar");
       var parser = GrammarParser();
       var gen = parser.parse(metagrammarSource);
       expect(gen, isNotNull, reason: "metagrammar should parse");
@@ -1346,6 +1346,41 @@ identifier = [a-z]+;
       // But the outer stmt choice has its own _mark, so it recovers and tries identifier.
       // "if" matches [a-z]+ as an identifier.
       expect(await iso.parse("if"), isNotNull);
+    });
+  });
+
+  group("End-to-end: cut properly cuts as second option", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Cut inside ifStmt does NOT propagate to the outer stmt choice.
+      iso = await spawnParser(r'''
+rule = ^ stmt $;
+stmt = "if" # "(" identifier ")" | "when" # "(" identifier ")" | identifier;
+identifier = [a-z]+;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("full if statement parses", () async {
+      expect(await iso.parse("if(x)"), isNotNull);
+    });
+
+    test("full when statement parses", () async {
+      expect(await iso.parse("when(x)"), isNotNull);
+    });
+
+    test("plain identifier parses", () async {
+      expect(await iso.parse("hello"), isNotNull);
+    });
+
+    test("cut in inner rule blocks choice alternatives", () async {
+      expect(await iso.parse("if"), isNull);
+    });
+
+    test("cut in second option blocks choice alternatives", () async {
+      expect(await iso.parse("when"), isNull);
     });
   });
 

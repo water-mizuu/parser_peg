@@ -38,22 +38,8 @@ String preamble = `{` _ code:code.curly _ `}` @2;
 ///  A fragment is a declaration that is faster, but doesn't support left recursion / memoization.
 ///  A rule is a declaration, that supports left recursion & memoization.
 Statement statement =
-  | outer_decorator:kw.decorator?
-      name:identifier `=` mac.choice
-      inner_decorator:kw.decorator? `{` statements:_..statement+ `}`
-      `;`?
-    |> HybridNamespaceStatement(
-      null, name, statements,
-      outerTag: outer_decorator, innerTag: inner_decorator
-    )
-  | outer_decorator:kw.decorator?
-      :type name:identifier `=` mac.choice
-      inner_decorator:kw.decorator? `{` statements:_..statement+ `}`
-      `;`?
-    |> HybridNamespaceStatement(
-      type, name, statements,
-      outerTag: outer_decorator, innerTag: inner_decorator
-    )
+  | untypedMacroChoice
+  | typedMacroChoice
   | outer_decorator:kw.decorator?
       :type? `(` `)` `=` mac.choice
       inner_decorator:kw.decorator? `{` statements:_..statement+ `}`
@@ -62,7 +48,6 @@ Statement statement =
       type, null, statements,
       outerTag: outer_decorator, innerTag: inner_decorator
     )
-
 /// A namespace is a block of statements which can apply a tag and/or be encapsulated
 ///   under a name.
   | :kw.decorator? name:identifier? `{` statements:_..statement+ `}`
@@ -81,6 +66,50 @@ Statement statement =
   | :kw.decorator? :name body:(`=` :choice `;` @1)
     |> DeclarationStatement(null, name, body, tag: decorator)
   ;
+
+/// This is used as a helper for the macro choice operator.
+///   Basically, it allows us to write things like a namespace, but then they're all
+///   collected as choices for a single declaration.
+/// This is used like:
+///   @fragment name = choice! @rule {
+///      a = "a";
+///      b = "b";
+///   }
+///
+/// This is equivalent to (and simplified to):
+///   @fragment name = name.a | name.b;
+///   @rule name.a = "a";
+///   @rule name.b = "b";
+///
+@inline untypedMacroChoice =
+  outer_decorator:kw.decorator?
+  name:identifier `=` mac.choice
+  inner_decorator:kw.decorator? `{` statements:_..statement+ `}` `;`?
+  |> HybridNamespaceStatement(
+      null, name, statements,
+      outerTag: outer_decorator, innerTag: inner_decorator
+    );
+
+/// This is equivalent to [untypedMacroChoice], but it allows us to specify the type of the declaration, which is useful for namespaces and such.
+/// This is used like:
+///   @fragment String name = choice! @rule {
+///      a = "a";
+///      b = "b";
+///   }
+///
+/// This is equivalent to (and simplified to):
+///   @fragment String name = name.a | name.b;
+///   @rule String name.a = "a";
+///   @rule String name.b = "b";
+///
+@inline typedMacroChoice =
+  outer_decorator:kw.decorator?
+  :type name:identifier `=` mac.choice
+  inner_decorator:kw.decorator? `{` statements:_..statement+ `}` `;`?
+  |> HybridNamespaceStatement(
+      type, name, statements,
+      outerTag: outer_decorator, innerTag: inner_decorator
+    );
 
 /// A choice parser is a parser that tries to match one of the options.
 /// Despite the syntax, the parser is ordered choice.
@@ -155,6 +184,7 @@ Node labeled =
 
       return NamedNode(name, ReferenceNode(id));
     }
+  | ":" node:special { NamedNode(r"$", node) }
   | special
   ;
 
@@ -346,7 +376,7 @@ dart {
 
   type {
     String main = _ nullable _ @1;
-    String nullable = :nonNullable `?`? { "$nonNullable${$1 ?? ""}" };
+    String nullable = :nonNullable question:`?`? { "$nonNullable${question ?? ""}" };
     String nonNullable = choice! {
       /// Dart function type.
       function = :nullable _ "Function" _ :fnParameters |> "${$0} Function${$4}";
@@ -417,29 +447,29 @@ dart {
   }
 }
 
-@fragment /* Shared code between declarations */ {
-  String type =
-    | _ raw _ @1
-    | dart.type.main;
+/// Shared code between declarations
+String type =
+  | _ raw _ @1
+  | _ ~> dart.type.main <~ _;
 
-  /// [namespaceReference] is a reference to a namespace.
-  ///   It is a sequence of identifiers separated by "::" or ".".
-  ///   It should not match a macro.
-  String namespaceReference =
-    | 1..(identifier ("::" | !".." ".") !mac @0) |> $.join(ParserGenerator.separator)
-    | std.epsilon;
+/// [namespaceReference] is a reference to a namespace.
+///   It is a sequence of identifiers separated by "::" or ".".
+///   It should not match a macro.
+String namespaceReference =
+  | 1..(identifier ("::" | !".." ".") !mac @0) |> $.join(ParserGenerator.separator)
+  | std.epsilon;
 
-  /// A [name] can be a single name, or multiple aliases.
-  ///  The aliases are separated by `&&`, surrounded by parentheses.
-  String name =
-    | namespacedRaw
-    | namespacedIdentifier;
+/// A [name] can be a single name, or multiple aliases.
+///  The aliases are separated by `&&`, surrounded by parentheses.
+String name =
+  | namespacedRaw
+  | namespacedIdentifier;
 
-  /// [namespacedRaw] refers to a name which may have accessed a namespace,
-  ///   using a raw trailing name ``<example>``
-  String namespacedRaw = namespaceReference literal.raw       |> $0.isEmpty ? $1 : "${$0}::${$1}";
-  String namespacedIdentifier = namespaceReference identifier |> $0.isEmpty ? $1 : "${$0}::${$1}";
-}
+/// [namespacedRaw] refers to a name which may have accessed a namespace,
+///   using a raw trailing name ``<example>``
+String namespacedRaw = namespaceReference literal.raw       |> $0.isEmpty ? $1 : "${$0}::${$1}";
+String namespacedIdentifier = namespaceReference identifier |> $0.isEmpty ? $1 : "${$0}::${$1}";
+
 
 /// Tokens used in the grammar.
 ///   Since they are not recursive, they are not defined as rules.
@@ -464,34 +494,34 @@ dart {
   }
 
   /// Tokens used in "macro-like" rules.
-  String mac = choice! @fragment {
+  String mac = choice! {
     choice = _ "choice!" _ @1;
   };
 
   String regexEscape = choice! @fragment {
     backslash       = _ ~> <\\ r"\"> <~ _;
 
-    digit           = _ <\\ r"d"> _ @1;
-    word            = _ <\\ r"w"> _ @1;
-    whitespace      = _ <\\ r"s"> _ @1;
-    wordBoundary    = _ <\\ r"b"> _ @1;
+    digit           = _ :<\\ r"d"> _;
+    word            = _ :<\\ r"w"> _;
+    whitespace      = _ :<\\ r"s"> _;
+    wordBoundary    = _ :<\\ r"b"> _;
 
-    notDigit        = _ <\\ r"D"> _ @1;
-    notWord         = _ <\\ r"W"> _ @1;
-    notWhitespace   = _ <\\ r"S"> _ @1;
-    notWordBoundary = _ <\\ r"b"> _ @1;
+    notDigit        = _ :<\\ r"D"> _;
+    notWord         = _ :<\\ r"W"> _;
+    notWhitespace   = _ :<\\ r"S"> _;
+    notWordBoundary = _ :<\\ r"b"> _;
 
-    newline         = _ <\\ r"n"> _ @1;
-    carriageReturn  = _ <\\ r"r"> _ @1;
-    tab             = _ <\\ r"t"> _ @1;
-    formFeed        = _ <\\ r"f"> _ @1;
-    verticalTab     = _ <\\ r"v"> _ @1;
-    null            = _ <\\ r"0"> _ @1;
-    control         = _ <\\ r"c"> _ @1;
-    hex             = _ <\\ r"x"> _ @1;
-    unicode         = _ <\\ r"u"> _ @1;
-    unicodeExtended = _ <\\ r"U"> _ @1;
-    literal         = _ <\\ r"."> _ @1;
+    newline         = _ :<\\ r"n"> _;
+    carriageReturn  = _ :<\\ r"r"> _;
+    tab             = _ :<\\ r"t"> _;
+    formFeed        = _ :<\\ r"f"> _;
+    verticalTab     = _ :<\\ r"v"> _;
+    null            = _ :<\\ r"0"> _;
+    control         = _ :<\\ r"c"> _;
+    hex             = _ :<\\ r"x"> _;
+    unicode         = _ :<\\ r"u"> _;
+    unicodeExtended = _ :<\\ r"U"> _;
+    literal         = _ :<\\ r"."> _;
   };
 
   /// Literal tokens

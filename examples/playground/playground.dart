@@ -173,6 +173,7 @@ abstract base class _PegParser<R extends Object> {
 
   void _recover(_Mark mark) {
     this.pos = mark.pos;
+    mark.isCut = false;
   }
 
   void reset() {
@@ -271,12 +272,15 @@ final class Playground extends _PegParser<Object> {
   /// `global::a`
   late final r0 = () {
     var _mark = this._mark();
-    if (this.matchPattern(_string.$2) case (var $0 && var $)?) {
-      if (this.matchPattern(_string.$1) case _?) {
-        return $0;
+    if (this.matchPattern(_string.$2) case var $0?) {
+      if (this.matchPattern(_string.$1) case var $1?) {
+        if (null case var $2) {
+          _mark.isCut = true;
+          return ($0, $1, $2);
+        }
       }
     }
-    this._recover(_mark);
+    if (_mark.isCut) return null; else this._recover(_mark);
     if (this.matchPattern(_string.$2) case var $?) {
       return $;
     }

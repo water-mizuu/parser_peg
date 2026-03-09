@@ -17,9 +17,7 @@ void main(List<String> arguments) async {
     return;
   }
 
-  if (arguments case ["experiment"]) {
-    _experiment();
-  } else if (arguments case ["test"]) {
+  if (arguments case ["test"]) {
     _testCompiler();
   } else if (arguments case ["complete", ...var rest]) {
     _buildParser(rest, complete: true);
@@ -88,64 +86,6 @@ void _testCompiler() async {
     File("test.dart")
       ..createSync(recursive: true)
       ..writeAsStringSync(parserCode);
-  }
-}
-
-void _experiment() {
-  if (GrammarParser() case GrammarParser grammar) {
-    const String inputPath = "lib/src/parser/grammar_parser.dart_grammar";
-    if (readFile(inputPath) case String input) {
-      switch (grammar.parse(input)) {
-        case ParserGenerator generator:
-          stdout.writeln("Successfully parsed grammar!");
-          stdout.writeln("Generating parser.");
-
-          /// Default output file
-          String parentPath = path.dirname(inputPath);
-          String fileName = path.basenameWithoutExtension(inputPath);
-
-          print("Compiling parser to $parentPath/$fileName.dart");
-          File(path.join(parentPath, "$fileName.dart"))
-            ..createSync(recursive: true)
-            ..writeAsStringSync(generator.compileParserGenerator("GrammarParser"));
-          print("Compiled parser to $parentPath/$fileName.dart");
-
-          print("Compiling cst-parser to $parentPath/$fileName.cst.dart");
-          File(path.join(parentPath, "$fileName.cst.dart"))
-            ..createSync(recursive: true)
-            ..writeAsStringSync(generator.compileCstParserGenerator("CstGrammarParser"));
-          print("Compiled cst-parser to $parentPath/$fileName.cst.dart");
-
-          print("Compiling cst-parser to $parentPath/$fileName.ast.dart");
-          File(path.join(parentPath, "$fileName.ast.dart"))
-            ..createSync(recursive: true)
-            ..writeAsStringSync(generator.compileAstParserGenerator("AstGrammarParser"));
-          print("Compiled ast-parser to $parentPath/$fileName.ast.dart");
-
-        case _:
-          stdout.writeln(grammar.reportFailures());
-      }
-    }
-  }
-
-  if (CstGrammarParser() case CstGrammarParser grammar) {
-    const String inputPath = "lib/src/parser/grammar_parser.dart_grammar";
-    String input = readFile(inputPath);
-    String parentPath = path.dirname(inputPath);
-    String fileName = path.basenameWithoutExtension(inputPath);
-
-    switch (grammar.parse(input)) {
-      case Object result:
-        stdout.writeln("Successfully parsed grammar!");
-        stdout.writeln("Generating parser.");
-
-        File(path.join(parentPath, "$fileName.txt"))
-          ..createSync(recursive: true)
-          ..writeAsStringSync(displayTree(result));
-
-      case _:
-        stdout.writeln(grammar.reportFailures());
-    }
   }
 }
 
