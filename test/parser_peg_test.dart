@@ -3482,4 +3482,343 @@ _ = \s* { () };
       expect(result, equals([10, 20, 30]));
     });
   });
+
+  // ---------------------------------------------------------------------------
+  //  Tricky left-recursion scenarios
+  // ---------------------------------------------------------------------------
+
+  group("End-to-end: two-rule indirect left recursion", () {
+    // Grammar:
+    //   a = b "!" | "p"    ← a invokes b which (through "a ?") invokes a again
+    //   b = a "?" | "q"
+    //
+    // Seed-growth trace for "p?!?!":
+    //   seed a="p" → b re-eval: "p?" → a="p?!" → b re-eval: "p?!?" → a="p?!?!"
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+Object rule = ^ :a $;
+Object a = b "!" | "p";
+Object b = a "?" | "q";
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("base case 'p'", () async {
+      expect(await iso.parse("p"), isNotNull);
+    });
+
+    test("one level through b  ('q!')", () async {
+      // b="q", then a = b "!" = "q!"
+      expect(await iso.parse("q!"), isNotNull);
+    });
+
+    test("two levels a->b->a ('p?!')", () async {
+      // a="p" → b="p?" → a="p?!"
+      expect(await iso.parse("p?!"), isNotNull);
+    });
+
+    test("three levels ('q!?!')", () async {
+      // a="q!" → b="q!?" → a="q!?!"
+      expect(await iso.parse("q!?!"), isNotNull);
+    });
+
+    test("four levels deep indirect growth ('p?!?!')", () async {
+      // a="p" → b="p?" → a="p?!" → b="p?!?" → a="p?!?!"
+      expect(await iso.parse("p?!?!"), isNotNull);
+    });
+
+    test("rejects bare '!'  (no base)", () async {
+      expect(await iso.parse("!"), isNull);
+    });
+
+    test("rejects 'p?' (incomplete cycle – missing '!')", () async {
+      expect(await iso.parse("p?"), isNull);
+    });
+
+    test("rejects 'q?!' (wrong operator order)", () async {
+      // 'q' is a base for b, not for a; "q?" has no matching alternative
+      expect(await iso.parse("q?!"), isNull);
+    });
+  });
+
+  group("End-to-end: three-rule indirect left recursion", () {
+    // Grammar:
+    //   a = b "!" | "a"    ← one-character literal "a" is the base
+    //   b = c "?" | "b"
+    //   c = a "#" | "c"
+    //
+    // The cycle a→b→c→a means all three rules participate in the involvedSet.
+    // Seed-growth trace for "a#?!":
+    //   seed a="a" → c re-eval: "a#" → b re-eval: "a#?" → a="a#?!"
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+Object rule = ^ :a $;
+Object a = b "!" | "a";
+Object b = c "?" | "b";
+Object c = a "#" | "c";
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("base case 'a'", () async {
+      expect(await iso.parse("a"), isNotNull);
+    });
+
+    test("through b only ('b!')", () async {
+      // b="b", a=b"!"="b!"
+      expect(await iso.parse("b!"), isNotNull);
+    });
+
+    test("through b and c ('c?!')", () async {
+      // c="c", b=c"?"="c?", a=b"!"="c?!"
+      expect(await iso.parse("c?!"), isNotNull);
+    });
+
+    test("full three-rule cycle ('a#?!')", () async {
+      // a="a" → c=a"#"="a#" → b=c"?"="a#?" → a=b"!"="a#?!"
+      expect(await iso.parse("a#?!"), isNotNull);
+    });
+
+    test("two full cycles ('b!#?!')", () async {
+      // a="b!" → c=a"#"="b!#" → b=c"?"="b!#?" → a=b"!"="b!#?!"
+      expect(await iso.parse("b!#?!"), isNotNull);
+    });
+
+    test("rejects wrong terminator ('a!')", () async {
+      // "!" is b's suffix, not a valid suffix directly after a bare "a"
+      expect(await iso.parse("a!"), isNull);
+    });
+
+    test("rejects incomplete cycle ('a#')", () async {
+      // c grows to "a#" but b and a cannot complete
+      expect(await iso.parse("a#"), isNull);
+    });
+
+    test("rejects partial inner cycle ('a#?')", () async {
+      expect(await iso.parse("a#?"), isNull);
+    });
+  });
+
+  group("End-to-end: left recursion with epsilon base", () {
+    // Grammar:
+    //   expr = expr "a" | ε
+    //
+    // This is equivalent to "a"* : the recursive rule is seeded by epsilon
+    // (non-null empty match at the current position) and the grow loop
+    // extends it one "a" at a time.
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+Object rule = ^ :expr $;
+Object expr = expr "a" | ε;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("empty string matches (epsilon base)", () async {
+      expect(await iso.parse(""), isNotNull);
+    });
+
+    test("single 'a'", () async {
+      expect(await iso.parse("a"), isNotNull);
+    });
+
+    test("two 'a's", () async {
+      expect(await iso.parse("aa"), isNotNull);
+    });
+
+    test("seven 'a's", () async {
+      expect(await iso.parse("aaaaaaa"), isNotNull);
+    });
+
+    test("rejects non-'a' character", () async {
+      expect(await iso.parse("b"), isNull);
+    });
+
+    test("rejects 'a' followed by non-'a'", () async {
+      expect(await iso.parse("aab"), isNull);
+    });
+  });
+
+  group("End-to-end: left recursion – base-case-first prevents growth", () {
+    // In PEG ordered choice the FIRST alternative that matches commits.
+    // When the non-recursive base case ("a") is listed BEFORE the recursive
+    // alternative (expr "+" "a"), "a" always wins at position 0 and the
+    // grow loop never advances beyond it, so anchored inputs like "a+a"
+    // correctly fail.
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+Object rule = ^ expr $;
+Object expr = "a" | expr "+" "a";
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("single 'a' still matches", () async {
+      expect(await iso.parse("a"), isNotNull);
+    });
+
+    test("'a+a' fails (base-case-first prevents growth)", () async {
+      expect(await iso.parse("a+a"), isNull);
+    });
+
+    test("'a+a+a' also fails", () async {
+      expect(await iso.parse("a+a+a"), isNull);
+    });
+  });
+
+  group("End-to-end: left recursion - recursive-first enables growth", () {
+    // Same language as the group above but with the recursive alternative
+    // FIRST.  Flipping the order allows the seed to grow, so "a+a+a" now
+    // parses correctly.
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+Object rule = ^ expr $;
+Object expr = expr "+" "a" | "a";
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("single 'a' matches", () async {
+      expect(await iso.parse("a"), isNotNull);
+    });
+
+    test("'a+a' matches", () async {
+      expect(await iso.parse("a+a"), isNotNull);
+    });
+
+    test("'a+a+a' matches (left-associative growth)", () async {
+      expect(await iso.parse("a+a+a"), isNotNull);
+    });
+
+    test("rejects trailing '+'", () async {
+      expect(await iso.parse("a+"), isNull);
+    });
+
+    test("rejects leading '+'", () async {
+      expect(await iso.parse("+a"), isNull);
+    });
+  });
+
+  group("End-to-end: indirect left recursion – two competing left-recursive rules", () {
+    // Both expr and term are left-recursive, and they call each other so that
+    // expr→term→expr forms an indirect cycle in addition to each rule's own
+    // direct self-reference.
+    //
+    //   expr = expr "+" term | term
+    //   term = term "*" expr | expr "-" "1" | \d+
+    //
+    // The cross-call term→expr→term means the indirect involvedSet tracking
+    // must correctly include both rules.
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r'''
+Object rule = ^ expr $;
+Object expr = expr "+" term | term;
+Object term = term "*" expr | expr "-" "1" | \d+;
+''');
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("single digit", () async {
+      expect(await iso.parse("3"), isNotNull);
+    });
+
+    test("addition of digits", () async {
+      expect(await iso.parse("1+2"), isNotNull);
+    });
+
+    test("multiplication of digits", () async {
+      expect(await iso.parse("2*3"), isNotNull);
+    });
+
+    test("mixed addition and multiplication", () async {
+      expect(await iso.parse("1+2*3"), isNotNull);
+    });
+
+    test("term using expr sub-rule", () async {
+      // the 'expr "-" "1"' branch of term calls expr, creating a cross-call
+      expect(await iso.parse("2-1"), isNotNull);
+    });
+
+    test("chained expression with cross-rule involvement", () async {
+      expect(await iso.parse("2-1+3"), isNotNull);
+    });
+
+    test("rejects empty input", () async {
+      expect(await iso.parse(""), isNull);
+    });
+
+    test("rejects trailing operator", () async {
+      expect(await iso.parse("1+"), isNull);
+    });
+  });
+
+  group("End-to-end: indirect left recursion with actions", () {
+    // Grammar:
+    //   a = :b "+" :n { b + n } | :b |> b
+    //   b = :a "*" :n { a * n } | :n |> n
+    //   n = \d+
+    //
+    // a delegates to b and b can call back into a, forming an indirect cycle.
+    // Arithmetic still evaluates correctly via seed growth.
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+int result = ^ :a $ |> a;
+int a = :b "+" :n { b + n } | :b |> b;
+int b = :a "*" :n { a * n } | :n |> n;
+@fragment int n = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("single number", () async {
+      expect(await iso.parse("5"), equals(5));
+    });
+
+    test("addition (a-level)", () async {
+      expect(await iso.parse("2+3"), equals(5));
+    });
+
+    test("multiplication (b-level via indirect cycle)", () async {
+      expect(await iso.parse("2*3"), equals(6));
+    });
+
+    test("multiplication then addition ('2*3+4' = 10)", () async {
+      // b grows first via a→b cycle: 2*3=6, then a adds 4 → 10
+      expect(await iso.parse("2*3+4"), equals(10));
+    });
+
+    test("left-associative multiplication chain ('2*3*4' = 24)", () async {
+      // The indirect cycle b→a→b keeps growing: (2*3)*4 = 24
+      expect(await iso.parse("2*3*4"), equals(24));
+    });
+
+    test("single addition ('1+2' = 3)", () async {
+      expect(await iso.parse("1+2"), equals(3));
+    });
+
+    test("rejects non-numeric input", () async {
+      expect(await iso.parse("x"), isNull);
+    });
+  });
 }

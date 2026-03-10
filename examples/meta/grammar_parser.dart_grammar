@@ -22,10 +22,25 @@ extension on Node {
   };
 }
 
+InlineActionNode inlineAction(Node node, String code) => InlineActionNode(
+  node,
+  code.trimRight(),
+  areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
+  isSpanUsed: code.contains(_regexps.span),
+);
+
+ActionNode action(Node node, String code) => ActionNode(
+  node,
+  code.trimRight(),
+  areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
+  isSpanUsed: code.contains(_regexps.span),
+);
+
 }
 
 /// A grammar file contains an optional preamble and statements.
-ParserGenerator document = ^ preamble? _..statement+ _? $
+ParserGenerator document;
+document = ^ preamble? _..statement+ _? $
   |> ParserGenerator.fromParsed(preamble: $1, statements: $2);
 
 /// The preamble is simple.
@@ -40,14 +55,7 @@ String preamble = `{` _ code:code.curly _ `}` @2;
 Statement statement =
   | untypedMacroChoice
   | typedMacroChoice
-  | outer_decorator:kw.decorator?
-      :type? `(` `)` `=` mac.choice
-      inner_decorator:kw.decorator? `{` statements:_..statement+ `}`
-      `;`?
-    |> HybridNamespaceStatement(
-      type, null, statements,
-      outerTag: outer_decorator, innerTag: inner_decorator
-    )
+  | unnamedTypedMacroChoice
 /// A namespace is a block of statements which can apply a tag and/or be encapsulated
 ///   under a name.
   | :kw.decorator? name:identifier? `{` statements:_..statement+ `}`
@@ -81,7 +89,8 @@ Statement statement =
 ///   @rule name.a = "a";
 ///   @rule name.b = "b";
 ///
-@inline untypedMacroChoice =
+@inline
+untypedMacroChoice =
   outer_decorator:kw.decorator?
   name:identifier `=` mac.choice
   inner_decorator:kw.decorator? `{` statements:_..statement+ `}` `;`?
@@ -102,12 +111,24 @@ Statement statement =
 ///   @rule String name.a = "a";
 ///   @rule String name.b = "b";
 ///
-@inline typedMacroChoice =
+@inline
+typedMacroChoice =
   outer_decorator:kw.decorator?
   :type name:identifier `=` mac.choice
   inner_decorator:kw.decorator? `{` statements:_..statement+ `}` `;`?
   |> HybridNamespaceStatement(
       type, name, statements,
+      outerTag: outer_decorator, innerTag: inner_decorator
+    );
+
+@inline
+unnamedTypedMacroChoice =
+  outer_decorator:kw.decorator?
+  :type? `(` `)` `=` mac.choice
+  inner_decorator:kw.decorator? `{` statements:_..statement+ `}`
+  `;`?
+  |> HybridNamespaceStatement(
+      type, null, statements,
       outerTag: outer_decorator, innerTag: inner_decorator
     );
 
@@ -118,30 +139,10 @@ Node choice = CHOICE_OP? options:CHOICE_OP..acted+
 
 /// A parser with a bound action.
 Node acted =
-  | :sequence `|>` _ code:code.nl _ {
-      InlineActionNode(
-        sequence,
-        code.trimRight(),
-        areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
-        isSpanUsed: code.contains(_regexps.span),
-      )
-    }
-  | :sequence `{` _ code:code.curly _ `}` {
-      InlineActionNode(
-        sequence,
-        code.trimRight(),
-        areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
-        isSpanUsed: code.contains(_regexps.span),
-      )
-    }
-  | :sequence `(` `)` `{` _ code:code.curly _ `}` {
-      ActionNode(
-        sequence,
-        code.trimRight(),
-        areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
-        isSpanUsed: code.contains(_regexps.span),
-      )
-    }
+  | :sequence `|>` _ code:code.nl _                |> inlineAction(sequence, code)
+  | :sequence `=>` _ code:code.nl _                |> inlineAction(sequence, code)
+  | :sequence `{` _ code:code.curly _ `}`          |> inlineAction(sequence, code)
+  | :sequence `(` `)` `{` _ code:code.curly _ `}`  |> action(sequence, code)
   | sequence
 ;
 
@@ -266,16 +267,16 @@ Node atom =
   | literal.regexp             |> RegExpNode($)
   | literal.string             |> StringLiteralNode($)
   | name                       |> ReferenceNode($)
-;
+  ;
 
 code {
-  String curly = (
+  String curly = ';'..(
     | dart.literal.string
     | "{" balanced "}" @1 {"{" + $ + "}"}
     | "(" balanced ")" @1 {"(" + $ + ")"}
     | "[" balanced "]" @1 {"[" + $ + "]"}
     | ~("}")
-  )* { $.join() };
+  )*? { $.join(";") };
 
   String nl = (
     | dart.literal.string
@@ -283,7 +284,7 @@ code {
     | "(" balanced ")" @1 {"(" + $ + ")"}
     | "[" balanced "]" @1 {"[" + $ + "]"}
     | ~(\n | ";" | ")")
-  )* { $.join() };
+  )+ { $.join() };
 
   String balanced = (
     | dart.literal.string
@@ -314,7 +315,7 @@ code {
 
   Set<(int, int)> range =  _ range.main _ @1;
   range {
-    @inline main = "[" elements:_..element+ "]" |> elements.expand((e) => e).toSet();
+    @inline main = "[" elements:element+ "]" |> elements.expand((e) => e).toSet();
 
     Set<(int, int)> element =
       | escape

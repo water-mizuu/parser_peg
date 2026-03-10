@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_positional_boolean_parameters, unnecessary_this, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
 
 import "dart:collection";
-import "dart:math" as math;
+import "dart:math" as math show Random;
 
 /// IMPORTS-SPLIT
 
@@ -278,7 +278,7 @@ class Trie {
   factory Trie.from(Iterable<String> strings) => strings.fold(Trie(), (t, s) => t..add(s));
   const Trie.complete(this._innerMap);
 
-  static final Symbol _safeGuard = Symbol(math.Random.secure().nextInt(32).toString());
+  static final Symbol _safeGuard = Symbol(math.Random().nextInt(32).toString());
 
   final HashMap<_Key<String>, Object> _innerMap;
 
