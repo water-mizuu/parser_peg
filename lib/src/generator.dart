@@ -98,9 +98,6 @@ final class ParserGenerator {
 
     /// We add ALL the rules in advance.
     ///   Why? Because we need ALL the rules to be able to resolve references.
-    ///
-    /// This basically resolves all of the declarations in the grammar,
-    ///   flattening the namespaces into a single map.
     for (var statement in workingStatements) {
       var stack = Queue.of([
         (statement, ["global"], null as Tag?),
@@ -139,6 +136,9 @@ final class ParserGenerator {
     }
 
     /// Resolve the references from inside namespaces.
+    ///
+    /// This basically resolves all of the declarations in the grammar,
+    ///   flattening the namespaces into a single map.
     for (var statement in workingStatements) {
       var stack = Queue.of([
         (statement, ["global"], null as Tag?),
@@ -223,7 +223,7 @@ final class ParserGenerator {
     ///
     /// NOTE: This does not break the correctness of the grammar, since
     ///   recursive fragments can't be inlined as determined by the next visitor.
-    if (const ReferencedVisitor() case var visitor) {
+    if (const ReferencedVisitor() case ReferencedVisitor visitor) {
       var (_, rootRule) = _fragments[rootKey]!;
       var stack = Queue.of([rootRule]);
       var visited = <Node>{};
@@ -245,7 +245,6 @@ final class ParserGenerator {
         visited.add(node);
         for (var (tag, name) in node.acceptSimpleVisitor(visitor)) {
           referenceCounts[(tag, name)] = referenceCounts[(tag, name)]! + 1;
-
           if (tag == Tag.rule) {
             if (_rules[name] case (_, var rule)) {
               stack.addLast(rule);
@@ -264,18 +263,21 @@ final class ParserGenerator {
         }
       }
 
-      /// Remove the others that are not reachable.
       for (var ((tag, name), count) in referenceCounts.pairs) {
+        /// Remove the others that are not reachable.
         if (count == 0) {
           if (tag == Tag.rule) {
             _rules.remove(name);
           } else if (tag == Tag.fragment) {
-            _fragments.remove(name);
-          } else if (tag == Tag.inline) {
-            _inline.remove(name);
+            if (_fragments.containsKey(name)) {
+              _fragments.remove(name);
+            } else if (_inline.containsKey(name)) {
+              _inline.remove(name);
+            }
           }
         }
 
+        /// Inline the fragments that are only called once.
         if (count == 1 && tag == Tag.fragment && _fragments[name] != null) {
           var (type, node) = _fragments[name]!;
           _inline[name] = (type, node);
@@ -331,6 +333,8 @@ final class ParserGenerator {
       _fragments.addAll(visitor.addedFragments);
     }
 
+    /// Precompute which high-level rules contain cut nodes.
+    ///   This is so that we can optimize the generated code later.
     if (const IsCutVisitor() case IsCutVisitor visitor) {
       for (var (name, (_, node)) in _rules.pairs) {
         _isCut[(Tag.rule, name)] = node.acceptSimpleVisitor(visitor);
@@ -820,8 +824,7 @@ final class ParserGenerator {
     };
 
     return _compile(
-      //
-      parserName,
+      parserName, //
       rules: rules,
       fragments: fragments,
       start: start,

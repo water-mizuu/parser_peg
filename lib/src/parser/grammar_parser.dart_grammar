@@ -22,10 +22,47 @@ extension on Node {
   };
 }
 
+ActionNode inlineBlockAction(Node node, List<String> code) {
+  var trimmed = code.reversed.skipWhile((c) => c.trim().isEmpty).toList().reversed.toList();
+
+  /// We removed a semicolon for the last one.
+  ///   We should at it back later.
+  if (trimmed.length != code.length) {
+    trimmed.last += ";";
+  }
+  if (trimmed.last.trim() case String last when !last.startsWith("return") && !last.endsWith(";")) {
+    trimmed.last = "return ${trimmed.last};";
+  }
+
+  var joined = trimmed.join(";").trimRight();
+
+  return ActionNode(
+    node,
+    joined,
+    areIndicesProvided: joined.contains(_regexps.from) && joined.contains(_regexps.to),
+    isSpanUsed: joined.contains(_regexps.span),
+  );
+}
+
+InlineActionNode inlineAction(Node node, String code) => InlineActionNode(
+  node,
+  code.trimRight(),
+  areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
+  isSpanUsed: code.contains(_regexps.span),
+);
+
+ActionNode action(Node node, String code) => ActionNode(
+  node,
+  code.trimRight(),
+  areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
+  isSpanUsed: code.contains(_regexps.span),
+);
+
 }
 
 /// A grammar file contains an optional preamble and statements.
-ParserGenerator document = ^ preamble? _..statement+ _? $
+ParserGenerator document;
+document = ^ preamble? _..statement+ _? $
   |> ParserGenerator.fromParsed(preamble: $1, statements: $2);
 
 /// The preamble is simple.
@@ -40,14 +77,7 @@ String preamble = `{` _ code:code.curly _ `}` @2;
 Statement statement =
   | untypedMacroChoice
   | typedMacroChoice
-  | outer_decorator:kw.decorator?
-      :type? `(` `)` `=` mac.choice
-      inner_decorator:kw.decorator? `{` statements:_..statement+ `}`
-      `;`?
-    |> HybridNamespaceStatement(
-      type, null, statements,
-      outerTag: outer_decorator, innerTag: inner_decorator
-    )
+  | unnamedTypedMacroChoice
 /// A namespace is a block of statements which can apply a tag and/or be encapsulated
 ///   under a name.
   | :kw.decorator? name:identifier? `{` statements:_..statement+ `}`
@@ -81,7 +111,8 @@ Statement statement =
 ///   @rule name.a = "a";
 ///   @rule name.b = "b";
 ///
-@inline untypedMacroChoice =
+@inline
+untypedMacroChoice =
   outer_decorator:kw.decorator?
   name:identifier `=` mac.choice
   inner_decorator:kw.decorator? `{` statements:_..statement+ `}` `;`?
@@ -102,12 +133,24 @@ Statement statement =
 ///   @rule String name.a = "a";
 ///   @rule String name.b = "b";
 ///
-@inline typedMacroChoice =
+@inline
+typedMacroChoice =
   outer_decorator:kw.decorator?
   :type name:identifier `=` mac.choice
   inner_decorator:kw.decorator? `{` statements:_..statement+ `}` `;`?
   |> HybridNamespaceStatement(
       type, name, statements,
+      outerTag: outer_decorator, innerTag: inner_decorator
+    );
+
+@inline
+unnamedTypedMacroChoice =
+  outer_decorator:kw.decorator?
+  :type? `(` `)` `=` mac.choice
+  inner_decorator:kw.decorator? `{` statements:_..statement+ `}`
+  `;`?
+  |> HybridNamespaceStatement(
+      type, null, statements,
       outerTag: outer_decorator, innerTag: inner_decorator
     );
 
@@ -118,30 +161,10 @@ Node choice = CHOICE_OP? options:CHOICE_OP..acted+
 
 /// A parser with a bound action.
 Node acted =
-  | :sequence `|>` _ code:code.nl _ {
-      InlineActionNode(
-        sequence,
-        code.trimRight(),
-        areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
-        isSpanUsed: code.contains(_regexps.span),
-      )
-    }
-  | :sequence `{` _ code:code.curly _ `}` {
-      InlineActionNode(
-        sequence,
-        code.trimRight(),
-        areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
-        isSpanUsed: code.contains(_regexps.span),
-      )
-    }
-  | :sequence `(` `)` `{` _ code:code.curly _ `}` {
-      ActionNode(
-        sequence,
-        code.trimRight(),
-        areIndicesProvided: code.contains(_regexps.from) && code.contains(_regexps.to),
-        isSpanUsed: code.contains(_regexps.span),
-      )
-    }
+  | :sequence `|>` _ code:code.nl _                |> inlineAction(sequence, code)
+  | :sequence `=>` _ code:code.nl _                |> inlineAction(sequence, code)
+  | :sequence `{` _ code:code.curlyNotJoined _ `}` |> inlineBlockAction(sequence, code)
+  | :sequence `(` `)` `{` _ code:code.curlyNotJoined _ `}`  |> inlineBlockAction(sequence, code)
   | sequence
 ;
 
@@ -161,18 +184,18 @@ Node dropped =
 
 /// A parser that adds the label to the declaration of the value.
 Node labeled =
-  | :identifier ":" _ :special (){
-      return NamedNode(identifier, special);
+  | :identifier ":" _ :special {
+      NamedNode(identifier, special)
     }
   | ":" id:namespacedIdentifier `?` (){
       var name = id.split(ParserGenerator.separator).last;
 
-      return NamedNode(name, OptionalNode(ReferenceNode(id)));
+      NamedNode(name, OptionalNode(ReferenceNode(id)))
     }
-  | ":" id:namespacedIdentifier `*` (){
+  | ":" id:namespacedIdentifier `*` {
       var name = id.split(ParserGenerator.separator).last;
 
-      return NamedNode(name, StarNode(ReferenceNode(id)));
+      NamedNode(name, StarNode(ReferenceNode(id)))
     }
   | ":" id:namespacedIdentifier `+` (){
       var name = id.split(ParserGenerator.separator).last;
@@ -266,15 +289,17 @@ Node atom =
   | literal.regexp             |> RegExpNode($)
   | literal.string             |> StringLiteralNode($)
   | name                       |> ReferenceNode($)
-;
+  ;
 
 code {
-  String curly = (
+  List<String> curlyNotJoined = ";".._curly*?;
+  String curly = ";".._curly*? { $.join(";") };
+  @inline _curly = (
     | dart.literal.string
     | "{" balanced "}" @1 {"{" + $ + "}"}
     | "(" balanced ")" @1 {"(" + $ + ")"}
     | "[" balanced "]" @1 {"[" + $ + "]"}
-    | ~("}")
+    | ~("}" | ";")
   )* { $.join() };
 
   String nl = (
@@ -283,7 +308,7 @@ code {
     | "(" balanced ")" @1 {"(" + $ + ")"}
     | "[" balanced "]" @1 {"[" + $ + "]"}
     | ~(\n | ";" | ")")
-  )* { $.join() };
+  )+ { $.join() };
 
   String balanced = (
     | dart.literal.string
@@ -305,16 +330,16 @@ code {
       | 'r"'   ~'"'*   '"'   @1 { $.join() }
       | "r'"   ~"'"*   "'"   @1 { $.join() }
       /// Escaped string literals
-      | '"""' (\\ . | ~'"""')* '"""' @1 { $.join() }
-      | "'''" (\\ . | ~"'''")* "'''" @1 { $.join() }
-      | '"'   (\\ . | ~'"'  )* '"'   @1 { $.join() }
-      | "'"   (\\ . | ~"'"  )* "'"   @1 { $.join() }
+      | '"""' (\\ . @1 | ~'"""')* '"""' @1 { $.join() }
+      | "'''" (\\ . @1 | ~"'''")* "'''" @1 { $.join() }
+      | '"'   (\\ . @1 | ~'"'  )* '"'   @1 { $.join() }
+      | "'"   (\\ . @1 | ~"'"  )* "'"   @1 { $.join() }
       ;
   }
 
   Set<(int, int)> range =  _ range.main _ @1;
   range {
-    @inline main = "[" elements:_..element+ "]" |> elements.expand((e) => e).toSet();
+    @inline main = "[" elements:element+ "]" |> elements.expand((e) => e).toSet();
 
     Set<(int, int)> element =
       | escape
@@ -390,6 +415,9 @@ dart {
       record = choice! {
         all = `(` positional:fields.positional `,` named:parameters.named `)`
           |> "(" + positional + ", " + named + ")";
+
+        singlePositional = `(` field:field.positional `,` # `)`
+          |> "(" + field + "," + ")";
 
         onlyPositional = `(` positional:fields.positional `,`? `)`
           |> "(" + positional + ")";
@@ -467,123 +495,124 @@ String name =
 
 /// [namespacedRaw] refers to a name which may have accessed a namespace,
 ///   using a raw trailing name ``<example>``
-String namespacedRaw = namespaceReference literal.raw       |> $0.isEmpty ? $1 : "${$0}::${$1}";
-String namespacedIdentifier = namespaceReference identifier |> $0.isEmpty ? $1 : "${$0}::${$1}";
+String namespacedRaw = namespaceReference literal.raw
+  |> $0.isEmpty ? $1 : "${$0}${ParserGenerator.separator}${$1}";
+
+String namespacedIdentifier = namespaceReference identifier
+  |> $0.isEmpty ? $1 : "${$0}${ParserGenerator.separator}${$1}";
 
 
 /// Tokens used in the grammar.
 ///   Since they are not recursive, they are not defined as rules.
-@fragment {
-  String identifier = <[a-zA-Z_$] std.epsilon..[a-zA-Z0-9_$]*>;
-  String raw        = "`" <0..(~"`")> "`" @1;
-  int number        = \d+ { int.parse($.join()) };
+String identifier = <[a-zA-Z_$] std.epsilon..[a-zA-Z0-9_$]*>;
+String raw        = "`" <0..(~"`")> "`" @1;
+int number        = \d+ { int.parse($.join()) };
 
-  kw {
-    Tag decorator =
-      | _ "@rule" _     { Tag.rule }
-      | _ "@fragment" _ { Tag.fragment }
-      | _ "@inline" _   { Tag.inline }
-      ;
+kw {
+  Tag decorator =
+    | _ "@rule" _     { Tag.rule }
+    | _ "@fragment" _ { Tag.fragment }
+    | _ "@inline" _   { Tag.inline }
+    ;
 
-    String start     = _ "startOfInput" _ @1;
-    String end       = _ "endOfInput" _   @1;
-    String backslash = _ "backslash" _    @1;
-    String epsilon   = _ "epsilon" _      @1;
-    String any       = _ "any" _          @1;
-    String var       = _ "var" _          @1;
-  }
+  String start     = _ "startOfInput" _ @1;
+  String end       = _ "endOfInput" _   @1;
+  String backslash = _ "backslash" _    @1;
+  String epsilon   = _ "epsilon" _      @1;
+  String any       = _ "any" _          @1;
+  String var       = _ "var" _          @1;
+}
 
-  /// Tokens used in "macro-like" rules.
-  String mac = choice! {
-    choice = _ "choice!" _ @1;
+/// Tokens used in "macro-like" rules.
+String mac = choice! {
+  choice = _ "choice!" _ @1;
+};
+
+String regexEscape = choice! @fragment {
+  backslash       = _ ~> <\\ r"\"> <~ _;
+
+  digit           = _ :<\\ r"d"> _;
+  word            = _ :<\\ r"w"> _;
+  whitespace      = _ :<\\ r"s"> _;
+  wordBoundary    = _ :<\\ r"b"> _;
+
+  notDigit        = _ :<\\ r"D"> _;
+  notWord         = _ :<\\ r"W"> _;
+  notWhitespace   = _ :<\\ r"S"> _;
+  notWordBoundary = _ :<\\ r"b"> _;
+
+  newline         = _ :<\\ r"n"> _;
+  carriageReturn  = _ :<\\ r"r"> _;
+  tab             = _ :<\\ r"t"> _;
+  formFeed        = _ :<\\ r"f"> _;
+  verticalTab     = _ :<\\ r"v"> _;
+  null            = _ :<\\ r"0"> _;
+  control         = _ :<\\ r"c"> _;
+  hex             = _ :<\\ r"x"> _;
+  unicode         = _ :<\\ r"u"> _;
+  unicodeExtended = _ :<\\ r"U"> _;
+  literal         = _ :<\\ r"."> _;
+};
+
+/// Literal tokens
+String () = choice! @fragment {
+  CHOICE_OP = `|` `|`? { "" };
+
+  `#`  = _ "#" _ @1;
+  `..` =  _ ".." _ @1;
+  `::` = _ "::" _ @1;
+  `%%` = _ "%%" _ @1;
+  `=>` = _ "=>" _ @1;
+  `<-` = _ "<-" _ @1;
+  `->` = _ "->" _ @1;
+  `~>` = _ "~>" _ @1;
+  `<~` = _ "<~" _ @1;
+  `|>` = _ "|>" _ @1;
+  `&&` = _ "&&" _ @1;
+
+  `%` = _ "%" _ @1;
+  `@` = _ "@" _ @1;
+  `<` = _ "<" _ @1;
+  `>` = _ ">" _ @1;
+  `]` = _ "]" _ @1;
+  `[` = _ "[" _ @1;
+  `}` = _ "}" _ @1;
+  `{` = _ "{" _ @1;
+  `)` = _ ")" _ @1;
+  `(` = _ "(" _ @1;
+  `;` = _ ";" _ @1;
+  `=` = _ "=" _ @1;
+  `?` = _ "?" _ @1;
+  `!` = _ "!" _ @1;
+  `~` = _ "~" _ @1;
+  `&` = _ "&" _ @1;
+  `*` = _ "*" _ @1;
+  `+` = _ "+" _ @1;
+  `,` = _ "," _ @1;
+  `:` = _ ":" _ @1;
+  `|` = _ "|" _ @1;
+  `/` = _ "/" _ @1;
+
+  `.` = _ "." _ @1;
+  `ε` = _ "ε" _ @1;
+  `^` = _ "^" _ @1;
+  `$` = _ "$" _ @1;
+}
+
+/// Layout parser allows comments (like this) and space between parsers.
+/// Regular Expression monster below:
+///   Split into three parts.
+///   1. `(\s)` - Matches any whitespace character.
+///   2. `(\/{2}.*((\r?\n)|($)))` - Matches a single line comment.
+///   3. `(\/\*((?!\*\/).)*\*\/)` - Matches a multi-line comment.
+@rule {
+  String _    = (whitespace | &"/" comment)* |> "";
+  whitespace  = \s+                          |> "";
+
+  String comment = choice! {
+    single = "//" (~newlineOrEof)* |> "";
+    multi  = "/*" (~"*/")* "*/"    |> "";
   };
 
-  String regexEscape = choice! @fragment {
-    backslash       = _ ~> <\\ r"\"> <~ _;
-
-    digit           = _ :<\\ r"d"> _;
-    word            = _ :<\\ r"w"> _;
-    whitespace      = _ :<\\ r"s"> _;
-    wordBoundary    = _ :<\\ r"b"> _;
-
-    notDigit        = _ :<\\ r"D"> _;
-    notWord         = _ :<\\ r"W"> _;
-    notWhitespace   = _ :<\\ r"S"> _;
-    notWordBoundary = _ :<\\ r"b"> _;
-
-    newline         = _ :<\\ r"n"> _;
-    carriageReturn  = _ :<\\ r"r"> _;
-    tab             = _ :<\\ r"t"> _;
-    formFeed        = _ :<\\ r"f"> _;
-    verticalTab     = _ :<\\ r"v"> _;
-    null            = _ :<\\ r"0"> _;
-    control         = _ :<\\ r"c"> _;
-    hex             = _ :<\\ r"x"> _;
-    unicode         = _ :<\\ r"u"> _;
-    unicodeExtended = _ :<\\ r"U"> _;
-    literal         = _ :<\\ r"."> _;
-  };
-
-  /// Literal tokens
-  String () = choice! @fragment {
-    CHOICE_OP = `|` `|`? { "" };
-
-    `#`  = _ "#" _ @1;
-    `..` =  _ ".." _ @1;
-    `::` = _ "::" _ @1;
-    `%%` = _ "%%" _ @1;
-    `=>` = _ "=>" _ @1;
-    `<-` = _ "<-" _ @1;
-    `->` = _ "->" _ @1;
-    `~>` = _ "~>" _ @1;
-    `<~` = _ "<~" _ @1;
-    `|>` = _ "|>" _ @1;
-    `&&` = _ "&&" _ @1;
-
-    `%` = _ "%" _ @1;
-    `@` = _ "@" _ @1;
-    `<` = _ "<" _ @1;
-    `>` = _ ">" _ @1;
-    `]` = _ "]" _ @1;
-    `[` = _ "[" _ @1;
-    `}` = _ "}" _ @1;
-    `{` = _ "{" _ @1;
-    `)` = _ ")" _ @1;
-    `(` = _ "(" _ @1;
-    `;` = _ ";" _ @1;
-    `=` = _ "=" _ @1;
-    `?` = _ "?" _ @1;
-    `!` = _ "!" _ @1;
-    `~` = _ "~" _ @1;
-    `&` = _ "&" _ @1;
-    `*` = _ "*" _ @1;
-    `+` = _ "+" _ @1;
-    `,` = _ "," _ @1;
-    `:` = _ ":" _ @1;
-    `|` = _ "|" _ @1;
-    `/` = _ "/" _ @1;
-
-    `.` = _ "." _ @1;
-    `ε` = _ "ε" _ @1;
-    `^` = _ "^" _ @1;
-    `$` = _ "$" _ @1;
-  }
-
-  /// Layout parser allows comments (like this) and space between parsers.
-  /// Regular Expression monster below:
-  ///   Split into three parts.
-  ///   1. `(\s)` - Matches any whitespace character.
-  ///   2. `(\/{2}.*((\r?\n)|($)))` - Matches a single line comment.
-  ///   3. `(\/\*((?!\*\/).)*\*\/)` - Matches a multi-line comment.
-  @rule {
-    String _    = (whitespace | &"/" comment)* |> "";
-    whitespace  = \s+                          |> "";
-
-    String comment = choice! {
-      single = "//" (~newlineOrEof)* |> "";
-      multi  = "/*" (~"*/")* "*/"    |> "";
-    };
-
-    newlineOrEof = \r? \n \r? | $;
-  }
+  @inline newlineOrEof = \r? \n \r? | $;
 }

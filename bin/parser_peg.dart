@@ -5,9 +5,10 @@ import "package:args/args.dart";
 import "package:dart_casing/dart_casing.dart";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/parser/grammar_parser.cst.dart";
-import "package:parser_peg/src/parser/grammar_parser.dart";
 import "package:path/path.dart" as path;
 
+// import "package:parser_peg/src/parser/grammar_parser.dart";
+import "../examples/meta/grammar_parser.dart";
 import "helpers.dart";
 
 void main(List<String> arguments) async {

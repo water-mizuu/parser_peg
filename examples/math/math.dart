@@ -1,12 +1,13 @@
 // ignore_for_file: type=lint, body_might_complete_normally_nullable, unused_local_variable, inference_failure_on_function_return_type, unused_import, duplicate_ignore, unused_element, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
 
 // imports
-// ignore_for_file: avoid_positional_boolean_parameters, unnecessary_this, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
+// ignore_for_file: avoid_positional_boolean_parameters, unnecessary_this, unused_element, use_setters_to_change_properties
 
-import "dart:collection";
+// ignore: unused_shown_name
+import "dart:collection" show DoubleLinkedQueue, HashMap, Queue;
+import "dart:math" as math show Random;
 // PREAMBLE
 import "dart:math" as math show pow;
-
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -263,8 +264,9 @@ final class Math extends _PegParser<num> {
   @override
   get start => r0;
 
+
   /// `global::number`
-  num? f0() {
+  num ? f0() {
     var _mark = this._mark();
     if (this.pos case var from) {
       if (this.matchPattern(_regexp.$1) case var _2?) {
@@ -321,14 +323,14 @@ final class Math extends _PegParser<num> {
   }
 
   /// `ROOT`
-  num? f1() {
+  num ? f1() {
     if (this.apply(this.r0) case var $?) {
       return $;
     }
   }
 
   /// `global::rule`
-  num? r0() {
+  num ? r0() {
     if (this.pos <= 0) {
       if (this.apply(this.r5)! case _) {
         if (this.apply(this.r1) case (var $2 && var expr)?) {
@@ -343,7 +345,7 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::expr`
-  num? r1() {
+  num ? r1() {
     var _mark = this._mark();
     if (this.apply(this.r1) case var expr?) {
       if (this.apply(this.r5)! case _) {
@@ -375,7 +377,7 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::term`
-  num? r2() {
+  num ? r2() {
     var _mark = this._mark();
     if (this.matchPattern(_string.$3) case _?) {
       if (this.apply(this.r5)! case _) {
@@ -447,7 +449,7 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::factor`
-  num? r3() {
+  num ? r3() {
     var _mark = this._mark();
     if (this.apply(this.r4) case var primary?) {
       if (this.apply(this.r5)! case _) {
@@ -467,7 +469,7 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::primary`
-  num? r4() {
+  num ? r4() {
     var _mark = this._mark();
     if (this.matchPattern(_string.$10) case _?) {
       if (this.apply(this.r5)! case _) {
@@ -538,63 +540,52 @@ final class Math extends _PegParser<num> {
   /// `global::_`
   late final r5 = () {
     var _mark = this._mark();
-    if (this.matchPattern(_regexp.$2) case var _0) {
-      if ([if (_0 case var _0?) _0] case var _l1) {
-        if (_l1.isNotEmpty) {
-          for (;;) {
-            var _mark = this._mark();
-            if (this.matchPattern(_regexp.$2) case var _0?) {
-              _l1.add(_0);
-              continue;
+      if (this.matchPattern(_regexp.$2) case var _0) {
+        if ([if (_0 case var _0?) _0] case var _l1) {
+          if (_l1.isNotEmpty) {
+            for (;;) {
+              var _mark = this._mark();
+              if (this.matchPattern(_regexp.$2) case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+              this._recover(_mark);
+              break;
             }
+          } else {
             this._recover(_mark);
-            break;
           }
-        } else {
-          this._recover(_mark);
+          return ();
         }
-        return ();
       }
-    }
   };
-}
 
+}
 class _regexp {
   /// `/\d/`
   static final $1 = RegExp("\\d");
-
   /// `/\s/`
   static final $2 = RegExp("\\s");
 }
-
 class _string {
   /// `"."`
   static const $1 = ".";
-
   /// `"+"`
   static const $2 = "+";
-
   /// `"-"`
   static const $3 = "-";
-
   /// `"*"`
   static const $4 = "*";
-
   /// `"/"`
   static const $5 = "/";
-
   /// `"%"`
   static const $6 = "%";
-
   /// `"~/"`
   static const $7 = "~/";
-
   /// `"^"`
   static const $8 = "^";
-
   /// `")"`
   static const $9 = ")";
-
   /// `"("`
   static const $10 = "(";
 }
