@@ -91,7 +91,10 @@ Statement statement =
 /// A declaration is a statement that can be referenced by other declarations.
 ///   Formally, it is a non-terminal.
   | :kw.decorator? :type :name body:(`=` :choice `;` @1)
-    |> DeclarationStatement(type, name, body, tag: decorator)
+    {
+      print(type);
+      DeclarationStatement(type, name, body, tag: decorator)
+    }
 
   | :kw.decorator? :name body:(`=` :choice `;` @1)
     |> DeclarationStatement(null, name, body, tag: decorator)
@@ -369,7 +372,7 @@ dart {
   literal {
     /// Since string literals in [Dart] can be put adjacent, we need to parse while
     ///   there are still string literals.
-    String string = _..<string.body>+ { $.join(" ") };
+    String string = _..<string.body>+ { $.join("") };
     String identifier = global.identifier;
 
     string {
@@ -404,7 +407,7 @@ dart {
     String nullable = :nonNullable question:`?`? { "$nonNullable${question ?? ""}" };
     String nonNullable = choice! {
       /// Dart function type.
-      function = :nullable _ "Function" _ :fnParameters |> "${$0} Function${$4}";
+      function = :nullable _ "Function" _ :fnParameters { "${$0} Function${$4}" };
 
       /// Generic types.
       generic = :base `<` args:(`,`..type+ { $.join(", ") }) `>` { "$base<$args>" };
