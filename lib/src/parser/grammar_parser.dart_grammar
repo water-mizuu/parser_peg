@@ -78,24 +78,10 @@ Statement statement =
   | untypedMacroChoice
   | typedMacroChoice
   | unnamedTypedMacroChoice
-/// A namespace is a block of statements which can apply a tag and/or be encapsulated
-///   under a name.
-  | :kw.decorator? name:identifier? `{` statements:_..statement+ `}`
-    |> NamespaceStatement(name, statements, tag: decorator)
-
-/// A type declaration is a separate statement from the declaration
-///   that can be used as a basis for types or tags.
-  | :kw.decorator? :type? names:(`,`..name+) `;`
-    |> DeclarationTypeStatement(type, names, tag: decorator)
-
-/// A declaration is a statement that can be referenced by other declarations.
-///   Formally, it is a non-terminal.
-  | :kw.decorator? :type :name body:(`=` :choice `;` @1)
-    |> DeclarationStatement(type, name, body, tag: decorator)
-
-  | :kw.decorator? :name body:(`=` :choice `;` @1)
-    |> DeclarationStatement(null, name, body, tag: decorator)
-  ;
+  | namespace
+  | typeDeclaration
+  | typedRule
+  | untypedRule;
 
 /// This is used as a helper for the macro choice operator.
 ///   Basically, it allows us to write things like a namespace, but then they're all
@@ -143,6 +129,18 @@ typedMacroChoice =
       outerTag: outer_decorator, innerTag: inner_decorator
     );
 
+/// This is similar to a namespace, but each rule within the block
+///   are given the same type.
+///
+/// This is used like:
+///   @fragment String () = choice! @rule {
+///      a = "a";
+///      b = "b";
+///   }
+///
+/// This is equivalent to (and simplified to):
+///   @rule String a = "a";
+///   @rule String b = "b";
 @inline
 unnamedTypedMacroChoice =
   outer_decorator:kw.decorator?
@@ -153,6 +151,29 @@ unnamedTypedMacroChoice =
       type, null, statements,
       outerTag: outer_decorator, innerTag: inner_decorator
     );
+
+
+/// A namespace is a block of statements which can apply a tag and/or be encapsulated
+///   under a name.
+@inline
+namespace = :kw.decorator? name:identifier? `{` statements:_..statement+ `}`
+  |> NamespaceStatement(name, statements, tag: decorator);
+
+/// A type declaration is a separate statement from the declaration
+///   that can be used as a basis for types or tags.
+@inline
+typeDeclaration = :kw.decorator? :type? names:(`,`..name+) `;`
+  |> DeclarationTypeStatement(type, names, tag: decorator);
+
+/// A declaration is a statement that can be referenced by other declarations.
+///   Formally, it is a non-terminal.
+@inline
+typedRule = :kw.decorator? :type :name `=` body:choice `;`
+  |> DeclarationStatement(type, name, body, tag: decorator);
+
+@inline
+untypedRule = :kw.decorator? :name `=` body:choice `;`
+  |> DeclarationStatement(null, name, body, tag: decorator);
 
 /// A choice parser is a parser that tries to match one of the options.
 /// Despite the syntax, the parser is ordered choice.
@@ -165,8 +186,7 @@ Node acted =
   | :sequence `=>` _ code:code.nl _                |> inlineAction(sequence, code)
   | :sequence `{` _ code:code.curlyNotJoined _ `}` |> inlineBlockAction(sequence, code)
   | :sequence `(` `)` `{` _ code:code.curlyNotJoined _ `}`  |> inlineBlockAction(sequence, code)
-  | sequence
-;
+  | sequence;
 
 /// A parser that parses a sequence of parsers.
 ///   By default, a sequence parser returns a [Record] of the results of the parsers.
@@ -179,8 +199,7 @@ Node sequence =
 Node dropped =
   | captured:dropped `<~` dropped:special { SequenceNode([captured, dropped], chosenIndex: 0) }
   | dropped:special `~>` captured:dropped { SequenceNode([dropped, captured], chosenIndex: 1) }
-  | labeled
-;
+  | labeled;
 
 /// A parser that adds the label to the declaration of the value.
 Node labeled =
@@ -208,8 +227,7 @@ Node labeled =
       return NamedNode(name, ReferenceNode(id));
     }
   | ":" node:special { NamedNode(r"$", node) }
-  | special
-  ;
+  | special;
 
 /// Pegen style separators.
 ///   Difference here, is that we can use `+` or `*` as quantifiers.
@@ -221,8 +239,7 @@ Node special =
   | sep:atom `..` expr:atom `*` `?` |> StarSeparatedNode(sep, expr, isTrailingAllowed: true)
   | sep:atom `..` expr:atom `+`     |> PlusSeparatedNode(sep, expr, isTrailingAllowed: false)
   | sep:atom `..` expr:atom `*`     |> StarSeparatedNode(sep, expr, isTrailingAllowed: false)
-  | postfix
-  ;
+  | postfix;
 
 /// A parser that is quantified.
 ///   Can be nested, but shouldn't be used in practice.
@@ -230,8 +247,7 @@ Node postfix =
   | postfix <~ `?` |> OptionalNode($)
   | postfix <~ `*` |> StarNode($)
   | postfix <~ `+` |> PlusNode($)
-  | prefix
-  ;
+  | prefix;
 
 /// A parser that is prefixed.
 ///   Usually with disambiguators such as `and-predicate` and `not-predicate`.
@@ -242,8 +258,7 @@ Node prefix =
   | `~` ~> prefix |> ExceptNode($)
   | `&` ~> prefix |> AndPredicateNode($)
   | `!` ~> prefix |> NotPredicateNode($)
-  | atom
-  ;
+  | atom;
 
 /// A parser that can be qualified as a group.
 ///   These are usually parsers that are delimited.
@@ -253,10 +268,10 @@ Node atom =
   | !`<~` `<` # $:choice `>`     |> FlatNode($)
 
   /// Special syntax for character classes.
-  | `^`                        |> const StartOfInputNode()
-  | `$`                        |> const EndOfInputNode()
-  | `.`                        |> const AnyCharacterNode()
-  | `ε`                        |> const EpsilonNode()
+  | (`^` | kw.start)            |> const StartOfInputNode()
+  | (`$` | kw.end)              |> const EndOfInputNode()
+  | (`ε` | kw.epsilon)          |> const EpsilonNode()
+  | (`.` | kw.any)              |> const AnyCharacterNode()
 
   /// Cut Operator
   | (`#` | `%`)                |> const CutNode()
@@ -288,8 +303,7 @@ Node atom =
   | literal.range              |> RangeNode($)
   | literal.regexp             |> RegExpNode($)
   | literal.string             |> StringLiteralNode($)
-  | name                       |> ReferenceNode($)
-  ;
+  | name                       |> ReferenceNode($);
 
 code {
   List<String> curlyNotJoined = ";".._curly*?;
@@ -307,8 +321,8 @@ code {
     | "{" balanced "}" @1 {"{" + $ + "}"}
     | "(" balanced ")" @1 {"(" + $ + ")"}
     | "[" balanced "]" @1 {"[" + $ + "]"}
-    | ~(\n | ";" | ")")
-  )+ { $.join() };
+    | ~(\r | \n | ";" | ")")
+  )* { $.join() };
 
   String balanced = (
     | dart.literal.string
@@ -333,8 +347,7 @@ code {
       | '"""' (\\ . @1 | ~'"""')* '"""' @1 { $.join() }
       | "'''" (\\ . @1 | ~"'''")* "'''" @1 { $.join() }
       | '"'   (\\ . @1 | ~'"'  )* '"'   @1 { $.join() }
-      | "'"   (\\ . @1 | ~"'"  )* "'"   @1 { $.join() }
-      ;
+      | "'"   (\\ . @1 | ~"'"  )* "'"   @1 { $.join() };
   }
 
   Set<(int, int)> range =  _ range.main _ @1;
@@ -344,8 +357,7 @@ code {
     Set<(int, int)> element =
       | escape
       | l:atom "-" r:atom |> {(l.codeUnitAt(0), r.codeUnitAt(0))}
-      | atom              |> {($.codeUnitAt(0), $.codeUnitAt(0))}
-      ;
+      | atom              |> {($.codeUnitAt(0), $.codeUnitAt(0))};
 
     @inline escape =
       | " "                        { {(32, 32)} } // " "
@@ -355,8 +367,7 @@ code {
       | regexEscape.newline        { {(10, 10)} }
       | regexEscape.carriageReturn { {(13, 13)} }
       | regexEscape.tab            { {(9, 9)} }
-      | regexEscape.backslash      { {(92, 92)} }
-      ;
+      | regexEscape.backslash      { {(92, 92)} };
 
     String atom = \\ . @1 | ~"]";
   }
@@ -369,7 +380,7 @@ dart {
   literal {
     /// Since string literals in [Dart] can be put adjacent, we need to parse while
     ///   there are still string literals.
-    String string = _..<string.body>+ { $.join(" ") };
+    String string = _..<string.body>+ { $.join("") };
     String identifier = global.identifier;
 
     string {
@@ -383,13 +394,11 @@ dart {
         | '"""' (\\ . @1 | &"$" interpolation | ~'"""')* '"""'
         | "'''" (\\ . @1 | &"$" interpolation | ~"'''")* "'''"
         | '"'   (\\ . @1 | &"$" interpolation | ~'"'  )* '"'
-        | "'"   (\\ . @1 | &"$" interpolation | ~"'"  )* "'"
-        ;
+        | "'"   (\\ . @1 | &"$" interpolation | ~"'"  )* "'";
 
       interpolation =
         | r"$" "{" balanced "}"
-        | r"$" identifier
-        ;
+        | r"$" identifier;
 
       String balanced = (
         | string
@@ -399,12 +408,12 @@ dart {
     }
   }
 
+  type = _ :type.nullable _;
   type {
-    String main = _ nullable _ @1;
     String nullable = :nonNullable question:`?`? { "$nonNullable${question ?? ""}" };
     String nonNullable = choice! {
       /// Dart function type.
-      function = :nullable _ "Function" _ :fnParameters |> "${$0} Function${$4}";
+      function = :nullable _ "Function" _ :fnParameters { "${$0} Function${$4}" };
 
       /// Generic types.
       generic = :base `<` args:(`,`..type+ { $.join(", ") }) `>` { "$base<$args>" };
@@ -478,13 +487,13 @@ dart {
 /// Shared code between declarations
 String type =
   | _ raw _ @1
-  | _ ~> dart.type.main <~ _;
+  | _ ~> dart.type <~ _;
 
 /// [namespaceReference] is a reference to a namespace.
 ///   It is a sequence of identifiers separated by "::" or ".".
 ///   It should not match a macro.
 String namespaceReference =
-  | 1..(identifier ("::" | !".." ".") !mac @0) |> $.join(ParserGenerator.separator)
+  | 1..(:identifier ("::" | !".." ".") !mac) |> $.join(ParserGenerator.separator)
   | std.epsilon;
 
 /// A [name] can be a single name, or multiple aliases.
@@ -501,7 +510,6 @@ String namespacedRaw = namespaceReference literal.raw
 String namespacedIdentifier = namespaceReference identifier
   |> $0.isEmpty ? $1 : "${$0}${ParserGenerator.separator}${$1}";
 
-
 /// Tokens used in the grammar.
 ///   Since they are not recursive, they are not defined as rules.
 String identifier = <[a-zA-Z_$] std.epsilon..[a-zA-Z0-9_$]*>;
@@ -509,18 +517,14 @@ String raw        = "`" <0..(~"`")> "`" @1;
 int number        = \d+ { int.parse($.join()) };
 
 kw {
-  Tag decorator =
-    | _ "@rule" _     { Tag.rule }
-    | _ "@fragment" _ { Tag.fragment }
-    | _ "@inline" _   { Tag.inline }
-    ;
+  Tag decorator = _ "@" :_decorator _;
+  @inline _decorator = | "rule" {Tag.rule} | "fragment" {Tag.fragment} | "inline" {Tag.inline};
 
-  String start     = _ "startOfInput" _ @1;
-  String end       = _ "endOfInput" _   @1;
-  String backslash = _ "backslash" _    @1;
-  String epsilon   = _ "epsilon" _      @1;
-  String any       = _ "any" _          @1;
-  String var       = _ "var" _          @1;
+  String start     = _ :"START" _;
+  String end       = _ :"END" _;
+  String epsilon   = _ :"EPSILON" _;
+  String any       = _ :"ANY" _;
+  String var       = _ :"var" _;
 }
 
 /// Tokens used in "macro-like" rules.
@@ -531,72 +535,39 @@ String mac = choice! {
 String regexEscape = choice! @fragment {
   backslash       = _ ~> <\\ r"\"> <~ _;
 
-  digit           = _ :<\\ r"d"> _;
-  word            = _ :<\\ r"w"> _;
-  whitespace      = _ :<\\ r"s"> _;
-  wordBoundary    = _ :<\\ r"b"> _;
+  digit           = _ :<\\ r"d"> _;   notDigit        = _ :<\\ r"D"> _;
+  word            = _ :<\\ r"w"> _;   notWord         = _ :<\\ r"W"> _;
+  whitespace      = _ :<\\ r"s"> _;   notWhitespace   = _ :<\\ r"S"> _;
+  wordBoundary    = _ :<\\ r"b"> _;   notWordBoundary = _ :<\\ r"b"> _;
+  unicode         = _ :<\\ r"u"> _;   unicodeExtended = _ :<\\ r"U"> _;
+  newline         = _ :<\\ r"n"> _;   carriageReturn  = _ :<\\ r"r"> _;
 
-  notDigit        = _ :<\\ r"D"> _;
-  notWord         = _ :<\\ r"W"> _;
-  notWhitespace   = _ :<\\ r"S"> _;
-  notWordBoundary = _ :<\\ r"b"> _;
-
-  newline         = _ :<\\ r"n"> _;
-  carriageReturn  = _ :<\\ r"r"> _;
   tab             = _ :<\\ r"t"> _;
   formFeed        = _ :<\\ r"f"> _;
   verticalTab     = _ :<\\ r"v"> _;
   null            = _ :<\\ r"0"> _;
   control         = _ :<\\ r"c"> _;
   hex             = _ :<\\ r"x"> _;
-  unicode         = _ :<\\ r"u"> _;
-  unicodeExtended = _ :<\\ r"U"> _;
   literal         = _ :<\\ r"."> _;
 };
 
 /// Literal tokens
 String () = choice! @fragment {
-  CHOICE_OP = `|` `|`? { "" };
+  CHOICE_OP = <`|` `|`?>;
 
-  `#`  = _ "#" _ @1;
-  `..` =  _ ".." _ @1;
-  `::` = _ "::" _ @1;
-  `%%` = _ "%%" _ @1;
-  `=>` = _ "=>" _ @1;
-  `<-` = _ "<-" _ @1;
-  `->` = _ "->" _ @1;
-  `~>` = _ "~>" _ @1;
-  `<~` = _ "<~" _ @1;
-  `|>` = _ "|>" _ @1;
-  `&&` = _ "&&" _ @1;
-
-  `%` = _ "%" _ @1;
-  `@` = _ "@" _ @1;
-  `<` = _ "<" _ @1;
-  `>` = _ ">" _ @1;
-  `]` = _ "]" _ @1;
-  `[` = _ "[" _ @1;
-  `}` = _ "}" _ @1;
-  `{` = _ "{" _ @1;
-  `)` = _ ")" _ @1;
-  `(` = _ "(" _ @1;
-  `;` = _ ";" _ @1;
-  `=` = _ "=" _ @1;
-  `?` = _ "?" _ @1;
-  `!` = _ "!" _ @1;
-  `~` = _ "~" _ @1;
-  `&` = _ "&" _ @1;
-  `*` = _ "*" _ @1;
-  `+` = _ "+" _ @1;
-  `,` = _ "," _ @1;
-  `:` = _ ":" _ @1;
-  `|` = _ "|" _ @1;
-  `/` = _ "/" _ @1;
-
-  `.` = _ "." _ @1;
-  `ε` = _ "ε" _ @1;
-  `^` = _ "^" _ @1;
-  `$` = _ "$" _ @1;
+  `#`  = _ "#"  _ @1;   `..` = _ ".." _ @1;   `::` = _ "::" _ @1;
+  `%%` = _ "%%" _ @1;   `=>` = _ "=>" _ @1;   `<-` = _ "<-" _ @1;
+  `->` = _ "->" _ @1;   `~>` = _ "~>" _ @1;   `<~` = _ "<~" _ @1;
+  `|>` = _ "|>" _ @1;   `&&` = _ "&&" _ @1;   `%`  = _ "%"  _ @1;
+  `@`  = _ "@"  _ @1;   `<`  = _ "<"  _ @1;   `>`  = _ ">"  _ @1;
+  `[`  = _ "["  _ @1;   `]`  = _ "]"  _ @1;   `{`  = _ "{"  _ @1;
+  `(`  = _ "("  _ @1;   `)`  = _ ")"  _ @1;   `}`  = _ "}"  _ @1;
+  `;`  = _ ";"  _ @1;   `=`  = _ "="  _ @1;   `?`  = _ "?"  _ @1;
+  `!`  = _ "!"  _ @1;   `~`  = _ "~"  _ @1;   `&`  = _ "&"  _ @1;
+  `*`  = _ "*"  _ @1;   `+`  = _ "+"  _ @1;   `,`  = _ ","  _ @1;
+  `:`  = _ ":"  _ @1;   `|`  = _ "|"  _ @1;   `/`  = _ "/"  _ @1;
+  `.`  = _ "."  _ @1;   `ε`  = _ "ε"  _ @1;   `^`  = _ "^"  _ @1;
+  `$`  = _ "$"  _ @1;
 }
 
 /// Layout parser allows comments (like this) and space between parsers.

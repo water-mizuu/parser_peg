@@ -3821,4 +3821,540 @@ int b = :a "*" :n { a * n } | :n |> n;
       expect(await iso.parse("x"), isNull);
     });
   });
+
+  // -------------------------------------------------------------------------
+  //  Test group – Block actions: semicolons and auto-return
+  // -------------------------------------------------------------------------
+
+  group("Block actions: grammar parsing", () {
+    late GrammarParser parser;
+
+    setUp(() => parser = GrammarParser());
+
+    test("parse block with single expression (auto-return)", () {
+      var result = parser.parse(r"""
+int rule = \d+ { int.parse($.join()) };
+""");
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse block with multiple semicolon-separated statements", () {
+      var result = parser.parse(r"""
+int rule = \d+ { var x = int.parse($.join()); x * 2 };
+""");
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse block with explicit return", () {
+      var result = parser.parse(r"""
+int rule = \d+ { var x = int.parse($.join()); return x * 2 };
+""");
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse block with trailing semicolon (no auto-return)", () {
+      var result = parser.parse(r"""
+int rule = \d+ { var x = int.parse($.join()); return x * 2; };
+""");
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse block with (){} syntax", () {
+      var result = parser.parse(r"""
+int rule = \d+() { return int.parse($.join()); };
+""");
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse block with (){} syntax and auto-return", () {
+      var result = parser.parse(r"""
+int rule = \d+() { int.parse($.join()) };
+""");
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse block with nested curly braces", () {
+      var result = parser.parse(r'''
+int rule = \d+ { var x = $.join(); if (x == "0") { 0 } else { int.parse(x) } };
+''');
+      expect(result, isA<ParserGenerator>());
+    });
+  });
+
+  group("End-to-end: block action auto-return single expression", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // { expr } should become () { return expr; }
+      iso = await spawnParser(r"""
+int rule = ^ :val $ { val };
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("single expression is auto-returned", () async {
+      expect(await iso.parse("42"), equals(42));
+    });
+
+    test("single expression auto-return with different value", () async {
+      expect(await iso.parse("7"), equals(7));
+    });
+
+    test("rejects non-matching input", () async {
+      expect(await iso.parse("abc"), isNull);
+    });
+  });
+
+  group("End-to-end: block action with multiple semicolon-separated statements", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // { statement; expr } should become () { statement; return expr; }
+      iso = await spawnParser(r"""
+int rule = ^ :val $ { var x = val; x * 2 };
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("intermediate statement + auto-returned expression", () async {
+      expect(await iso.parse("5"), equals(10));
+    });
+
+    test("works with another value", () async {
+      expect(await iso.parse("3"), equals(6));
+    });
+  });
+
+  group("End-to-end: block action with explicit return", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // { statement; return expr } should keep the explicit return
+      iso = await spawnParser(r"""
+int rule = ^ :val $ { var x = val; return x * 3; };
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("explicit return is preserved", () async {
+      expect(await iso.parse("4"), equals(12));
+    });
+
+    test("explicit return with another input", () async {
+      expect(await iso.parse("10"), equals(30));
+    });
+  });
+
+  group("End-to-end: block action trailing semicolon suppresses auto-return", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // { return expr; } — trailing semicolon: the explicit return is there,
+      // and the trailing semicolons produce empty items which get trimmed,
+      // then `;` is added back. The last statement ends with `;` so no extra return.
+      iso = await spawnParser(r"""
+int rule = ^ :val $ { return val * 4; };
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("trailing semicolon with explicit return works", () async {
+      expect(await iso.parse("3"), equals(12));
+    });
+  });
+
+  group("End-to-end: block action with (){} syntax", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // sequence(){ code } syntax with auto-return
+      iso = await spawnParser(r"""
+int rule = ^ :val $() { val * 5 };
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("(){} syntax with auto-return", () async {
+      expect(await iso.parse("2"), equals(10));
+    });
+
+    test("(){} syntax with different value", () async {
+      expect(await iso.parse("6"), equals(30));
+    });
+  });
+
+  group("End-to-end: block action (){} with explicit return", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+int rule = ^ :val $() { return val * 6; };
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("(){} with explicit return", () async {
+      expect(await iso.parse("3"), equals(18));
+    });
+  });
+
+  group("End-to-end: block action with three statements", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // { stmt1; stmt2; expr } → () { stmt1; stmt2; return expr; }
+      iso = await spawnParser(r"""
+int rule = ^ :val $ { var a = val; var b = a + 1; a + b };
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("three statements: two intermediates + auto-return", () async {
+      // val=5, a=5, b=6, return 5+6=11
+      expect(await iso.parse("5"), equals(11));
+    });
+
+    test("three statements with different value", () async {
+      // val=10, a=10, b=11, return 10+11=21
+      expect(await iso.parse("10"), equals(21));
+    });
+  });
+
+  group("End-to-end: block action return in last position with semicolon", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // { stmt; return expr; } — explicit return + trailing semicolon
+      iso = await spawnParser(r"""
+int rule = ^ :val $ { var x = val + 1; return x; };
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("explicit return with trailing semicolon", () async {
+      expect(await iso.parse("9"), equals(10));
+    });
+  });
+
+  group("End-to-end: block action complex expression as last", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // The last expression is a function call — should be auto-returned
+      iso = await spawnParser(r"""
+String rule = ^ :val $ { val.toUpperCase() };
+@fragment String val = [a-z]+ { $.join() };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("function call expression is auto-returned", () async {
+      expect(await iso.parse("hello"), equals("HELLO"));
+    });
+
+    test("another input", () async {
+      expect(await iso.parse("abc"), equals("ABC"));
+    });
+  });
+
+  group("End-to-end: block action with conditional expression", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Last expression is a ternary — should be auto-returned
+      iso = await spawnParser(r"""
+String rule = ^ :val $ { var n = int.parse(val); n > 5 ? "big" : "small" };
+@fragment String val = \d+ { $.join() };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("ternary expression auto-returned (big)", () async {
+      expect(await iso.parse("10"), equals("big"));
+    });
+
+    test("ternary expression auto-returned (small)", () async {
+      expect(await iso.parse("3"), equals("small"));
+    });
+  });
+
+  group("End-to-end: block action in choice alternatives", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Different block actions in different branches
+      iso = await spawnParser(r"""
+int rule = ^ :expr $ |> expr;
+int expr =
+  | "+" :val { val }
+  | "-" :val { var x = val; -x }
+  | val;
+@fragment int val = \d+ { int.parse($.join()) };
+""", parserName: "ChoiceBlockParser");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("first branch with auto-return", () async {
+      expect(await iso.parse("+7"), equals(7));
+    });
+
+    test("second branch with statement + auto-return", () async {
+      expect(await iso.parse("-7"), equals(-7));
+    });
+
+    test("third branch (no block action)", () async {
+      expect(await iso.parse("7"), equals(7));
+    });
+  });
+
+  group("End-to-end: block action with string concatenation in statements", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+String rule = ^ :a " " :b $ { var greeting = a; var name = b; "$greeting, $name!" };
+@fragment String a = [A-Za-z]+ { $.join() };
+@fragment String b = [A-Za-z]+ { $.join() };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("multiple statements with string interpolation auto-return", () async {
+      expect(await iso.parse("Hello World"), equals("Hello, World!"));
+    });
+  });
+
+  group("End-to-end: block action with list operations", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Block creates a list, adds to it, returns it
+      iso = await spawnParser(r"""
+Object rule = ^ :items $ { var result = <int>[]; result.addAll(items.cast<int>()); result };
+items = ","..item+;
+@fragment int item = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("list operation with auto-return", () async {
+      var result = await iso.parse("1,2,3");
+      expect(result, equals([1, 2, 3]));
+    });
+  });
+
+  group("End-to-end: block action preserves semicolons inside nested braces", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Semicolons inside nested {} should not split the block
+      iso = await spawnParser(r"""
+int rule = ^ :val $ { var x = () { return val + 1; }; x() };
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("nested braces with semicolons preserved", () async {
+      expect(await iso.parse("5"), equals(6));
+    });
+  });
+
+  group("End-to-end: block action with returnValue-like identifier (starts with 'return')", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Edge case: variable named 'returnValue' starts with "return"
+      // The auto-return check uses startsWith("return"), so this will NOT get auto-return.
+      // That means we need explicit return with a trailing semicolon.
+      iso = await spawnParser(r"""
+int rule = ^ :val $ { var returnValue = val * 2; return returnValue; };
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("identifier starting with 'return' needs explicit return", () async {
+      expect(await iso.parse("5"), equals(10));
+    });
+  });
+
+  group("End-to-end: block action empty-ish block with just return", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Block is just { return 42; } — explicit return needs trailing semicolon
+      iso = await spawnParser(r"""
+int rule = ^ "x" $ { return 42; };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("single explicit return in block", () async {
+      expect(await iso.parse("x"), equals(42));
+    });
+  });
+
+  group("End-to-end: block vs inline action equivalence", () {
+    late IsolateParser isoBlock;
+    late IsolateParser isoInline;
+
+    setUpAll(() async {
+      // Block action: { val * 2 } should auto-return same as inline |> val * 2
+      isoBlock = await spawnParser(r"""
+int rule = ^ :val $ { val * 2 };
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+
+      isoInline = await spawnParser(r"""
+int rule = ^ :val $ |> val * 2;
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() {
+      isoBlock.dispose();
+      isoInline.dispose();
+    });
+
+    test("block and inline produce same result for '5'", () async {
+      var blockResult = await isoBlock.parse("5");
+      var inlineResult = await isoInline.parse("5");
+      expect(blockResult, equals(inlineResult));
+      expect(blockResult, equals(10));
+    });
+
+    test("block and inline produce same result for '100'", () async {
+      var blockResult = await isoBlock.parse("100");
+      var inlineResult = await isoInline.parse("100");
+      expect(blockResult, equals(inlineResult));
+      expect(blockResult, equals(200));
+    });
+  });
+
+  group("End-to-end: block action with from/to span variables", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Block action using from/to for substring extraction
+      iso = await spawnParser(r"""
+String rule = ^ [a-z]+ $ { buffer.substring(from, to) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("from/to variables work in block action", () async {
+      expect(await iso.parse("hello"), equals("hello"));
+    });
+
+    test("from/to with different input", () async {
+      expect(await iso.parse("abc"), equals("abc"));
+    });
+  });
+
+  group("End-to-end: block action with from/to and multiple statements", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+String rule = ^ [a-z]+ $ { var raw = buffer.substring(from, to); raw.toUpperCase() };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("from/to with intermediate statement and auto-return", () async {
+      expect(await iso.parse("world"), equals("WORLD"));
+    });
+  });
+
+  group("End-to-end: block action on recursive rule", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      iso = await spawnParser(r"""
+int rule = ^ :expr $ |> expr;
+int expr =
+  | :expr "+" :term { var sum = expr + term; sum }
+  | term;
+@fragment int term = \d+ { int.parse($.join()) };
+""", parserName: "RecursiveBlockParser");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("block action in left-recursive rule", () async {
+      expect(await iso.parse("1+2+3"), equals(6));
+    });
+
+    test("base case (no recursion)", () async {
+      expect(await iso.parse("42"), equals(42));
+    });
+  });
+
+  group("End-to-end: block action multiple statements trailing semicolon", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // { stmt; return expr; } — all with trailing semicolons
+      // The trailing empty is trimmed, `;` is added to last non-empty,
+      // and since last now ends with `;` (it's `return expr;;`?), no extra return.
+      // Actually: code = ["stmt", " return expr", ""]
+      // trimmed = ["stmt", " return expr"]  (removed one empty)
+      // trimmed.length != code.length → add ";" back: "return expr;"
+      // last.trim() = "return expr;" → starts with "return" → no auto-return
+      iso = await spawnParser(r"""
+int rule = ^ :val $ { var x = val + 100; return x; };
+@fragment int val = \d+ { int.parse($.join()) };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("multiple stmts with trailing semicolon", () async {
+      expect(await iso.parse("5"), equals(105));
+    });
+  });
+
+  group("End-to-end: block action only semicolons", () {
+    late IsolateParser iso;
+
+    setUpAll(() async {
+      // Block with just an expression and trailing semicolons: { return 99; }
+      iso = await spawnParser(r"""
+int rule = ^ "x" $ { return 99; };
+""");
+    });
+
+    tearDownAll(() => iso.dispose());
+
+    test("explicit return with trailing semicolon", () async {
+      expect(await iso.parse("x"), equals(99));
+    });
+  });
 }

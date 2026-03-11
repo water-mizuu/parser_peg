@@ -90,7 +90,12 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     }
     buffer.writeln(parameters.inner ?? "return null;");
 
-    return buffer.toString().wrap("if (null case ${parameters.withNames.caseVarNames}) {", "}");
+    String name = parameters.withNames.caseVarNames;
+    if (name case "_") {
+      return buffer.toString();
+    }
+
+    return buffer.toString().wrap("if (null case $name) {", "}");
   }
 
   @override
