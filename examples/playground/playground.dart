@@ -256,7 +256,7 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class Playground extends _PegParser<(int, Object, int)> {
+final class Playground extends _PegParser<int> {
   Playground();
 
   @override
@@ -264,60 +264,43 @@ final class Playground extends _PegParser<(int, Object, int)> {
 
 
   /// `ROOT`
-  (int, Object, int)? f0() {
+  int? f0() {
     if (this.apply(this.r0) case var $?) {
       return $;
     }
   }
 
-  /// `fragment0`
-  Object? f1() {
+  /// `global::expr`
+  int? r0() {
     var _mark = this._mark();
-    if (this.apply(this.r1) case var $?) {
-      return $;
+    if (this.apply(this.r0) case var expr?) {
+      return expr+1 ;
     }
     this._recover(_mark);
-    if (this.matchPattern(_string.$1) case var $?) {
-      return $;
-    }
-  }
-
-  /// `global::rule`
-  (int, Object, int)? r0() {
-    if (this.pos case var $0 && <= 0) {
-      if (this.f1() case var $1?) {
-        if (this.pos case var $2 when this.pos >= this.buffer.length) {
-          return ($0, $1, $2);
+    if (this.pos case var from) {
+      if (this.matchPattern(_regexp.$1) case var _0?) {
+        if ([_0] case var _l1) {
+          for (;;) {
+            var _mark = this._mark();
+            if (this.matchPattern(_regexp.$1) case var _0?) {
+              _l1.add(_0);
+              continue;
+            }
+            this._recover(_mark);
+            break;
+          }
+          if (this.pos case var to) {
+            if (this.buffer.substring(from, to) case var span) {
+              return int.parse(span) ;
+            }
+          }
         }
       }
-    }
-  }
-
-  /// `global::inner`
-  Object? r1() {
-    var _mark = this._mark();
-    if (this.matchPattern(_string.$3) case var $0?) {
-      if (null case var $1) {
-        _mark.isCut = true;
-        if (this.matchPattern(_string.$2) case var $2?) {
-          return ($0, $1, $2);
-        }
-      }
-    }
-    if (_mark.isCut) return null; else this._recover(_mark);
-    if (this.matchPattern(_string.$4) case var $?) {
-      return $;
     }
   }
 
 }
-class _string {
-  /// `"z"`
-  static const $1 = "z";
-  /// `"b"`
-  static const $2 = "b";
-  /// `"a"`
-  static const $3 = "a";
-  /// `"c"`
-  static const $4 = "c";
+class _regexp {
+  /// `/\d/`
+  static final $1 = RegExp("\\d");
 }

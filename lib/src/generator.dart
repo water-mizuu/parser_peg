@@ -10,7 +10,6 @@ import "package:analyzer/dart/ast/ast.dart" hide Statement;
 import "package:analyzer/dart/ast/visitor.dart";
 import "package:analyzer/dart/element/type.dart";
 import "package:analyzer/dart/element/type_system.dart";
-
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
 import "package:parser_peg/src/visitor/node_visitor/parametrized_visitor/parser_compiler_visitor.dart";
@@ -33,6 +32,7 @@ import "package:parser_peg/src/visitor/node_visitor/"
     "simple_visitor/resolve_references_visitor.dart";
 import "package:parser_peg/src/visitor/statement_visitor/"
     "statement_translator_visitor.dart";
+import "package:path/path.dart" as path;
 
 /// A grammar rule entry mapping a [(namespace, name)] pair to its [Node].
 ///
@@ -299,6 +299,7 @@ final class ParserGenerator {
     ///   declared as inline, but it is not actually inline-able, like in a namespace.
     if (CanInlineVisitor(_rules, _fragments, _inline) case CanInlineVisitor visitor) {
       for (var (name, (type, node)) in _inline.pairs.toList()) {
+        print((name, (type, node), !visitor.canBeInlined(node)));
         if (!visitor.canBeInlined(node)) {
           _inline.remove(name);
           _fragments[name] = (type, node);
@@ -572,16 +573,14 @@ final class ParserGenerator {
   final Map<String, (String?, Node)> _inline = {};
   final Map<(Tag, String), bool> _isCut = {};
 
-  Future<String> _compile(
+  String _compile(
     String parserName, {
     required Map<String, (String?, Node)> rules,
     required Map<String, (String?, Node)> fragments,
     String? start,
     String? type,
-    bool shouldAnalyzeTypes = false,
     Map<String, DartType>? resolvedTypes,
-    Map<String, Set<String>>? triedHypotheses,
-  }) async {
+  }) {
     var parserTypeString =
         type ?? //
         resolvedTypes?["ROOT"]?.getDisplayString() ??
@@ -755,13 +754,26 @@ final class ParserGenerator {
     }
 
     /// If we don't want analysis, we just return the buffer as it is.
-    if (!shouldAnalyzeTypes) {
-      return fullBuffer.toString();
-    }
+    return fullBuffer.toString();
+  }
 
+  Future<String> _compileAnalyzed(
+    String parserName, {
+    required Map<String, (String?, Node)> rules,
+    required Map<String, (String?, Node)> fragments,
+    String? start,
+    Map<String, DartType>? resolvedTypes,
+    Set<String>? triedConfigurations,
+  }) async {
     /// Prepare a temp file for analysis.
-    String compiled = fullBuffer.toString();
-    File tempFile = File("lib/temp/hidden.compiled.dart")
+    String compiled = _compile(
+      parserName,
+      rules: rules,
+      fragments: fragments,
+      start: start,
+      resolvedTypes: resolvedTypes,
+    );
+    File tempFile = .new(path.join("lib", "temp", "hidden.compiled.dart"))
       ..createSync(recursive: true)
       ..writeAsStringSync(compiled);
 
@@ -794,21 +806,26 @@ final class ParserGenerator {
 
     /// Start the next iteration's resolved-types map from whatever the
     /// analyzer cleanly resolved this round.
-    var nextResolvedTypes = visitor.resolvedReturnTypes.toMap();
+    Map<String, DartType> nextResolvedTypes = visitor.resolvedReturnTypes.toMap();
+    Set<String> nextTriedConfigurations = triedConfigurations?.toSet() ?? {};
 
-    /// Deep-copy the tried-hypotheses set so each recursive call has its own
-    /// snapshot — prevents independent recursion branches from poisoning each
-    /// other's oscillation tracking.
-    var nextTriedHypotheses = {
-      if (triedHypotheses != null)
-        for (var (k, v) in triedHypotheses.pairs) //
-          k: v.toSet(),
-    };
+    bool hasInvalid = visitor.invalidReturnTypes.values.any((v) => v.isNotEmpty);
+    bool hasImprovable = visitor.validReturnTypes.values.any((types) {
+      // More than one type present and not all of them are Object/Object? —
+      // meaning LUB landed on Object but a tighter common type may exist.
+      if (types.length <= 1) {
+        return false;
+      }
+
+      var hasObject = types.any((t) => t.getDisplayString().contains("Object"));
+      var hasConcrete = types.any((t) => !t.getDisplayString().contains("Object"));
+      return hasObject && hasConcrete;
+    });
 
     /// If any rule still has invalid branches, ask the constraint solver
     /// whether a better type hypothesis exists for the stuck rules.
-    if (visitor.invalidReturnTypes.values.any((v) => v.isNotEmpty)) {
-      var solver = _TypeConstraintSolver(
+    if (hasInvalid || hasImprovable) {
+      _TypeConstraintSolver solver = .new(
         typeSystem: result.typeSystem,
         validReturnTypes: visitor.validReturnTypes,
         invalidReturnTypes: visitor.invalidReturnTypes,
@@ -816,53 +833,15 @@ final class ParserGenerator {
         fragments: fragments,
         reverseRenames: _reverseRenames,
       );
-      var hypotheses = solver.solve();
 
-      if (hypotheses != null) {
-        var paradoxes = <String, ({String previousType, String newType})>{};
-
-        for (var (key, value) in hypotheses.pairs) {
-          var typeStr = value.getDisplayString();
-          var seen = nextTriedHypotheses.putIfAbsent(key, () => {});
-
-          if (seen.contains(typeStr)) {
-            // This (rule, type) pair was already tried — it's oscillating.
-            paradoxes[key] = (
-              previousType: resolvedTypes?[key]?.getDisplayString() ?? "unknown",
-              newType: typeStr,
-            );
-          } else {
-            seen.add(typeStr);
-            nextResolvedTypes[key] = value;
-          }
-        }
-
-        if (paradoxes.isNotEmpty) {
-          var description = paradoxes.entries
-              .map((e) {
-                var rule = _reverseRenames[_renames[e.key] ?? e.key] ?? e.key;
-                return "  '$rule': oscillates between '${e.value.previousType}' and '${e.value.newType}'";
-              })
-              .join("\n");
-
-          throw TypeParadoxException(
-            "Type paradox detected — the following rules have contradictory "
-            "type constraints that cannot be resolved:\n$description\n\n"
-            "Hint: add an explicit type annotation to break the cycle, e.g.:\n"
-            "${paradoxes.keys.map((k) {
-              var rule = _reverseRenames[_renames[k] ?? k] ?? k;
-              return "  Object $rule = ...;";
-            }).join('\n')}",
-          );
+      if (solver.solve() case Map<String, DartType> hypotheses) {
+        for (var (String key, DartType value) in hypotheses.pairs) {
+          nextResolvedTypes[key] = value;
         }
       }
     }
 
-    /// Check whether anything actually changed since the last round.
-    /// If not, the types have converged and we can return the compiled output.
-    /// The length check catches the case where a previously-missing rule now
-    /// has a resolved type (or vice-versa).
-    var hasChanged =
+    bool hasChanged =
         resolvedTypes == null ||
         nextResolvedTypes.length != resolvedTypes.length ||
         nextResolvedTypes.keys.any(
@@ -870,16 +849,52 @@ final class ParserGenerator {
         );
 
     if (hasChanged) {
+      List<(String, DartType)> resolvedTypePairs = nextResolvedTypes.pairs.toList()
+        ..sort((a, b) => a.$1.compareTo(b.$1));
+
+      String configuration = resolvedTypePairs
+          .map((e) => "${e.$1}:${e.$2.getDisplayString()}")
+          .join(";");
+
+      /// We only check if it exists when it changed, as the fixed-point
+      ///   algorithm gets confused if it stabilizes and thinks it is an oscillation.
+      if (nextTriedConfigurations.contains(configuration)) {
+        StringBuffer descriptionBuilder = .new();
+        for (var (String name, DartType type) in nextResolvedTypes.pairs) {
+          if (name == "ROOT") {
+            continue;
+          }
+
+          if (type.getDisplayString() == resolvedTypes?[name]?.getDisplayString()) {
+            continue;
+          }
+
+          String rule = _reverseRenames[_renames[name] ?? name] ?? name;
+          rule = rule.unwrappedName; // Remove the global:: prefix
+
+          String prev = resolvedTypes?[name]?.getDisplayString() ?? "unknown";
+          String next = type.getDisplayString();
+
+          descriptionBuilder.writeln("  '$rule': oscillates between '$prev' and '$next'");
+        }
+        String description = descriptionBuilder.toString();
+
+        throw TypeParadoxException(
+          "Type paradox detected — the following rules have contradictory "
+          "type constraints that cannot be resolved:\n$description",
+        );
+      }
+
+      nextTriedConfigurations.add(configuration);
+
       /// Do the iteration again.
-      return _compile(
+      return _compileAnalyzed(
         parserName,
         rules: rules,
         fragments: fragments,
         start: start,
-        type: type,
-        shouldAnalyzeTypes: shouldAnalyzeTypes,
         resolvedTypes: nextResolvedTypes,
-        triedHypotheses: nextTriedHypotheses,
+        triedConfigurations: nextTriedConfigurations,
       );
     } else {
       /// We try to delete the temp file
@@ -894,6 +909,10 @@ final class ParserGenerator {
     }
   }
 
+  Future<String> compileAnalyzedParserGenerator(String parserName, {String? start}) {
+    return _compileAnalyzed(parserName, rules: _rules, fragments: _fragments, start: start);
+  }
+
   /// Generates a full Dart parser class named [parserName].
   ///
   /// The generated class preserves every semantic action defined in the grammar.
@@ -901,20 +920,8 @@ final class ParserGenerator {
   /// [type] overrides the inferred return type of the parser's `start` method.
   ///
   /// Returns the complete Dart source as a string, ready to be written to a file.
-  Future<String> compileParserGenerator(
-    String parserName, {
-    String? start,
-    String? type,
-    bool shouldAnalyzeTypes = false,
-  }) async {
-    return _compile(
-      parserName,
-      rules: _rules,
-      fragments: _fragments,
-      start: start,
-      type: type,
-      shouldAnalyzeTypes: shouldAnalyzeTypes,
-    );
+  String compileParserGenerator(String parserName, {String? start, String? type}) {
+    return _compile(parserName, rules: _rules, fragments: _fragments, start: start, type: type);
   }
 
   /// Generates a Dart parser that produces an untyped Abstract Syntax Tree.
@@ -925,7 +932,7 @@ final class ParserGenerator {
   /// [start] overrides the default entry rule.
   ///
   /// Returns the complete Dart source as a string.
-  Future<String> compileAstParserGenerator(String parserName, {String? start}) {
+  String compileAstParserGenerator(String parserName, {String? start}) {
     RemoveActionNodeVisitor removeActionNodeVisitor = const RemoveActionNodeVisitor();
     Map<String, (String?, Node)> rules = <String, (String?, Node)>{
       for (var (String name, (_, Node node)) in _rules.pairs)
@@ -948,7 +955,7 @@ final class ParserGenerator {
   /// [start] overrides the default entry rule.
   ///
   /// Returns the complete Dart source as a string.
-  Future<String> compileCstParserGenerator(String parserName, {String? start}) {
+  String compileCstParserGenerator(String parserName, {String? start}) {
     var removeActionNodeVisitor = const RemoveActionNodeVisitor();
     var removeSelectionVisitor = const RemoveSelectionVisitor();
 
@@ -1286,7 +1293,7 @@ class _ReturnTypeCollector extends RecursiveAstVisitor<void> {
   }
 }
 
-// New constraint solver — Tarjan SCC + most-specific hypothesis injection
+// ignore: unused_element
 class _TypeConstraintSolver {
   const _TypeConstraintSolver({
     required this.typeSystem,
@@ -1304,21 +1311,54 @@ class _TypeConstraintSolver {
   final Map<String, (String?, Node)> fragments;
   final Map<String, String> reverseRenames;
 
+  static const Set<String> topTypes = {"Object", "Object?", "dynamic"};
+
   /// Returns an updated type map with better hypotheses for stuck SCCs,
   /// or `null` if no improvement is possible.
   Map<String, DartType>? solve() {
     /// If there are no invalid types, then we don't have to do anything.
-    if (!invalidReturnTypes.values.any((v) => v.isNotEmpty)) {
+    bool hasInvalid = invalidReturnTypes.values.any((v) => v.isNotEmpty);
+    bool hasImprovable = validReturnTypes.values.any((types) {
+      // More than one type present and not all of them are Object/Object? —
+      // meaning LUB landed on Object but a tighter common type may exist.
+      if (types.length <= 1) {
+        return false;
+      }
+
+      var hasObject = types.any((t) => topTypes.contains(t.getDisplayString()));
+      var hasConcrete = types.any((t) => !topTypes.contains(t.getDisplayString()));
+
+      return hasObject && hasConcrete;
+    });
+
+    if (!(hasInvalid || hasImprovable)) {
       return null;
     }
 
     var deps = _buildDependencyGraph();
     var sccs = _findStronglyConnectedComponents(deps);
     var result = <String, DartType>{};
-
     for (var component in sccs) {
-      // Only process SCCs where at least one rule has invalid branches.
-      if (!component.any((r) => invalidReturnTypes[r]?.isNotEmpty == true)) {
+      /// Process this SCC if any member has invalid branches OR has a mix of
+      /// Object and concrete types — the latter means LUB silently widened to
+      /// Object when a tighter type may exist (e.g. [Object, int] → Object,
+      /// where the Object came from a self-reference typed too broadly).
+      var hasInvalidInScc = component.any((r) => invalidReturnTypes[r]?.isNotEmpty ?? false);
+      var hasImprovableInScc =
+          _isSccRecursive(component, deps) &&
+          component.any((r) {
+            var types = validReturnTypes[r] ?? [];
+            if (types.length <= 1) {
+              return false;
+            }
+
+            var hasObject = types.any((t) => topTypes.contains(t.getDisplayString()));
+            var hasConcrete = types.any((t) => !topTypes.contains(t.getDisplayString()));
+
+            return hasObject && hasConcrete;
+          });
+
+      if (!hasInvalidInScc && !hasImprovableInScc) {
         continue;
       }
 
@@ -1361,6 +1401,15 @@ class _TypeConstraintSolver {
     }
 
     return deps;
+  }
+
+  bool _isSccRecursive(Set<String> component, Map<String, Set<String>> deps) {
+    if (component.length > 1) {
+      return true;
+    }
+    // Single-node SCC: only recursive if the node references itself.
+    String node = component.single;
+    return deps[node]?.contains(node) ?? false;
   }
 
   List<Set<String>> _findStronglyConnectedComponents(Map<String, Set<String>> deps) {
@@ -1406,14 +1455,9 @@ class _TypeConstraintSolver {
     return sccs;
   }
 
-  // ---------------------------------------------------------------------------
-  // Type helpers
-  // ---------------------------------------------------------------------------
-
-  /// Returns the most specific type from [types], ignoring bare `Object`/`Object?`
-  /// which are too general to break a recursive deadlock.
+  /// Returns the most specific upper bound, without Object.
   DartType? _mostSpecific(List<DartType> types) {
-    var concrete = types.where((t) => !t.getDisplayString().contains("Object")).toList();
+    var concrete = types.where((t) => !topTypes.contains(t.getDisplayString())).toList();
     if (concrete.isEmpty) {
       return null;
     }

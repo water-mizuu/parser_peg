@@ -32,7 +32,7 @@ Future<IsolateParser> spawnParser(String grammarSource, {String parserName = "Te
     throw StateError("Failed to parse grammar:\n${grammar.reportFailures()}");
   }
 
-  var parserCode = await generator.compileParserGenerator(parserName, shouldAnalyzeTypes: true);
+  var parserCode = await generator.compileAnalyzedParserGenerator(parserName);
 
   // Build a small driver program that keeps running, parsing each message
   // it receives via a SendPort.
@@ -388,34 +388,34 @@ String rule = "x";
   // -------------------------------------------------------------------------
 
   group("Code generation", () {
-    test("compileParserGenerator produces valid Dart code", () async {
+    test("compileParserGenerator produces valid Dart code", () {
       var parser = GrammarParser();
       var gen = parser.parse('String rule = "hello";')!;
-      var code = await gen.compileParserGenerator("HelloParser");
+      var code = gen.compileParserGenerator("HelloParser");
 
       expect(code, contains("class HelloParser"));
       expect(code, contains("extends _PegParser<String>"));
     });
 
-    test("compileAstParserGenerator produces valid AST parser", () async {
+    test("compileAstParserGenerator produces valid AST parser", () {
       var parser = GrammarParser();
       var gen = parser.parse('String rule = "hello";')!;
-      var code = await gen.compileAstParserGenerator("HelloAst");
+      var code = gen.compileAstParserGenerator("HelloAst");
 
       expect(code, contains("class HelloAst"));
       expect(code, contains("extends _PegParser<Object>"));
     });
 
-    test("compileCstParserGenerator produces valid CST parser", () async {
+    test("compileCstParserGenerator produces valid CST parser", () {
       var parser = GrammarParser();
       var gen = parser.parse('String rule = "hello";')!;
-      var code = await gen.compileCstParserGenerator("HelloCst");
+      var code = gen.compileCstParserGenerator("HelloCst");
 
       expect(code, contains("class HelloCst"));
       expect(code, contains("extends _PegParser<Object>"));
     });
 
-    test("preamble is included in output", () async {
+    test("preamble is included in output", () {
       var parser = GrammarParser();
       var gen = parser.parse('''
 {
@@ -423,28 +423,28 @@ import "dart:math" as math;
 }
 String rule = "hello";
 ''')!;
-      var code = await gen.compileParserGenerator("P");
+      var code = gen.compileParserGenerator("P");
       expect(code, contains('import "dart:math" as math;'));
     });
 
-    test("regex patterns are collected in _regexp class", () async {
+    test("regex patterns are collected in _regexp class", () {
       var parser = GrammarParser();
       var gen = parser.parse("String rule = /[a-z]+/;")!;
-      var code = await gen.compileParserGenerator("P");
+      var code = gen.compileParserGenerator("P");
       expect(code, contains("class _regexp"));
     });
 
-    test("string literals are collected in _string class", () async {
+    test("string literals are collected in _string class", () {
       var parser = GrammarParser();
       var gen = parser.parse('String rule = "hello";')!;
-      var code = await gen.compileParserGenerator("P");
+      var code = gen.compileParserGenerator("P");
       expect(code, contains("class _string"));
     });
 
     test("math grammar compiles", () async {
       var parser = GrammarParser();
       var gen = parser.parse(readGrammarFile("examples/math/math.dart_grammar"))!;
-      var code = await gen.compileParserGenerator("MathParser", shouldAnalyzeTypes: true);
+      var code = await gen.compileAnalyzedParserGenerator("MathParser");
 
       expect(code, contains("class MathParser"));
       expect(code, contains("extends _PegParser<num>"));
@@ -453,7 +453,7 @@ String rule = "hello";
     test("metagrammar compiles", () async {
       var parser = GrammarParser();
       var gen = parser.parse(readGrammarFile("examples/meta/grammar_parser.dart_grammar"))!;
-      var code = await gen.compileParserGenerator("GrammarParser", shouldAnalyzeTypes: true);
+      var code = await gen.compileAnalyzedParserGenerator("GrammarParser");
 
       expect(code, contains("class GrammarParser"));
     });
@@ -461,7 +461,7 @@ String rule = "hello";
     test("choice rule produces multiple branches", () async {
       var parser = GrammarParser();
       var gen = parser.parse('rule = "a" | "b" | "c";')!;
-      var code = await gen.compileParserGenerator("P");
+      var code = await gen.compileAnalyzedParserGenerator("P");
       // Verify there's backtracking code (_mark / _recover)
       expect(code, contains("_mark"));
       expect(code, contains("_recover"));
@@ -470,7 +470,7 @@ String rule = "hello";
     test("left-recursive rule uses apply()", () async {
       var parser = GrammarParser();
       var gen = parser.parse('rule = rule "a" | "a";')!;
-      var code = await gen.compileParserGenerator("P");
+      var code = await gen.compileAnalyzedParserGenerator("P");
       expect(code, contains("this.apply("));
     });
   });
@@ -1010,7 +1010,7 @@ int rule = ^ :val $ |> val;
 
       var parser = GrammarParser();
       var gen = parser.parse(metagrammarSource)!;
-      var compiledCode = await gen.compileParserGenerator("CompiledGrammarParser");
+      var compiledCode = await gen.compileAnalyzedParserGenerator("CompiledGrammarParser");
 
       // Verify the compiled code is reasonable
       expect(compiledCode, contains("class CompiledGrammarParser"));
@@ -1025,7 +1025,7 @@ int rule = ^ :val $ |> val;
       expect(gen, isNotNull, reason: "metagrammar should parse");
 
       // Step 2: Compile to code
-      var code = await gen!.compileParserGenerator("GrammarParser");
+      var code = await gen!.compileAnalyzedParserGenerator("GrammarParser");
       expect(code.length, greaterThan(1000));
 
       // Step 3: Spawn the compiled parser in an isolate and use it to parse a grammar
@@ -1142,7 +1142,7 @@ void main(List<String> _, SendPort initPort) {
 
     test("parse cut compiles", () async {
       var gen = parser.parse('rule = "a" # "b" | "c";')!;
-      var code = await gen.compileParserGenerator("CutParser");
+      var code = gen.compileParserGenerator("CutParser");
       expect(code, contains("isCut"));
     });
 

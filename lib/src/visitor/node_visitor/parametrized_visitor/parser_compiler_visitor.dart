@@ -868,10 +868,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     }
     var inner = node.action;
     if (node.isSpanUsed) {
-      inner = inner.wrap(
-        "if (this.buffer.substring(from, to) case ${withNames.caseVarNames}) {",
-        "}",
-      );
+      inner = inner.wrap("if (this.buffer.substring(from, to) case var span) {", "}");
     }
 
     if (node.areIndicesProvided || node.isSpanUsed) {

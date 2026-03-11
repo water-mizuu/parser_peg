@@ -1,5 +1,4 @@
 import "dart:io";
-import "dart:isolate";
 
 import "package:args/args.dart";
 import "package:dart_casing/dart_casing.dart";
@@ -18,75 +17,10 @@ void main(List<String> arguments) async {
     return;
   }
 
-  if (arguments case ["test"]) {
-    _testCompiler();
-  } else if (arguments case ["complete", ...var rest]) {
+  if (arguments case ["complete", ...var rest]) {
     await _buildParser(rest, complete: true);
   } else {
     await _buildParser(arguments);
-  }
-}
-
-void _testCompiler() async {
-  var parser = GrammarParser();
-  var input = readFile("parser.dart_grammar");
-
-  /// It must be able to parse the grammar first.
-  if (parser.parse(input) case ParserGenerator generator) {
-    var parserCode = await generator.compileParserGenerator("GrammarParser");
-    var template =
-        """
-      import "dart:isolate" show SendPort;
-
-      $parserCode
-
-      void main(_, payload) {
-        var [sendPort as SendPort, grammar as String] = payload;
-        var parser = GrammarParser();
-
-        if (parser.parse(grammar) case var generator?) {
-          sendPort.send(true);
-        } else {
-          sendPort.send(false);
-        }
-      }
-      """
-            .unindent();
-
-    var uri = Uri.dataFromString(
-      template,
-      mimeType: "application/dart",
-      encoding: const SystemEncoding(),
-      base64: true,
-    );
-
-    late Isolate isolate;
-    var onError = ReceivePort();
-    var onExit = ReceivePort();
-    var listeningReceivePort = ReceivePort();
-    onError.listen((data) {
-      print((error: data));
-    });
-    onExit.listen((data) {
-      onError.close();
-      onExit.close();
-      listeningReceivePort.close();
-      isolate.kill();
-    });
-
-    listeningReceivePort.listen((message) async {
-      print(message);
-    });
-    isolate = await Isolate.spawnUri(
-      uri,
-      [],
-      [listeningReceivePort.sendPort, input],
-      onError: onError.sendPort,
-      onExit: onExit.sendPort,
-    );
-    File("test.dart")
-      ..createSync(recursive: true)
-      ..writeAsStringSync(parserCode);
   }
 }
 
@@ -115,20 +49,18 @@ Future<void> _buildParser(List<String> arguments, {bool complete = false}) async
 
         File(outputPath)
           ..createSync(recursive: true)
-          ..writeAsStringSync(
-            await generator.compileParserGenerator(name, shouldAnalyzeTypes: true),
-          );
+          ..writeAsStringSync(await generator.compileAnalyzedParserGenerator(name));
 
         if (complete) {
           String cstOutputPath = path.join(path.dirname(outputPath), "$fileName.cst.dart");
           File(cstOutputPath)
             ..createSync(recursive: true)
-            ..writeAsStringSync(await generator.compileCstParserGenerator(name));
+            ..writeAsStringSync(generator.compileCstParserGenerator(name));
 
           String astOutputPath = path.join(path.dirname(outputPath), "$fileName.ast.dart");
           File(astOutputPath)
             ..createSync(recursive: true)
-            ..writeAsStringSync(await generator.compileAstParserGenerator(name));
+            ..writeAsStringSync(generator.compileAstParserGenerator(name));
 
           if (CstGrammarParser() case CstGrammarParser cstGrammar) {
             String cstInput = readFile(inputPath);
