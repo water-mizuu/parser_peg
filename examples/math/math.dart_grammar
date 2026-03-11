@@ -2,14 +2,14 @@
 import "dart:math" as math show pow;
 }
 
-num rule = ^ _ :expr _ $ { expr };
+rule = ^ _ :expr _ $ { expr };
 
-num expr =
+expr =
   | :expr _ "+" _ :term { expr + term }
   | :expr _ "-" _ :term { expr - term }
   | term;
 
-num term =
+term =
   | "-" _ :term            { -term }
   | :term _ :factor        { term * factor }
   | :term _ "*" _ :factor  { term * factor }
@@ -18,16 +18,16 @@ num term =
   | :term _ "~/" _ :factor { term ~/ factor }
   | factor;
 
-num factor =
+factor =
   | :primary _ "^" _ :factor { math.pow(primary, factor) }
   | primary;
 
-num primary =
+primary =
   | "(" _ :expr _ ")" { expr }
   | number;
 
 @fragment
-num number =
+number =
   | \d+ "." \d+ { double.parse(buffer.substring(from, to)) }
   | \d+         { int.parse(buffer.substring(from, to)) };
 

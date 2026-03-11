@@ -21,9 +21,9 @@ void main(List<String> arguments) async {
   if (arguments case ["test"]) {
     _testCompiler();
   } else if (arguments case ["complete", ...var rest]) {
-    _buildParser(rest, complete: true);
+    await _buildParser(rest, complete: true);
   } else {
-    _buildParser(arguments);
+    await _buildParser(arguments);
   }
 }
 
@@ -33,7 +33,7 @@ void _testCompiler() async {
 
   /// It must be able to parse the grammar first.
   if (parser.parse(input) case ParserGenerator generator) {
-    var parserCode = generator.compileParserGenerator("GrammarParser");
+    var parserCode = await generator.compileParserGenerator("GrammarParser");
     var template =
         """
       import "dart:isolate" show SendPort;
@@ -90,7 +90,7 @@ void _testCompiler() async {
   }
 }
 
-void _buildParser(List<String> arguments, {bool complete = false}) {
+Future<void> _buildParser(List<String> arguments, {bool complete = false}) async {
   var argParser = ArgParser()
     ..addOption("output", abbr: "o", help: "Output file path")
     ..addOption("name", abbr: "n", help: "Parser name");
@@ -115,18 +115,20 @@ void _buildParser(List<String> arguments, {bool complete = false}) {
 
         File(outputPath)
           ..createSync(recursive: true)
-          ..writeAsStringSync(generator.compileParserGenerator(name));
+          ..writeAsStringSync(
+            await generator.compileParserGenerator(name, shouldAnalyzeTypes: true),
+          );
 
         if (complete) {
           String cstOutputPath = path.join(path.dirname(outputPath), "$fileName.cst.dart");
           File(cstOutputPath)
             ..createSync(recursive: true)
-            ..writeAsStringSync(generator.compileCstParserGenerator(name));
+            ..writeAsStringSync(await generator.compileCstParserGenerator(name));
 
           String astOutputPath = path.join(path.dirname(outputPath), "$fileName.ast.dart");
           File(astOutputPath)
             ..createSync(recursive: true)
-            ..writeAsStringSync(generator.compileAstParserGenerator(name));
+            ..writeAsStringSync(await generator.compileAstParserGenerator(name));
 
           if (CstGrammarParser() case CstGrammarParser cstGrammar) {
             String cstInput = readFile(inputPath);

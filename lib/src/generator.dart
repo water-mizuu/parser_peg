@@ -1,6 +1,15 @@
 import "dart:collection";
 import "dart:convert";
 import "dart:io";
+import "dart:math";
+
+import "package:analyzer/dart/analysis/analysis_context_collection.dart"
+    show AnalysisContextCollection;
+import "package:analyzer/dart/analysis/results.dart";
+import "package:analyzer/dart/ast/ast.dart" hide Statement;
+import "package:analyzer/dart/ast/visitor.dart";
+import "package:analyzer/dart/element/type.dart";
+import "package:analyzer/dart/element/type_system.dart";
 
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/statement.dart";
@@ -563,15 +572,19 @@ final class ParserGenerator {
   final Map<String, (String?, Node)> _inline = {};
   final Map<(Tag, String), bool> _isCut = {};
 
-  String _compile(
+  Future<String> _compile(
     String parserName, {
     required Map<String, (String?, Node)> rules,
     required Map<String, (String?, Node)> fragments,
     String? start,
     String? type,
-  }) {
+    bool shouldAnalyzeTypes = false,
+    Map<String, DartType>? resolvedTypes,
+    Map<String, Set<String>>? triedHypotheses,
+  }) async {
     var parserTypeString =
         type ?? //
+        resolvedTypes?["ROOT"]?.getDisplayString() ??
         rules.values.firstOrNull?.$1 ??
         fragments.values.firstOrNull?.$1 ??
         "Object";
@@ -590,8 +603,6 @@ final class ParserGenerator {
     fullBuffer.writeln(importCode);
     if (preamble?.unindent() case String preamble?) {
       fullBuffer.writeln("// PREAMBLE");
-
-      // TODO: Find a way to get dart to analyze this preamble.
       fullBuffer.writeln(preamble);
     }
     fullBuffer.writeln("// base.dart");
@@ -610,6 +621,7 @@ final class ParserGenerator {
     if (ParserCompilerVisitor(isPassIfNull: isPassIfNull, reported: true)
         case ParserCompilerVisitor compilerVisitor) {
       for (var (rawName, (type, node)) in fragments.pairs) {
+        type ??= resolvedTypes?[_reverseRenames[rawName]]?.getDisplayString();
         compilerVisitor.ruleId = 0;
 
         var inner = StringBuffer();
@@ -636,7 +648,9 @@ final class ParserGenerator {
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln("$type${isPassIfNull(node, rawName) && !isCut ? "" : "?"} $rawName() {");
+          inner.writeln(
+            "$type${(type.endsWith("?")) || (isPassIfNull(node, rawName) && !isCut) ? "" : "?"} $rawName() {",
+          );
           inner.writeln(body);
           inner.writeln("}");
         }
@@ -645,6 +659,7 @@ final class ParserGenerator {
       }
 
       for (var (rawName, (type, node)) in rules.pairs) {
+        type ??= resolvedTypes?[_reverseRenames[rawName]]?.getDisplayString();
         compilerVisitor.ruleId = 0;
 
         var inner = StringBuffer();
@@ -671,7 +686,9 @@ final class ParserGenerator {
           inner.writeln(body);
           inner.writeln("};");
         } else {
-          inner.writeln("$type${isPassIfNull(node, rawName) && !isCut ? "" : "?"} $rawName() {");
+          inner.writeln(
+            "$type${(type.endsWith("?")) || (isPassIfNull(node, rawName) && !isCut) ? "" : "?"} $rawName() {",
+          );
           inner.writeln(body);
           inner.writeln("}");
         }
@@ -737,7 +754,144 @@ final class ParserGenerator {
       }
     }
 
-    return fullBuffer.toString();
+    /// If we don't want analysis, we just return the buffer as it is.
+    if (!shouldAnalyzeTypes) {
+      return fullBuffer.toString();
+    }
+
+    /// Prepare a temp file for analysis.
+    String compiled = fullBuffer.toString();
+    File tempFile = File("lib/temp/hidden.compiled.dart")
+      ..createSync(recursive: true)
+      ..writeAsStringSync(compiled);
+
+    /// Get the analysis context available.
+    AnalysisContextCollection collection = .new(includedPaths: [tempFile.absolute.path]);
+    SomeResolvedUnitResult result = await collection
+        .contextFor(tempFile.absolute.path)
+        .currentSession
+        .getResolvedUnit(tempFile.absolute.path);
+
+    /// There is a compilation error within the code.
+    if (result is! ResolvedUnitResult) {
+      return "analysis error";
+    }
+
+    /// We look for the parser class, which is generated from the grammar.
+    ClassDeclaration parser = result
+        .unit
+        .declarations //
+        .whereType<ClassDeclaration>()
+        .firstWhere((d) => d.namePart.typeName.lexeme == parserName);
+
+    /// Resolve the return types as they are right now.
+    _TypeResolutionVisitor visitor = .new(
+      typeSystem: result.typeSystem,
+      renames: _renames,
+      reverseRenames: _reverseRenames,
+    );
+    parser.body.visitChildren(visitor);
+
+    /// Start the next iteration's resolved-types map from whatever the
+    /// analyzer cleanly resolved this round.
+    var nextResolvedTypes = visitor.resolvedReturnTypes.toMap();
+
+    /// Deep-copy the tried-hypotheses set so each recursive call has its own
+    /// snapshot — prevents independent recursion branches from poisoning each
+    /// other's oscillation tracking.
+    var nextTriedHypotheses = {
+      if (triedHypotheses != null)
+        for (var (k, v) in triedHypotheses.pairs) //
+          k: v.toSet(),
+    };
+
+    /// If any rule still has invalid branches, ask the constraint solver
+    /// whether a better type hypothesis exists for the stuck rules.
+    if (visitor.invalidReturnTypes.values.any((v) => v.isNotEmpty)) {
+      var solver = _TypeConstraintSolver(
+        typeSystem: result.typeSystem,
+        validReturnTypes: visitor.validReturnTypes,
+        invalidReturnTypes: visitor.invalidReturnTypes,
+        rules: rules,
+        fragments: fragments,
+        reverseRenames: _reverseRenames,
+      );
+      var hypotheses = solver.solve();
+
+      if (hypotheses != null) {
+        var paradoxes = <String, ({String previousType, String newType})>{};
+
+        for (var (key, value) in hypotheses.pairs) {
+          var typeStr = value.getDisplayString();
+          var seen = nextTriedHypotheses.putIfAbsent(key, () => {});
+
+          if (seen.contains(typeStr)) {
+            // This (rule, type) pair was already tried — it's oscillating.
+            paradoxes[key] = (
+              previousType: resolvedTypes?[key]?.getDisplayString() ?? "unknown",
+              newType: typeStr,
+            );
+          } else {
+            seen.add(typeStr);
+            nextResolvedTypes[key] = value;
+          }
+        }
+
+        if (paradoxes.isNotEmpty) {
+          var description = paradoxes.entries
+              .map((e) {
+                var rule = _reverseRenames[_renames[e.key] ?? e.key] ?? e.key;
+                return "  '$rule': oscillates between '${e.value.previousType}' and '${e.value.newType}'";
+              })
+              .join("\n");
+
+          throw TypeParadoxException(
+            "Type paradox detected — the following rules have contradictory "
+            "type constraints that cannot be resolved:\n$description\n\n"
+            "Hint: add an explicit type annotation to break the cycle, e.g.:\n"
+            "${paradoxes.keys.map((k) {
+              var rule = _reverseRenames[_renames[k] ?? k] ?? k;
+              return "  Object $rule = ...;";
+            }).join('\n')}",
+          );
+        }
+      }
+    }
+
+    /// Check whether anything actually changed since the last round.
+    /// If not, the types have converged and we can return the compiled output.
+    /// The length check catches the case where a previously-missing rule now
+    /// has a resolved type (or vice-versa).
+    var hasChanged =
+        resolvedTypes == null ||
+        nextResolvedTypes.length != resolvedTypes.length ||
+        nextResolvedTypes.keys.any(
+          (k) => resolvedTypes[k]?.getDisplayString() != nextResolvedTypes[k]?.getDisplayString(),
+        );
+
+    if (hasChanged) {
+      /// Do the iteration again.
+      return _compile(
+        parserName,
+        rules: rules,
+        fragments: fragments,
+        start: start,
+        type: type,
+        shouldAnalyzeTypes: shouldAnalyzeTypes,
+        resolvedTypes: nextResolvedTypes,
+        triedHypotheses: nextTriedHypotheses,
+      );
+    } else {
+      /// We try to delete the temp file
+      try {
+        tempFile.parent.deleteSync(recursive: true);
+        return compiled;
+      } finally {
+        if (tempFile.parent.existsSync()) {
+          tempFile.parent.deleteSync(recursive: true);
+        }
+      }
+    }
   }
 
   /// Generates a full Dart parser class named [parserName].
@@ -747,8 +901,20 @@ final class ParserGenerator {
   /// [type] overrides the inferred return type of the parser's `start` method.
   ///
   /// Returns the complete Dart source as a string, ready to be written to a file.
-  String compileParserGenerator(String parserName, {String? start, String? type}) {
-    return _compile(parserName, rules: _rules, fragments: _fragments, start: start, type: type);
+  Future<String> compileParserGenerator(
+    String parserName, {
+    String? start,
+    String? type,
+    bool shouldAnalyzeTypes = false,
+  }) async {
+    return _compile(
+      parserName,
+      rules: _rules,
+      fragments: _fragments,
+      start: start,
+      type: type,
+      shouldAnalyzeTypes: shouldAnalyzeTypes,
+    );
   }
 
   /// Generates a Dart parser that produces an untyped Abstract Syntax Tree.
@@ -759,7 +925,7 @@ final class ParserGenerator {
   /// [start] overrides the default entry rule.
   ///
   /// Returns the complete Dart source as a string.
-  String compileAstParserGenerator(String parserName, {String? start}) {
+  Future<String> compileAstParserGenerator(String parserName, {String? start}) {
     RemoveActionNodeVisitor removeActionNodeVisitor = const RemoveActionNodeVisitor();
     Map<String, (String?, Node)> rules = <String, (String?, Node)>{
       for (var (String name, (_, Node node)) in _rules.pairs)
@@ -782,7 +948,7 @@ final class ParserGenerator {
   /// [start] overrides the default entry rule.
   ///
   /// Returns the complete Dart source as a string.
-  String compileCstParserGenerator(String parserName, {String? start}) {
+  Future<String> compileCstParserGenerator(String parserName, {String? start}) {
     var removeActionNodeVisitor = const RemoveActionNodeVisitor();
     var removeSelectionVisitor = const RemoveSelectionVisitor();
 
@@ -918,7 +1084,6 @@ Never notFound(String name, Tag tag, [String? root]) {
 
 /// Indentation and de-indentation helpers for generated Dart source strings.
 extension IndentationExtension on String {
-  // ignore: avoid_positional_boolean_parameters
   /// Indents every non-empty line by [count] levels of two spaces each.
   ///
   /// If [shouldIndent] is `false`, the string is returned unchanged.
@@ -1034,4 +1199,238 @@ extension on String {
       : "(${encode("<${declarationName.unwrappedName}>")}, $this)";
 
   String get unwrappedName => startsWith("global::") ? substring(8) : this;
+}
+
+// ignore: unused_element
+class _TypeResolutionVisitor extends RecursiveAstVisitor<void> {
+  _TypeResolutionVisitor({
+    required this.typeSystem,
+    required this.renames,
+    required this.reverseRenames,
+  }) : resolvedReturnTypes = {},
+       validReturnTypes = {},
+       invalidReturnTypes = {};
+
+  final TypeSystem typeSystem;
+  final Map<String, String> renames;
+  final Map<String, String> reverseRenames;
+  final Map<String, DartType> resolvedReturnTypes;
+  final Map<String, List<DartType>> validReturnTypes;
+  final Map<String, List<DartType>> invalidReturnTypes;
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    String declaredName = node.name.lexeme;
+    String? actualName = reverseRenames[declaredName];
+    if (actualName == null) {
+      return;
+    }
+    _resolve(actualName, node.body);
+    super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    for (VariableDeclaration declaration in node.fields.variables) {
+      String declaredName = declaration.name.lexeme;
+      String? actualName = reverseRenames[declaredName];
+      if (actualName == null) {
+        return;
+      }
+      Expression expression = declaration.initializer!;
+      if (expression is! FunctionExpression) {
+        return;
+      }
+      _resolve(actualName, expression.body);
+    }
+    super.visitFieldDeclaration(node);
+  }
+
+  void _resolve(String originalName, FunctionBody functionBody) {
+    _ReturnTypeCollector collector = .new();
+    functionBody.accept(collector);
+    List<DartType> types = collector.types;
+
+    if (types.isEmpty) {
+      throw StateError("Rule / Fragment $originalName has no return!");
+    }
+
+    var valid = types.where((t) => !t.getDisplayString().contains("InvalidType")).toList();
+    var invalid = types.where((t) => t.getDisplayString().contains("InvalidType")).toList();
+
+    validReturnTypes[originalName] = valid;
+    invalidReturnTypes[originalName] = invalid;
+
+    if (valid.isEmpty) {
+      resolvedReturnTypes.remove(originalName);
+    } else {
+      resolvedReturnTypes[originalName] = valid.reduce(typeSystem.leastUpperBound);
+    }
+
+    // print((originalName, types, resolvedReturnTypes[originalName]));
+  }
+}
+
+// ignore: unused_element
+class _ReturnTypeCollector extends RecursiveAstVisitor<void> {
+  final List<DartType> types = [];
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    var t = node.expression?.staticType;
+    if (t != null) {
+      types.add(t);
+    }
+
+    super.visitReturnStatement(node);
+  }
+}
+
+// New constraint solver — Tarjan SCC + most-specific hypothesis injection
+class _TypeConstraintSolver {
+  const _TypeConstraintSolver({
+    required this.typeSystem,
+    required this.validReturnTypes,
+    required this.invalidReturnTypes,
+    required this.rules,
+    required this.fragments,
+    required this.reverseRenames,
+  });
+
+  final TypeSystem typeSystem;
+  final Map<String, List<DartType>> validReturnTypes;
+  final Map<String, List<DartType>> invalidReturnTypes;
+  final Map<String, (String?, Node)> rules;
+  final Map<String, (String?, Node)> fragments;
+  final Map<String, String> reverseRenames;
+
+  /// Returns an updated type map with better hypotheses for stuck SCCs,
+  /// or `null` if no improvement is possible.
+  Map<String, DartType>? solve() {
+    /// If there are no invalid types, then we don't have to do anything.
+    if (!invalidReturnTypes.values.any((v) => v.isNotEmpty)) {
+      return null;
+    }
+
+    var deps = _buildDependencyGraph();
+    var sccs = _findStronglyConnectedComponents(deps);
+    var result = <String, DartType>{};
+
+    for (var component in sccs) {
+      // Only process SCCs where at least one rule has invalid branches.
+      if (!component.any((r) => invalidReturnTypes[r]?.isNotEmpty == true)) {
+        continue;
+      }
+
+      // Gather every valid return type seen in this component.
+      var candidates = [for (var r in component) ...?validReturnTypes[r]];
+      var hypothesis = _mostSpecific(candidates);
+      if (hypothesis == null) {
+        continue;
+      }
+
+      for (var r in component) {
+        var currentLub = validReturnTypes[r]?.fold<DartType?>(
+          null,
+          (prev, t) => prev == null ? t : typeSystem.leastUpperBound(prev, t),
+        );
+
+        // Only inject if the hypothesis is strictly more specific.
+        var hypothesisStr = hypothesis.getDisplayString();
+        var currentStr = currentLub?.getDisplayString();
+        if (currentStr == null ||
+            (typeSystem.isSubtypeOf(hypothesis, currentLub!) && hypothesisStr != currentStr)) {
+          result[r] = hypothesis;
+        }
+      }
+    }
+
+    return result.isEmpty ? null : result;
+  }
+
+  Map<String, Set<String>> _buildDependencyGraph() {
+    var deps = <String, Set<String>>{};
+
+    for (var (rawName, (_, node)) in {...rules, ...fragments}.pairs) {
+      var originalName = reverseRenames[rawName] ?? rawName;
+
+      deps[originalName] = {
+        for (final (_, refName) in node.acceptSimpleVisitor(const ReferencedVisitor()))
+          if (reverseRenames.containsKey(refName)) reverseRenames[refName]!,
+      };
+    }
+
+    return deps;
+  }
+
+  List<Set<String>> _findStronglyConnectedComponents(Map<String, Set<String>> deps) {
+    var index = <String, int>{};
+    var lowlink = <String, int>{};
+    var onStack = <String>{};
+    var stack = <String>[];
+    var sccs = <Set<String>>[];
+    var counter = 0;
+
+    void strongConnect(String v) {
+      index[v] = lowlink[v] = counter++;
+      stack.add(v);
+      onStack.add(v);
+
+      for (var w in deps[v] ?? const <String>{}) {
+        if (!index.containsKey(w)) {
+          strongConnect(w);
+          lowlink[v] = min(lowlink[v]!, lowlink[w]!);
+        } else if (onStack.contains(w)) {
+          lowlink[v] = min(lowlink[v]!, index[w]!);
+        }
+      }
+
+      if (lowlink[v] == index[v]) {
+        var scc = <String>{};
+        String w;
+        do {
+          w = stack.removeLast();
+          onStack.remove(w);
+          scc.add(w);
+        } while (w != v);
+        sccs.add(scc);
+      }
+    }
+
+    for (var v in deps.keys) {
+      if (!index.containsKey(v)) {
+        strongConnect(v);
+      }
+    }
+
+    return sccs;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Type helpers
+  // ---------------------------------------------------------------------------
+
+  /// Returns the most specific type from [types], ignoring bare `Object`/`Object?`
+  /// which are too general to break a recursive deadlock.
+  DartType? _mostSpecific(List<DartType> types) {
+    var concrete = types.where((t) => !t.getDisplayString().contains("Object")).toList();
+    if (concrete.isEmpty) {
+      return null;
+    }
+
+    // LUB of the concrete types gives the tightest common ancestor.
+    return concrete.reduce(typeSystem.leastUpperBound);
+  }
+}
+
+class TypeParadoxException implements Exception {
+  TypeParadoxException(this.message);
+  final String message;
+
+  @override
+  String toString() => "TypeParadoxException: $message";
+}
+
+extension<K, V> on Map<K, V> {
+  Map<K, V> toMap() => {...this};
 }

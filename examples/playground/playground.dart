@@ -1,10 +1,11 @@
 // ignore_for_file: type=lint, body_might_complete_normally_nullable, unused_local_variable, inference_failure_on_function_return_type, unused_import, duplicate_ignore, unused_element, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
 
 // imports
-// ignore_for_file: avoid_positional_boolean_parameters, unnecessary_this, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
+// ignore_for_file: avoid_positional_boolean_parameters, unnecessary_this, unused_element, use_setters_to_change_properties
 
-import "dart:collection";
-import "dart:math" as math;
+// ignore: unused_shown_name
+import "dart:collection" show DoubleLinkedQueue, HashMap, Queue;
+import "dart:math" as math show Random;
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -218,7 +219,7 @@ abstract base class _PegParser<R extends Object> {
   _Rule<R> get start;
 }
 
-extension NullableExtension<T extends Object> on T {
+extension<T extends Object> on T {
   @pragma("vm:prefer-inline")
   T? nullable() => this;
 }
@@ -255,7 +256,7 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class Playground extends _PegParser<Object> {
+final class Playground extends _PegParser<(int, Object, int)> {
   Playground();
 
   @override
@@ -263,51 +264,60 @@ final class Playground extends _PegParser<Object> {
 
 
   /// `ROOT`
-  late final f0 = () {
+  (int, Object, int)? f0() {
     if (this.apply(this.r0) case var $?) {
       return $;
     }
-  };
+  }
 
-  /// `global::a`
-  late final r0 = () {
+  /// `fragment0`
+  Object? f1() {
     var _mark = this._mark();
-    if (this.matchPattern(_string.$2) case var $0?) {
-      if (this.matchPattern(_string.$1) case var $1?) {
-        if (null case var $2) {
-          _mark.isCut = true;
+    if (this.apply(this.r1) case var $?) {
+      return $;
+    }
+    this._recover(_mark);
+    if (this.matchPattern(_string.$1) case var $?) {
+      return $;
+    }
+  }
+
+  /// `global::rule`
+  (int, Object, int)? r0() {
+    if (this.pos case var $0 && <= 0) {
+      if (this.f1() case var $1?) {
+        if (this.pos case var $2 when this.pos >= this.buffer.length) {
+          return ($0, $1, $2);
+        }
+      }
+    }
+  }
+
+  /// `global::inner`
+  Object? r1() {
+    var _mark = this._mark();
+    if (this.matchPattern(_string.$3) case var $0?) {
+      if (null case var $1) {
+        _mark.isCut = true;
+        if (this.matchPattern(_string.$2) case var $2?) {
           return ($0, $1, $2);
         }
       }
     }
     if (_mark.isCut) return null; else this._recover(_mark);
-    if (this.matchPattern(_string.$2) case var $?) {
+    if (this.matchPattern(_string.$4) case var $?) {
       return $;
     }
-    this._recover(_mark);
-    if (this.apply(this.r1) case var $?) {
-      return $;
-    }
-  };
-
-  /// `global::b`
-  late final r1 = () {
-    var _mark = this._mark();
-    if (this.matchPattern(_string.$1) case var $0?) {
-      if (this.matchPattern(_string.$2) case var $1?) {
-        return ($0, $1);
-      }
-    }
-    this._recover(_mark);
-    if (this.matchPattern(_string.$2) case var $?) {
-      return $;
-    }
-  };
+  }
 
 }
 class _string {
+  /// `"z"`
+  static const $1 = "z";
   /// `"b"`
-  static const $1 = "b";
+  static const $2 = "b";
   /// `"a"`
-  static const $2 = "a";
+  static const $3 = "a";
+  /// `"c"`
+  static const $4 = "c";
 }

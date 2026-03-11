@@ -221,7 +221,7 @@ abstract base class _PegParser<R extends Object> {
   _Rule<R> get start;
 }
 
-extension NullableExtension<T extends Object> on T {
+extension<T extends Object> on T {
   @pragma("vm:prefer-inline")
   T? nullable() => this;
 }
@@ -266,7 +266,7 @@ final class Math extends _PegParser<num> {
 
 
   /// `global::number`
-  num ? f0() {
+  num? f0() {
     var _mark = this._mark();
     if (this.pos case var from) {
       if (this.matchPattern(_regexp.$1) case var _2?) {
@@ -293,7 +293,7 @@ final class Math extends _PegParser<num> {
                   break;
                 }
                 if (this.pos case var to) {
-                  return double.parse(buffer.substring(from, to));
+                  return double.parse(buffer.substring(from, to)) ;
                 }
               }
             }
@@ -315,7 +315,7 @@ final class Math extends _PegParser<num> {
             break;
           }
           if (this.pos case var to) {
-            return int.parse(buffer.substring(from, to));
+            return int.parse(buffer.substring(from, to)) ;
           }
         }
       }
@@ -323,20 +323,20 @@ final class Math extends _PegParser<num> {
   }
 
   /// `ROOT`
-  num ? f1() {
+  num? f1() {
     if (this.apply(this.r0) case var $?) {
       return $;
     }
   }
 
   /// `global::rule`
-  num ? r0() {
+  num? r0() {
     if (this.pos <= 0) {
       if (this.apply(this.r5)! case _) {
         if (this.apply(this.r1) case (var $2 && var expr)?) {
           if (this.apply(this.r5)! case _) {
             if (this.pos >= this.buffer.length) {
-              return expr;
+              return expr ;
             }
           }
         }
@@ -345,14 +345,14 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::expr`
-  num ? r1() {
+  num? r1() {
     var _mark = this._mark();
     if (this.apply(this.r1) case var expr?) {
       if (this.apply(this.r5)! case _) {
         if (this.matchPattern(_string.$2) case _?) {
           if (this.apply(this.r5)! case _) {
             if (this.apply(this.r2) case var term?) {
-              return expr + term;
+              return expr + term ;
             }
           }
         }
@@ -364,7 +364,7 @@ final class Math extends _PegParser<num> {
         if (this.matchPattern(_string.$3) case _?) {
           if (this.apply(this.r5)! case _) {
             if (this.apply(this.r2) case var term?) {
-              return expr - term;
+              return expr - term ;
             }
           }
         }
@@ -377,12 +377,12 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::term`
-  num ? r2() {
+  num? r2() {
     var _mark = this._mark();
     if (this.matchPattern(_string.$3) case _?) {
       if (this.apply(this.r5)! case _) {
         if (this.apply(this.r2) case (var $2 && var term)?) {
-          return -term;
+          return -term ;
         }
       }
     }
@@ -390,7 +390,7 @@ final class Math extends _PegParser<num> {
     if (this.apply(this.r2) case var term?) {
       if (this.apply(this.r5)! case _) {
         if (this.apply(this.r3) case var factor?) {
-          return term * factor;
+          return term * factor ;
         }
       }
     }
@@ -400,7 +400,7 @@ final class Math extends _PegParser<num> {
         if (this.matchPattern(_string.$4) case _?) {
           if (this.apply(this.r5)! case _) {
             if (this.apply(this.r3) case var factor?) {
-              return term * factor;
+              return term * factor ;
             }
           }
         }
@@ -412,7 +412,7 @@ final class Math extends _PegParser<num> {
         if (this.matchPattern(_string.$5) case _?) {
           if (this.apply(this.r5)! case _) {
             if (this.apply(this.r3) case var factor?) {
-              return term / factor;
+              return term / factor ;
             }
           }
         }
@@ -424,7 +424,7 @@ final class Math extends _PegParser<num> {
         if (this.matchPattern(_string.$6) case _?) {
           if (this.apply(this.r5)! case _) {
             if (this.apply(this.r3) case var factor?) {
-              return term % factor;
+              return term % factor ;
             }
           }
         }
@@ -436,7 +436,7 @@ final class Math extends _PegParser<num> {
         if (this.matchPattern(_string.$7) case _?) {
           if (this.apply(this.r5)! case _) {
             if (this.apply(this.r3) case var factor?) {
-              return term ~/ factor;
+              return term ~/ factor ;
             }
           }
         }
@@ -449,14 +449,14 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::factor`
-  num ? r3() {
+  num? r3() {
     var _mark = this._mark();
     if (this.apply(this.r4) case var primary?) {
       if (this.apply(this.r5)! case _) {
         if (this.matchPattern(_string.$8) case _?) {
           if (this.apply(this.r5)! case _) {
             if (this.apply(this.r3) case var factor?) {
-              return math.pow(primary, factor);
+              return math.pow(primary, factor) ;
             }
           }
         }
@@ -469,14 +469,14 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::primary`
-  num ? r4() {
+  num? r4() {
     var _mark = this._mark();
     if (this.matchPattern(_string.$10) case _?) {
       if (this.apply(this.r5)! case _) {
         if (this.apply(this.r1) case (var $2 && var expr)?) {
           if (this.apply(this.r5)! case _) {
             if (this.matchPattern(_string.$9) case _?) {
-              return expr;
+              return expr ;
             }
           }
         }
@@ -508,7 +508,7 @@ final class Math extends _PegParser<num> {
                   break;
                 }
                 if (this.pos case var to) {
-                  return double.parse(buffer.substring(from, to));
+                  return double.parse(buffer.substring(from, to)) ;
                 }
               }
             }
@@ -530,7 +530,7 @@ final class Math extends _PegParser<num> {
             break;
           }
           if (this.pos case var to) {
-            return int.parse(buffer.substring(from, to));
+            return int.parse(buffer.substring(from, to)) ;
           }
         }
       }
@@ -538,7 +538,7 @@ final class Math extends _PegParser<num> {
   }
 
   /// `global::_`
-  late final r5 = () {
+  () r5() {
     var _mark = this._mark();
       if (this.matchPattern(_regexp.$2) case var _0) {
         if ([if (_0 case var _0?) _0] case var _l1) {
@@ -555,10 +555,10 @@ final class Math extends _PegParser<num> {
           } else {
             this._recover(_mark);
           }
-          return ();
+          return () ;
         }
       }
-  };
+  }
 
 }
 class _regexp {

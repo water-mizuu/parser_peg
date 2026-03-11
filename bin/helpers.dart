@@ -110,7 +110,7 @@ Future<IsolateParser> spawnParser(String grammarSource, {String parserName = "Te
     throw StateError("Failed to parse grammar:\n${grammar.reportFailures()}");
   }
 
-  var parserCode = generator.compileParserGenerator(parserName);
+  var parserCode = await generator.compileParserGenerator(parserName);
 
   // Build a small driver program that keeps running, parsing each message
   // it receives via a SendPort.

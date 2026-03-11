@@ -1,11 +1,12 @@
+// ignore_for_file: type=lint, body_might_complete_normally_nullable, unused_local_variable, inference_failure_on_function_return_type, unused_import, duplicate_ignore, unused_element, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
+
+// imports
 // ignore_for_file: avoid_positional_boolean_parameters, unnecessary_this, unused_element, use_setters_to_change_properties
 
 // ignore: unused_shown_name
 import "dart:collection" show DoubleLinkedQueue, HashMap, Queue;
 import "dart:math" as math show Random;
-
-/// IMPORTS-SPLIT
-
+// base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
 
@@ -254,104 +255,52 @@ class _Memo {
   int pos;
 }
 
-/// TRIE-SPLIT
+// GENERATED CODE
+final class Playground extends _PegParser<int> {
+  Playground();
 
-typedef _Union<A, B> = (A? a, B? b);
-typedef _Key<K> = _Union<K, Symbol>;
+  @override
+  get start => r0;
 
-extension<R extends Object> on _PegParser<R> {
-  String? matchTrie(Trie trie) {
-    if (trie.matchLongest(buffer, pos) case (int start, int end)) {
-      pos = end;
 
-      return buffer.substring(start, end);
+  /// `ROOT`
+  int? f0() {
+    if (this.apply(this.r0) case var $?) {
+      return $;
     }
-
-    if (failures[pos] ??= <String>{} case Set<String> failures) {
-      trie._keys(trie._innerMap).map((v) => v.join()).forEach(failures.add);
-    }
-    return null;
   }
+
+  /// `global::expr`
+  Object? r0() {
+    var _mark = this._mark();
+    if (this.apply(this.r0) case var expr?) {
+      return expr.isEven ;
+    }
+    this._recover(_mark);
+    if (this.pos case var from) {
+      if (this.matchPattern(_regexp.$1) case var _0?) {
+        if ([_0] case var _l1) {
+          for (;;) {
+            var _mark = this._mark();
+            if (this.matchPattern(_regexp.$1) case var _0?) {
+              _l1.add(_0);
+              continue;
+            }
+            this._recover(_mark);
+            break;
+          }
+          if (this.pos case var to) {
+            if (this.buffer.substring(from, to) case var $) {
+              return int.parse(span) ;
+            }
+          }
+        }
+      }
+    }
+  }
+
 }
-
-class Trie {
-  Trie() : _innerMap = HashMap<_Key<String>, Object>();
-  factory Trie.from(Iterable<String> strings) => strings.fold(Trie(), (t, s) => t..add(s));
-  const Trie.complete(this._innerMap);
-
-  static final Symbol _safeGuard = Symbol(math.Random().nextInt(32).toString());
-
-  final HashMap<_Key<String>, Object> _innerMap;
-
-  bool add(String value) {
-    _set(value.split(""), true);
-
-    return true;
-  }
-
-  Trie? derive(String key) => switch (_innerMap[(key, null)]) {
-    HashMap<_Key<String>, Object> value => Trie.complete(value),
-    _ => null,
-  };
-
-  Trie? deriveAll(String value) =>
-      value //
-          .split("")
-          .fold(this, (trie, char) => trie?.derive(char));
-
-  (int, int)? matchLongest(String input, [int start = 0]) {
-    List<int> ends = <int>[];
-
-    int index = start;
-    Trie? derivation = this;
-    for (int i = index; i < input.length; ++i) {
-      derivation = derivation?.derive(input[i]);
-      if (derivation == null) {
-        break;
-      }
-
-      if (derivation._innerMap.containsKey((null, _safeGuard))) {
-        ends.add(i);
-      }
-    }
-
-    if (ends.isEmpty) {
-      return null;
-    }
-
-    int max = ends.last + 1;
-
-    return (index, max);
-  }
-
-  HashMap<_Key<String>, Object> _derived(List<String> keys) {
-    HashMap<_Key<String>, Object> map = _innerMap;
-    for (int i = 0; i < keys.length; ++i) {
-      map =
-          map.putIfAbsent((keys[i], null), HashMap<_Key<String>, Object>.new)
-              as HashMap<_Key<String>, Object>;
-    }
-
-    return map;
-  }
-
-  bool _set(List<String> keys, bool value) => _derived(keys)[(null, _safeGuard)] = value;
-
-  Iterable<List<String>> _keys(HashMap<_Key<String>, Object> map) sync* {
-    if (map.containsKey((null, _safeGuard))) {
-      yield <String>[];
-    }
-
-    for (var (String keys, _) in map.keys.whereType<(String, void)>()) {
-      /// Since it's not the safeguard,
-      ///  Get the derivative of the map.
-
-      switch (map[(keys, null)]) {
-        case HashMap<_Key<String>, Object> derivative:
-          yield* _keys(derivative).map((rest) => <String>[keys, ...rest]);
-        case null:
-          yield <String>[keys];
-      }
-    }
-  }
+class _regexp {
+  /// `/\d/`
+  static final $1 = RegExp("\\d");
 }

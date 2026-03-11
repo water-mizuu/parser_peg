@@ -1,0 +1,11 @@
+rule = ^ _ :expr _ $ { expr };
+
+expr =
+  | :expr _ "+" _ :primary { expr + primary }
+  | primary;
+
+primary =
+  | "(" _ :expr _ ")" { expr }
+  | \d+ { int.parse(span) };
+
+_ = \s*;
