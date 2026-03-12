@@ -6,7 +6,6 @@
 // ignore: unused_shown_name
 import "dart:collection" show DoubleLinkedQueue, HashMap, Queue;
 import "dart:math" as math show Random;
-
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -263,6 +262,7 @@ final class Math extends _PegParser<int> {
   @override
   get start => r0;
 
+
   /// `ROOT`
   int? f0() {
     if (this.apply(this.r0) case var $?) {
@@ -270,50 +270,30 @@ final class Math extends _PegParser<int> {
     }
   }
 
-  /// `global::rule`
-  int? r0() {
-    if (this.pos <= 0) {
-      if (this.apply(this.r3)! case _) {
-        if (this.apply(this.r1) case (var $2 && var expr)?) {
-          if (this.apply(this.r3)! case _) {
-            if (this.pos >= this.buffer.length) {
-              return expr;
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /// `global::expr`
-  int? r1() {
-    var _mark = this._mark();
+  /// `global::addition`
+  int? f1() {
     if (this.apply(this.r1) case var expr?) {
-      if (this.apply(this.r3)! case _) {
+      if (this.apply(this.r2)! case _) {
         if (this.matchPattern(_string.$1) case _?) {
-          if (this.apply(this.r3)! case _) {
-            if (this.apply(this.r2) case var primary?) {
-              return expr + primary;
+          if (this.apply(this.r2)! case _) {
+            if (this.f2() case var primary?) {
+              return expr + primary ;
             }
           }
         }
       }
-    }
-    this._recover(_mark);
-    if (this.apply(this.r2) case var $?) {
-      return $;
     }
   }
 
   /// `global::primary`
-  int? r2() {
+  int? f2() {
     var _mark = this._mark();
     if (this.matchPattern(_string.$3) case _?) {
-      if (this.apply(this.r3)! case _) {
+      if (this.apply(this.r2)! case _) {
         if (this.apply(this.r1) case (var $2 && var expr)?) {
-          if (this.apply(this.r3)! case _) {
+          if (this.apply(this.r2)! case _) {
             if (this.matchPattern(_string.$2) case _?) {
-              return expr;
+              return expr ;
             }
           }
         }
@@ -333,54 +313,77 @@ final class Math extends _PegParser<int> {
             break;
           }
           if (this.pos case var to) {
-            if (this.buffer.substring(from, to) case var $) {
-              return int.parse($);
+            if (this.buffer.substring(from, to) case var span) {
+              return int.parse(span) ;
             }
           }
         }
       }
+    }
+  }
+
+  /// `global::rule`
+  int? r0() {
+    if (this.pos <= 0) {
+      if (this.apply(this.r2)! case _) {
+        if (this.apply(this.r1) case (var $2 && var expr)?) {
+          if (this.apply(this.r2)! case _) {
+            if (this.pos >= this.buffer.length) {
+              return expr ;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /// `global::expr`
+  int? r1() {
+    var _mark = this._mark();
+    if (this.f1() case var $?) {
+      return $;
+    }
+    this._recover(_mark);
+    if (this.f2() case var $?) {
+      return $;
     }
   }
 
   /// `global::_`
-  List<String> r3() {
+  List<String> r2() {
     var _mark = this._mark();
-    if (this.matchPattern(_regexp.$2) case var _0) {
-      if ([if (_0 case var _0?) _0] case var _l1) {
-        if (_l1.isNotEmpty) {
-          for (;;) {
-            var _mark = this._mark();
-            if (this.matchPattern(_regexp.$2) case var _0?) {
-              _l1.add(_0);
-              continue;
+      if (this.matchPattern(_regexp.$2) case var _0) {
+        if ([if (_0 case var _0?) _0] case var _l1) {
+          if (_l1.isNotEmpty) {
+            for (;;) {
+              var _mark = this._mark();
+              if (this.matchPattern(_regexp.$2) case var _0?) {
+                _l1.add(_0);
+                continue;
+              }
+              this._recover(_mark);
+              break;
             }
+          } else {
             this._recover(_mark);
-            break;
           }
-        } else {
-          this._recover(_mark);
+          return _l1;
         }
-        return _l1;
       }
-    }
   }
-}
 
+}
 class _regexp {
   /// `/\d/`
   static final $1 = RegExp("\\d");
-
   /// `/\s/`
   static final $2 = RegExp("\\s");
 }
-
 class _string {
   /// `"+"`
   static const $1 = "+";
-
   /// `")"`
   static const $2 = ")";
-
   /// `"("`
   static const $3 = "(";
 }

@@ -3,6 +3,8 @@ import "package:parser_peg/src/visitor/statement_visitor.dart";
 
 enum Tag { rule, fragment, inline }
 
+enum MemoizationLevel { lr, simple, none }
+
 sealed class Statement {
   O acceptVisitor<O, I>(StatementVisitor<O, I> visitor, I parameters);
 }

@@ -4,6 +4,7 @@ import "dart:convert";
 
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/node.dart";
+import "package:parser_peg/src/statement.dart";
 import "package:parser_peg/src/visitor/node_visitor.dart";
 import "package:parser_peg/src/visitor/node_visitor/simple_visitor/is_cut_visitor.dart";
 
@@ -47,10 +48,15 @@ String encode(Object object) => jsonEncode(object).replaceAll(r"$", r"\$");
 
 /// This visitor compiles the parser grammar into a Dart function.
 class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameters> {
-  ParserCompilerVisitor({required this.isPassIfNull, required this.reported});
+  ParserCompilerVisitor({
+    required this.isPassIfNull,
+    required this.reported,
+    required this.memoLevels,
+  });
 
   final bool Function(Node, String) isPassIfNull;
   final bool reported;
+  final Map<String, MemoizationLevel> memoLevels;
 
   int ruleId = 0;
 
@@ -84,33 +90,30 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitCutNode(node, parameters) {
-    StringBuffer buffer = StringBuffer();
+    String body = parameters.inner ?? "return null";
     if (parameters.isCuttable) {
-      buffer.writeln("_mark.isCut = true;");
+      body = body.prepend("_mark.isCut = true;");
     }
-    buffer.writeln(parameters.inner ?? "return null;");
-
-    String name = parameters.withNames.caseVarNames;
-    if (name case "_") {
-      return buffer.toString();
+    if (parameters.withNames.caseVarNames case String name && != "_") {
+      body = body.wrap("if (null case $name) {", "}");
     }
 
-    return buffer.toString().wrap("if (null case $name) {", "}");
+    return body;
   }
 
   @override
   String visitEpsilonNode(node, parameters) {
-    var Parameters(isPassIfNull: isNullAllowed, :withNames, :inner) = parameters;
+    var Parameters(:isPassIfNull, :withNames, :inner) = parameters;
     var body = inner ?? "return ${withNames.singleName};";
     return body.wrap("if ('' case ${withNames.caseVarNames}) {", "}");
   }
 
   @override
   String visitTriePatternNode(node, parameters) {
-    var Parameters(isPassIfNull: isNullAllowed, :withNames, :inner) = parameters;
+    var Parameters(:isPassIfNull, :withNames, :inner) = parameters;
     var key = jsonEncode(node.options);
     var id = trieIds[key] ??= (tries..add(node.options), ++trieId).$2;
-    var questionMark = isNullAllowed ? "" : "?";
+    var questionMark = isPassIfNull ? "" : "?";
     var name = withNames.caseVarNames + questionMark;
 
     var body = inner ?? "return ${withNames.singleName};";
@@ -123,10 +126,10 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     ///
     /// It assigns a unique ID to each distinct string literal to allow for efficient lookup
     /// via the `_string` table in the generated parser.
-    var Parameters(isPassIfNull: isNullAllowed, :withNames, :inner) = parameters;
+    var Parameters(:isPassIfNull, :withNames, :inner) = parameters;
     var key = node.literal;
     var id = stringIds[key] ??= (strings..add(node.literal), ++stringId).$2;
-    var questionMark = isNullAllowed ? "" : "?";
+    var questionMark = isPassIfNull ? "" : "?";
     var name = withNames.caseVarNames + questionMark;
 
     var body = inner ?? "return ${withNames.singleName};";
@@ -139,7 +142,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     ///
     /// The range is flattened into a canonical string key and assigned a unique ID
     /// for lookup via the `_range` table.
-    var Parameters(isPassIfNull: isNullAllowed, :withNames, :inner) = parameters;
+    var Parameters(:isPassIfNull, :withNames, :inner) = parameters;
     var key = node
         .ranges //
         .map(
@@ -151,7 +154,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         .join(",");
 
     var id = rangeIds[key] ??= (ranges..add(node.ranges), ++rangeId).$2;
-    var questionMark = isNullAllowed ? "" : "?";
+    var questionMark = isPassIfNull ? "" : "?";
     var name = withNames.caseVarNames + questionMark;
 
     var body = inner ?? "return ${withNames.singleName};";
@@ -164,10 +167,10 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     /// Matches a regular expression against the input using `matchPattern`.
     ///
     /// Unique regex patterns are tracked and indexed in the `_regexp` table.
-    var Parameters(isPassIfNull: isNullAllowed, :withNames, :inner) = parameters;
+    var Parameters(:isPassIfNull, :withNames, :inner) = parameters;
     var key = node.value;
     var id = regexpIds[key] ??= (regexps..add(key), ++regexpId).$2;
-    var questionMark = isNullAllowed ? "" : "?";
+    var questionMark = isPassIfNull ? "" : "?";
     var name = withNames.caseVarNames + questionMark;
 
     var body = inner ?? "return ${withNames.singleName};";
@@ -180,11 +183,11 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
     /// Matches a pre-defined regex escape sequence (like \d or \w).
     ///
     /// These are treated similarly to `RegExpNode` and sharing the `_regexp` lookup table.
-    var Parameters(isPassIfNull: isNullAllowed, :withNames, :inner) = parameters;
+    var Parameters(:isPassIfNull, :withNames, :inner) = parameters;
     var pattern = node.pattern;
     var id = regexpIds[pattern] ??= (regexps..add(pattern), ++regexpId).$2;
 
-    var questionMark = isNullAllowed ? "" : "?";
+    var questionMark = isPassIfNull ? "" : "?";
     var name = withNames.caseVarNames + questionMark;
 
     var body = inner ?? "return ${withNames.singleName};";
@@ -295,7 +298,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   @override
   String visitChoiceNode(node, parameters) {
     var Parameters(
-      isPassIfNull: isNullAllowed, //
+      :isPassIfNull, //
       :withNames,
       :inner,
       :declarationName,
@@ -308,7 +311,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
         child.acceptParametrizedVisitor(
           this,
           Parameters(
-            isPassIfNull: isPassIfNull(child, declarationName),
+            isPassIfNull: this.isPassIfNull(child, declarationName),
             withNames: withNames,
             inner: inner,
             declarationName: declarationName,
@@ -550,7 +553,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
               isCuttable: false,
             ),
           )
-          .indent(4),
+          .indent(3),
     );
     loopBuffer.writeln("      this._recover(_mark);");
     loopBuffer.writeln("      break;");
@@ -815,25 +818,29 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitReferenceNode(node, parameters) {
-    var Parameters(isPassIfNull: isNullAllowed, :withNames, :inner, :declarationName) = parameters;
+    var Parameters(:isPassIfNull, :withNames, :inner, :declarationName) = parameters;
     var ruleName = node.ruleName;
-    var mark = isPassIfNull(node, declarationName) ? "!" : "";
-    var questionMark = isNullAllowed ? "" : "?";
+    var mark = this.isPassIfNull(node, declarationName) ? "!" : "";
+    var questionMark = isPassIfNull ? "" : "?";
 
-    var buffer = [
-      "if (this.apply(this.$ruleName)$mark case ${withNames.caseVarNames}$questionMark) {",
-      inner?.indent() ?? "return ${withNames.singleName};".indent(),
+    var methodName = switch (memoLevels[ruleName]!) {
+      MemoizationLevel.lr => "this._applyLr(this.$ruleName)",
+      MemoizationLevel.simple => "this._applyMemo(this.$ruleName)",
+      MemoizationLevel.none => "this.$ruleName()",
+    };
+    var body = inner ?? "return ${withNames.singleName};";
+
+    return body = body.wrap(
+      "if ($methodName$mark case ${withNames.caseVarNames}$questionMark) {",
       "}",
-    ];
-
-    return buffer.join("\n");
+    );
   }
 
   @override
   String visitFragmentNode(node, parameters) {
-    var Parameters(isPassIfNull: isNullAllowed, :withNames, :inner) = parameters;
+    var Parameters(:isPassIfNull, :withNames, :inner) = parameters;
     var buffer = [
-      "if (this.${node.fragmentName}() case ${withNames.caseVarNames}${isNullAllowed ? "" : "?"}) {",
+      "if (this.${node.fragmentName}() case ${withNames.caseVarNames}${isPassIfNull ? "" : "?"}) {",
       inner?.indent() ?? "return ${withNames.singleName};".indent(),
       "}",
     ];
@@ -843,13 +850,12 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
 
   @override
   String visitNamedNode(node, parameters) {
-    var Parameters(isPassIfNull: isNullAllowed, :withNames, :inner, :declarationName, :isMarked) =
-        parameters;
+    var Parameters(:isPassIfNull, :withNames, :inner, :declarationName, :isMarked) = parameters;
 
     return node.child.acceptParametrizedVisitor(
       this,
       Parameters(
-        isPassIfNull: isNullAllowed,
+        isPassIfNull: isPassIfNull,
         withNames: {...?withNames, node.name},
         inner: inner,
         declarationName: declarationName,

@@ -38,36 +38,36 @@ Future<IsolateParser> spawnParser(String grammarSource, {String parserName = "Te
   // it receives via a SendPort.
   var driver =
       """
-import "dart:convert" show jsonEncode;
-import "dart:isolate" show ReceivePort, SendPort;
+      import "dart:convert" show jsonEncode;
+      import "dart:isolate" show ReceivePort, SendPort;
 
-$parserCode
+      $parserCode
 
-Object? _serialize(Object? v) {
-  if (v == null) return null;
-  if (v is num || v is bool || v is String) return v;
-  if (v is List) return v.map(_serialize).toList();
-  if (v is Map) return v.map((k, v) => MapEntry(k.toString(), _serialize(v)));
-  return v.toString();
-}
+      Object? _serialize(Object? v) {
+        if (v == null) return null;
+        if (v is num || v is bool || v is String) return v;
+        if (v is List) return v.map(_serialize).toList();
+        if (v is Map) return v.map((k, v) => MapEntry(k.toString(), _serialize(v)));
+        return v.toString();
+      }
 
-void main(List<String> _, SendPort initPort) {
-  var receivePort = ReceivePort();
-  initPort.send(receivePort.sendPort);
+      void main(List<String> _, SendPort initPort) {
+        var receivePort = ReceivePort();
+        initPort.send(receivePort.sendPort);
 
-  var parser = $parserName();
+        var parser = $parserName();
 
-  receivePort.listen((msg) {
-    var [replyPort as SendPort, input as String] = msg as List;
-    try {
-      var result = parser.parse(input);
-      replyPort.send(["ok", result == null ? null : jsonEncode(_serialize(result))]);
-    } catch (e, st) {
-      replyPort.send(["error", e.toString(), st.toString()]);
-    }
-  });
-}
-""";
+        receivePort.listen((msg) {
+          var [replyPort as SendPort, input as String] = msg as List;
+          try {
+            var result = parser.parse(input);
+            replyPort.send(["ok", result == null ? null : jsonEncode(_serialize(result))]);
+          } catch (e, st) {
+            replyPort.send(["error", e.toString(), st.toString()]);
+          }
+        });
+      }
+      """;
 
   var uri = Uri.dataFromString(
     driver,
@@ -141,11 +141,11 @@ void main() {
 
     test("parse preamble + rule", () {
       var result = parser.parse('''
-{
-import "dart:math";
-}
-String rule = "hello";
-''');
+        {
+          import "dart:math";
+        }
+        String rule = "hello";
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
@@ -161,9 +161,9 @@ String rule = "hello";
 
     test("parse quantifiers (?, *, +)", () {
       var result = parser.parse('''
-rule = atom;
-atom = "a"? "b"* "c"+;
-''');
+        rule = atom;
+        atom = "a"? "b"* "c"+;
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
@@ -184,28 +184,28 @@ atom = "a"? "b"* "c"+;
 
     test("parse namespace", () {
       var result = parser.parse('''
-ns {
-  rule = "a";
-  other = "b";
-}
-entry = ns.rule;
-''');
+        ns {
+          rule = "a";
+          other = "b";
+        }
+        entry = ns.rule;
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse fragment decorator", () {
       var result = parser.parse('''
-@fragment token = "hello";
-entry = token;
-''');
+        @fragment token = "hello";
+        entry = token;
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse inline decorator", () {
       var result = parser.parse('''
-@inline helper = "x";
-entry = helper;
-''');
+        @inline helper = "x";
+        entry = helper;
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
@@ -243,25 +243,25 @@ int rule = \d+() { return int.parse($.join()); };
 
     test("parse separated lists", () {
       var result = parser.parse(r'''
-rule = ","..item+;
-item = \d+;
-''');
+        rule = ","..item+;
+        item = \d+;
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse star separated lists", () {
       var result = parser.parse(r'''
-rule = ","..item*;
-item = \d+;
-''');
+        rule = ","..item*;
+        item = \d+;
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse optional trailing separator", () {
       var result = parser.parse(r'''
-rule = ","..item+?;
-item = \d+;
-''');
+        rule = ","..item+?;
+        item = \d+;
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
@@ -287,55 +287,55 @@ item = \d+;
 
     test("parse named bindings (:)", () {
       var result = parser.parse(r'''
-rule = :a _ :b |> a + b;
-a = "x";
-b = "y";
-_ = \s*;
-''');
+        rule = :a _ :b |> a + b;
+        a = "x";
+        b = "y";
+        _ = \s*;
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse type declarations", () {
       var result = parser.parse('''
-String a, b;
-a = "hello";
-b = "world";
-''');
+        String a, b;
+        a = "hello";
+        b = "world";
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse left-recursive rule", () {
       var result = parser.parse('''
-rule = rule "a" | "a";
-''');
+        rule = rule "a" | "a";
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse hybrid namespace", () {
       var result = parser.parse('''
-x = choice! {
-  a = "a";
-  b = "b";
-};
-entry = x;
-''');
+        x = choice! {
+          a = "a";
+          b = "b";
+        };
+        entry = x;
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse comments in grammar", () {
       var result = parser.parse('''
-/// This is a comment
-rule = "x";
-/* multi-line
-   comment */
-''');
+        /// This is a comment
+        rule = "x";
+        /* multi-line
+           comment */
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse string variants (raw, single, double, triple)", () {
       var result = parser.parse('''
-rule = "double" | 'single';
-''');
+        rule = "double" | 'single';
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
@@ -346,17 +346,17 @@ rule = "double" | 'single';
 
     test("parse complex preamble", () {
       var result = parser.parse('''
-{
-import "dart:math" as math show pow, sqrt;
-import "dart:convert";
+        {
+          import "dart:math" as math show pow, sqrt;
+          import "dart:convert";
 
-class Helper {
-  static int add(int a, int b) => a + b;
-}
-}
+          class Helper {
+            static int add(int a, int b) => a + b;
+          }
+        }
 
-String rule = "x";
-''');
+        String rule = "x";
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
@@ -418,11 +418,11 @@ String rule = "x";
     test("preamble is included in output", () {
       var parser = GrammarParser();
       var gen = parser.parse('''
-{
-import "dart:math" as math;
-}
-String rule = "hello";
-''')!;
+        {
+          import "dart:math" as math;
+        }
+        String rule = "hello";
+      ''')!;
       var code = gen.compileParserGenerator("P");
       expect(code, contains('import "dart:math" as math;'));
     });
@@ -467,11 +467,11 @@ String rule = "hello";
       expect(code, contains("_recover"));
     });
 
-    test("left-recursive rule uses apply()", () async {
+    test("left-recursive rule uses _applyLr()", () async {
       var parser = GrammarParser();
       var gen = parser.parse('rule = rule "a" | "a";')!;
       var code = await gen.compileAnalyzedParserGenerator("P");
-      expect(code, contains("this.apply("));
+      expect(code, contains("this._applyLr("));
     });
   });
 
@@ -609,8 +609,8 @@ String rule = "hello";
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-String rule = ^ "hello" $ @1;
-''');
+        String rule = ^ "hello" $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -641,8 +641,8 @@ String rule = ^ "hello" $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-String rule = ^ ("a" | "b" | "c") $ @1;
-''');
+        String rule = ^ ("a" | "b" | "c") $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -669,8 +669,8 @@ String rule = ^ ("a" | "b" | "c") $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ "a"+ $;
-''');
+        rule = ^ "a"+ $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -697,8 +697,8 @@ rule = ^ "a"+ $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ "a"* $;
-''');
+        rule = ^ "a"* $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -721,8 +721,8 @@ rule = ^ "a"* $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ "a" "b"? "c" $;
-''');
+        rule = ^ "a" "b"? "c" $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -769,8 +769,8 @@ rule = ^ <[a-z]+> $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ &"a" . $;
-''');
+        rule = ^ &"a" . $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -789,8 +789,8 @@ rule = ^ &"a" . $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ !"x" . $;
-''');
+        rule = ^ !"x" . $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -809,9 +809,9 @@ rule = ^ !"x" . $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-Object rule = ^ expr $;
-Object expr = expr "+" "a" | "a";
-''');
+        Object rule = ^ expr $;
+        Object expr = expr "+" "a" | "a";
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -838,9 +838,9 @@ Object expr = expr "+" "a" | "a";
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ ","..item+ $;
-item = [a-z]+;
-''');
+        rule = ^ ","..item+ $;
+        item = [a-z]+;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -867,8 +867,8 @@ item = [a-z]+;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ 2..4 "a" $;
-''');
+        rule = ^ 2..4 "a" $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1033,28 +1033,28 @@ int rule = ^ :val $ |> val;
 
       var driver =
           """
-import "dart:convert" show jsonEncode;
-import "dart:isolate" show ReceivePort, SendPort;
+            import "dart:convert" show jsonEncode;
+            import "dart:isolate" show ReceivePort, SendPort;
 
-$code
+            $code
 
-void main(List<String> _, SendPort initPort) {
-  var receivePort = ReceivePort();
-  initPort.send(receivePort.sendPort);
+            void main(List<String> _, SendPort initPort) {
+              var receivePort = ReceivePort();
+              initPort.send(receivePort.sendPort);
 
-  var parser = GrammarParser();
+              var parser = GrammarParser();
 
-  receivePort.listen((msg) {
-    var [replyPort as SendPort, input as String] = msg as List;
-    try {
-      var result = parser.parse(input);
-      replyPort.send(result != null ? "parsed" : "failed");
-    } catch (e, st) {
-      replyPort.send("error: \$e");
-    }
-  });
-}
-""";
+              receivePort.listen((msg) {
+                var [replyPort as SendPort, input as String] = msg as List;
+                try {
+                  var result = parser.parse(input);
+                  replyPort.send(result != null ? "parsed" : "failed");
+                } catch (e, st) {
+                  replyPort.send("error: \$e");
+                }
+              });
+            }
+          """;
 
       var uri = Uri.dataFromString(
         driver,
@@ -1163,8 +1163,8 @@ void main(List<String> _, SendPort initPort) {
       // rule = "a" # "b" | "c"
       // If "a" matches, cut commits — even if "b" fails, "c" is NOT tried.
       iso = await spawnParser(r'''
-rule = ^ ("a" # "b" | "c") $;
-''');
+        rule = ^ ("a" # "b" | "c") $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1201,8 +1201,8 @@ rule = ^ ("a" # "b" | "c") $;
       // The cut is in the first alternative.
       // If "x" doesn't match, the parser should try "y" normally.
       iso = await spawnParser(r'''
-rule = ^ ("x" # "!" | "y") $;
-''');
+        rule = ^ ("x" # "!" | "y") $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1227,8 +1227,8 @@ rule = ^ ("x" # "!" | "y") $;
     setUpAll(() async {
       // Three alternatives, cut in first only.
       iso = await spawnParser(r'''
-rule = ^ ("a" # "1" | "b" | "c") $;
-''');
+        rule = ^ ("a" # "1" | "b" | "c") $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1257,8 +1257,8 @@ rule = ^ ("a" # "1" | "b" | "c") $;
     setUpAll(() async {
       // Both first and second alternatives have cuts.
       iso = await spawnParser(r'''
-rule = ^ ("a" # "1" | "b" # "2" | "c") $;
-''');
+        rule = ^ ("a" # "1" | "b" # "2" | "c") $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1292,10 +1292,10 @@ rule = ^ ("a" # "1" | "b" # "2" | "c") $;
       // Cut must be at the same choice level to block alternatives.
       // Cuts are scoped to their enclosing rule's choice.
       iso = await spawnParser(r'''
-rule = ^ stmt $;
-stmt = "if" # "(" identifier ")" | identifier;
-identifier = [a-z]+;
-''');
+        rule = ^ stmt $;
+        stmt = "if" # "(" identifier ")" | identifier;
+        identifier = [a-z]+;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1324,11 +1324,11 @@ identifier = [a-z]+;
     setUpAll(() async {
       // Cut inside ifStmt does NOT propagate to the outer stmt choice.
       iso = await spawnParser(r'''
-rule = ^ stmt $;
-stmt = ifStmt | identifier;
-ifStmt = "if" # "(" identifier ")";
-identifier = [a-z]+;
-''');
+        rule = ^ stmt $;
+        stmt = ifStmt | identifier;
+        ifStmt = "if" # "(" identifier ")";
+        identifier = [a-z]+;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1355,10 +1355,10 @@ identifier = [a-z]+;
     setUpAll(() async {
       // Cut inside ifStmt does NOT propagate to the outer stmt choice.
       iso = await spawnParser(r'''
-rule = ^ stmt $;
-stmt = "if" # "(" identifier ")" | "when" # "(" identifier ")" | identifier;
-identifier = [a-z]+;
-''');
+        rule = ^ stmt $;
+        stmt = "if" # "(" identifier ")" | "when" # "(" identifier ")" | identifier;
+        identifier = [a-z]+;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1390,8 +1390,8 @@ identifier = [a-z]+;
     setUpAll(() async {
       // The cut is in the middle of a longer sequence.
       iso = await spawnParser(r'''
-rule = ^ ("a" "b" # "c" "d" | "e") $;
-''');
+        rule = ^ ("a" "b" # "c" "d" | "e") $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1427,9 +1427,9 @@ rule = ^ ("a" "b" # "c" "d" | "e") $;
     setUpAll(() async {
       // Cut is inside a nested group — it should only affect the inner choice.
       iso = await spawnParser(r'''
-rule = ^ (inner | "z") $;
-inner = "a" # "b" | "c";
-''');
+        rule = ^ (inner | "z") $;
+        inner = "a" # "b" | "c";
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1461,9 +1461,9 @@ inner = "a" # "b" | "c";
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ item+ $;
-item = "a" # "b" | "c";
-''');
+        rule = ^ item+ $;
+        item = "a" # "b" | "c";
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1492,8 +1492,8 @@ item = "a" # "b" | "c";
     setUpAll(() async {
       // Cut at the very start of the sequence — commits immediately
       iso = await spawnParser(r'''
-rule = ^ (# "a" "b" | "c") $;
-''');
+        rule = ^ (# "a" "b" | "c") $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1514,8 +1514,8 @@ rule = ^ (# "a" "b" | "c") $;
     setUpAll(() async {
       // Same structure but WITHOUT cut — verify backtracking works normally
       iso = await spawnParser(r'''
-rule = ^ ("a" "b" | "c") $;
-''');
+        rule = ^ ("a" "b" | "c") $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1540,11 +1540,11 @@ rule = ^ ("a" "b" | "c") $;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-int rule = ^ expr $ @1;
-int expr = "a" # :n |> n
-         | "default" |> 0;
-@fragment int n = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ expr $ @1;
+        int expr = "a" # :n |> n
+                 | "default" |> 0;
+        @fragment int n = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -1568,10 +1568,10 @@ int expr = "a" # :n |> n
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ (keyword # "(" [a-z]+ ")" | identifier) $ @1;
-keyword = "fn";
-identifier = <[a-z]+>;
-''');
+        rule = ^ (keyword # "(" [a-z]+ ")" | identifier) $ @1;
+        keyword = "fn";
+        identifier = <[a-z]+>;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1818,16 +1818,16 @@ identifier = <[a-z]+>;
     test("deeply nested choices", () {
       var parser = GrammarParser();
       var result = parser.parse('''
-rule = ("a" | ("b" | ("c" | "d")));
-''');
+        rule = ("a" | ("b" | ("c" | "d")));
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
     test("deeply nested sequences", () {
       var parser = GrammarParser();
       var result = parser.parse('''
-rule = "a" ("b" ("c" "d"));
-''');
+        rule = "a" ("b" ("c" "d"));
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
@@ -1859,25 +1859,25 @@ rule = "a" ("b" ("c" "d"));
     test("nested namespaces", () {
       var parser = GrammarParser();
       var result = parser.parse('''
-outer {
-  inner {
-    rule = "x";
-  }
-}
-entry = outer.inner.rule;
-''');
+        outer {
+          inner {
+            rule = "x";
+          }
+        }
+        entry = outer.inner.rule;
+      ''');
       expect(result, isA<ParserGenerator>());
     });
 
     test("multiple type declarations", () {
       var parser = GrammarParser();
       var result = parser.parse('''
-int a, b, c;
-a = "1" { 1 };
-b = "2" { 2 };
-c = "3" { 3 };
-entry = a | b | c;
-''');
+        int a, b, c;
+        a = "1" { 1 };
+        b = "2" { 2 };
+        c = "3" { 3 };
+        entry = a | b | c;
+      ''');
       expect(result, isA<ParserGenerator>());
     });
   });
@@ -1891,9 +1891,9 @@ entry = a | b | c;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ ","..item* $;
-item = [a-z]+;
-''');
+        rule = ^ ","..item* $;
+        item = [a-z]+;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1916,8 +1916,8 @@ item = [a-z]+;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ (~"x")+ $;
-''');
+        rule = ^ (~"x")+ $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1940,9 +1940,9 @@ rule = ^ (~"x")+ $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-entry = ^ tok $;
-@fragment tok = "hello" | "world";
-''');
+        entry = ^ tok $;
+        @fragment tok = "hello" | "world";
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -1965,9 +1965,9 @@ entry = ^ tok $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ "a" _ "b" _ "c" $;
-_ = \s* { () };
-''');
+        rule = ^ "a" _ "b" _ "c" $;
+        _ = \s* { () };
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2032,8 +2032,8 @@ _ = \s* { () };
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ ("(" ~> <[a-z]+> <~ ")") $ @1;
-''');
+        rule = ^ ("(" ~> <[a-z]+> <~ ")") $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2060,8 +2060,8 @@ rule = ^ ("(" ~> <[a-z]+> <~ ")") $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ ~> "[" ~> "(" ~> <[a-z]+> <~ ")" <~ "]" <~ $;
-''');
+        rule = ^ ~> "[" ~> "(" ~> <[a-z]+> <~ ")" <~ "]" <~ $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2080,8 +2080,8 @@ rule = ^ ~> "[" ~> "(" ~> <[a-z]+> <~ ")" <~ "]" <~ $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-String rule = ^ <[a-z]+ ":" [0-9]+> $ @1;
-''');
+        String rule = ^ <[a-z]+ ":" [0-9]+> $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2104,8 +2104,8 @@ String rule = ^ <[a-z]+ ":" [0-9]+> $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-String rule = ^ <\d+ ("." \d+)?> $ @1;
-''');
+        String rule = ^ <\d+ ("." \d+)?> $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2128,8 +2128,8 @@ String rule = ^ <\d+ ("." \d+)?> $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ "a" "b" "c" $ @2;
-''');
+        rule = ^ "a" "b" "c" $ @2;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2148,8 +2148,8 @@ rule = ^ "a" "b" "c" $ @2;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ "x" "y" "z" $;
-''');
+        rule = ^ "x" "y" "z" $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2166,8 +2166,8 @@ rule = ^ "x" "y" "z" $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ ([a-z]+ ","?)* $;
-''');
+        rule = ^ ([a-z]+ ","?)* $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2191,8 +2191,8 @@ rule = ^ ([a-z]+ ","?)* $;
     setUpAll(() async {
       // Optional inside plus: "a"? "b" ensures progress each iteration
       iso = await spawnParser(r'''
-rule = ^ ("a"? "b")+ $;
-''');
+        rule = ^ ("a"? "b")+ $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2219,9 +2219,9 @@ rule = ^ ("a"? "b")+ $;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-int rule = ^ body $ @1;
-int body = [a-z]+() { return to - from; };
-""");
+        int rule = ^ body $ @1;
+        int body = [a-z]+() { return to - from; };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2244,9 +2244,9 @@ int body = [a-z]+() { return to - from; };
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-String rule = ^ body $ @1;
-String body = [a-z]+ " " [0-9]+ |> span;
-""");
+        String rule = ^ body $ @1;
+        String body = [a-z]+ " " [0-9]+ |> span;
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2265,13 +2265,13 @@ String body = [a-z]+ " " [0-9]+ |> span;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-int rule = ^ :expr $ |> expr;
-int expr =
-  | :expr "+" :atom { expr + atom }
-  | :expr "-" :atom { expr - atom }
-  | atom;
-@fragment int atom = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :expr $ |> expr;
+        int expr =
+          | :expr "+" :atom { expr + atom }
+          | :expr "-" :atom { expr - atom }
+          | atom;
+        @fragment int atom = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2304,9 +2304,9 @@ int expr =
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ ","..item+? $;
-item = [a-z]+;
-''');
+        rule = ^ ","..item+? $;
+        item = [a-z]+;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2337,9 +2337,9 @@ item = [a-z]+;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ ","..item*? $;
-item = [a-z]+;
-''');
+        rule = ^ ","..item*? $;
+        item = [a-z]+;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2362,8 +2362,8 @@ item = [a-z]+;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ 3 "a" $;
-''');
+        rule = ^ 3 "a" $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2386,8 +2386,8 @@ rule = ^ 3 "a" $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ 2.. "a" $;
-''');
+        rule = ^ 2.. "a" $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2410,8 +2410,8 @@ rule = ^ 2.. "a" $;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-rule = ^ .+ $;
-""");
+        rule = ^ .+ $;
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2442,8 +2442,8 @@ rule = ^ .+ $;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-rule = ^ [a-zA-Z_] [a-zA-Z0-9_]* $;
-""");
+        rule = ^ [a-zA-Z_] [a-zA-Z0-9_]* $;
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2478,8 +2478,8 @@ rule = ^ [a-zA-Z_] [a-zA-Z0-9_]* $;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-rule = ^ <\w+> $ @1;
-""");
+        rule = ^ <\w+> $ @1;
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2506,8 +2506,8 @@ rule = ^ <\w+> $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-rule = ^ <\d+> $ @1;
-""");
+        rule = ^ <\d+> $ @1;
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2526,8 +2526,8 @@ rule = ^ <\d+> $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-rule = ^ <\s+> $ @1;
-""");
+        rule = ^ <\s+> $ @1;
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2550,8 +2550,8 @@ rule = ^ <\s+> $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ ("a" | ε) "b" $;
-''');
+        rule = ^ ("a" | ε) "b" $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2575,8 +2575,8 @@ rule = ^ ("a" | ε) "b" $;
     setUpAll(() async {
       // Parser must try multiple paths before finding the correct one
       iso = await spawnParser(r'''
-rule = ^ ("a" "b" "c" "d" | "a" "b" "c" "e" | "a" "b" "f" | "a" "g") $;
-''');
+        rule = ^ ("a" "b" "c" "d" | "a" "b" "c" "e" | "a" "b" "f" | "a" "g") $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2611,8 +2611,8 @@ rule = ^ ("a" "b" "c" "d" | "a" "b" "c" "e" | "a" "b" "f" | "a" "g") $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ ((("a" | "b") ("c" | "d")) | "e") $;
-''');
+        rule = ^ ((("a" | "b") ("c" | "d")) | "e") $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2647,11 +2647,11 @@ rule = ^ ((("a" | "b") ("c" | "d")) | "e") $;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-String rule = ^ :item ("," :item)* $ @1 |> item;
-@fragment String item = "(" ~> inner <~ ")" | word;
-@fragment String inner = <[a-z0-9\s]+>;
-@fragment String word = <[a-z]+>;
-""");
+        String rule = ^ :item ("," :item)* $ @1 |> item;
+        @fragment String item = "(" ~> inner <~ ")" | word;
+        @fragment String inner = <[a-z0-9\s]+>;
+        @fragment String word = <[a-z]+>;
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2674,8 +2674,8 @@ String rule = ^ :item ("," :item)* $ @1 |> item;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-String rule = ^ </[a-z]+[0-9]+/> $ @1;
-""");
+        String rule = ^ </[a-z]+[0-9]+/> $ @1;
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2699,9 +2699,9 @@ String rule = ^ </[a-z]+[0-9]+/> $ @1;
     setUpAll(() async {
       // Match an identifier that is not a keyword
       iso = await spawnParser(r'''
-rule = ^ (!keyword ~> <[a-z]+>) $ @1;
-keyword = "if" | "else" | "while" | "for";
-''');
+        rule = ^ (!keyword ~> <[a-z]+>) $ @1;
+        keyword = "if" | "else" | "while" | "for";
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2739,8 +2739,8 @@ keyword = "if" | "else" | "while" | "for";
     setUpAll(() async {
       // &"a" checks for "a" but doesn't consume, then . matches the "a"
       iso = await spawnParser(r'''
-String rule = ^ <(&"a" .)+> $ @1;
-''');
+        String rule = ^ <(&"a" .)+> $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2764,8 +2764,8 @@ String rule = ^ <(&"a" .)+> $ @1;
     setUpAll(() async {
       // ~"x" means: if NOT "x", consume one character
       iso = await spawnParser(r'''
-String rule = ^ <(~"x")+> $ @1;
-''');
+        String rule = ^ <(~"x")+> $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2793,15 +2793,15 @@ String rule = ^ <(~"x")+> $ @1;
     setUpAll(() async {
       // Two precedence levels: + (low) and * (high)
       iso = await spawnParser(r"""
-int rule = ^ :expr $ |> expr;
-int expr =
-  | :expr "+" :term { expr + term }
-  | term;
-int term =
-  | :term "*" :atom { term * atom }
-  | atom;
-@fragment int atom = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :expr $ |> expr;
+        int expr =
+          | :expr "+" :term { expr + term }
+          | term;
+        int term =
+          | :term "*" :atom { term * atom }
+          | atom;
+        @fragment int atom = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2844,10 +2844,10 @@ int term =
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-String rule = ^ :greeting " " :name $ { "$greeting, $name!" };
-@fragment String greeting = <[A-Z][a-z]+>;
-@fragment String name = <[A-Z][a-z]+>;
-""");
+        String rule = ^ :greeting " " :name $ { "$greeting, $name!" };
+        @fragment String greeting = <[A-Z][a-z]+>;
+        @fragment String name = <[A-Z][a-z]+>;
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2870,8 +2870,8 @@ String rule = ^ :greeting " " :name $ { "$greeting, $name!" };
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-String rule = ^ <[a-z]+ ("." [a-z]+)?> $ @1;
-''');
+        String rule = ^ <[a-z]+ ("." [a-z]+)?> $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2894,8 +2894,8 @@ String rule = ^ <[a-z]+ ("." [a-z]+)?> $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ "x"* $ @1;
-''');
+        rule = ^ "x"* $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2924,8 +2924,8 @@ rule = ^ "x"* $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ "x"+ $ @1;
-''');
+        rule = ^ "x"+ $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2953,8 +2953,8 @@ rule = ^ "x"+ $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-int rule = ^ <\d \d+> $ @1 { int.parse($) };
-""");
+        int rule = ^ <\d \d+> $ @1 { int.parse($) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -2973,9 +2973,9 @@ int rule = ^ <\d \d+> $ @1 { int.parse($) };
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-String rule = ^ a $ @1;
-@inline a = <"hello" " " "world">;
-''');
+        String rule = ^ a $ @1;
+        @inline a = <"hello" " " "world">;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -2994,10 +2994,10 @@ String rule = ^ a $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-int rule = ^ :a "+" :b $ { a + b };
-@fragment int a = \d+ { int.parse($.join()) };
-@fragment int b = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :a "+" :b $ { a + b };
+        @fragment int a = \d+ { int.parse($.join()) };
+        @fragment int b = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -3020,8 +3020,8 @@ int rule = ^ :a "+" :b $ { a + b };
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ "" "a" $;
-''');
+        rule = ^ "" "a" $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3041,8 +3041,8 @@ rule = ^ "" "a" $;
     setUpAll(() async {
       // "ab" | "a" "c": if "ab" fails on "ac", must backtrack to try "a" "c"
       iso = await spawnParser(r'''
-rule = ^ ("ab" | "a" "c") $;
-''');
+        rule = ^ ("ab" | "a" "c") $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3067,8 +3067,8 @@ rule = ^ ("ab" | "a" "c") $;
     setUpAll(() async {
       // Match digits only if followed by a letter (but don't consume the letter)
       iso = await spawnParser(r"""
-String rule = ^ <\d+ &[a-z]> <[a-z]+> $ @1;
-""");
+        String rule = ^ <\d+ &[a-z]> <[a-z]+> $ @1;
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -3087,12 +3087,12 @@ String rule = ^ <\d+ &[a-z]> <[a-z]+> $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ token $;
-token = choice! {
-  keyword = "if" | "else" | "while";
-  ident = [a-z]+;
-};
-''');
+        rule = ^ token $;
+        token = choice! {
+          keyword = "if" | "else" | "while";
+          ident = [a-z]+;
+        };
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3119,8 +3119,8 @@ token = choice! {
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-String rule = ^ <("abc" | "ab" | "a")> $ @1;
-''');
+        String rule = ^ <("abc" | "ab" | "a")> $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3147,8 +3147,8 @@ String rule = ^ <("abc" | "ab" | "a")> $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ 0..3 "a" $;
-''');
+        rule = ^ 0..3 "a" $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3175,8 +3175,8 @@ rule = ^ 0..3 "a" $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ <(!"end" .)+> "end" $ @1;
-''');
+        rule = ^ <(!"end" .)+> "end" $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3204,8 +3204,8 @@ rule = ^ <(!"end" .)+> "end" $ @1;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ "(" [a-z]+ ":" [0-9]+ ")" $ @1;
-''');
+        rule = ^ "(" [a-z]+ ":" [0-9]+ ")" $ @1;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3224,9 +3224,9 @@ rule = ^ "(" [a-z]+ ":" [0-9]+ ")" $ @1;
     setUpAll(() async {
       // Nested balanced parentheses
       iso = await spawnParser(r'''
-Object rule = ^ item $;
-Object item = "(" item ")" | "x";
-''');
+        Object rule = ^ item $;
+        Object item = "(" item ")" | "x";
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3257,10 +3257,10 @@ Object item = "(" item ")" | "x";
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-Object rule = ^ a $;
-Object a = "(" b ")" | "x";
-Object b = "[" a "]" | "y";
-''');
+        Object rule = ^ a $;
+        Object a = "(" b ")" | "x";
+        Object b = "[" a "]" | "y";
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3293,8 +3293,8 @@ Object b = "[" a "]" | "y";
       // PEG is greedy: "a"* will consume all "a"s,
       // so "a"* "a" should only match if there's at least one "a" left
       iso = await spawnParser(r'''
-rule = ^ "a"* "a"? "b" $;
-''');
+        rule = ^ "a"* "a"? "b" $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3313,8 +3313,8 @@ rule = ^ "a"* "a"? "b" $;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ ^ "hello" $ $;
-''');
+        rule = ^ ^ "hello" $ $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3333,26 +3333,26 @@ rule = ^ ^ "hello" $ $;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-Object rule = ^ :value $ |> value;
+        Object rule = ^ :value $ |> value;
 
-Object value =
-  | "null" |> null
-  | "true" |> true
-  | "false" |> false
-  | number
-  | string
-  | array
-  | object;
+        Object value =
+          | "null" |> null
+          | "true" |> true
+          | "false" |> false
+          | number
+          | string
+          | array
+          | object;
 
-@fragment num number = \d+ ("." \d+)? { double.parse(buffer.substring(from, to)) };
-@fragment String string = '"' <(~'"')*> '"' @1;
-@fragment Object array = "[" _ ","..value* _ "]" @2;
-@fragment Object object = "{" _ ","..pair* _ "}" @2;
-@fragment Object pair = _ :key _ ":" _ :val _ |> [key, val];
-@fragment String key = '"' <(~'"')*> '"' @1;
-@fragment Object val = value;
-_ = \s* { () };
-""");
+        @fragment num number = \d+ ("." \d+)? { double.parse(buffer.substring(from, to)) };
+        @fragment String string = '"' <(~'"')*> '"' @1;
+        @fragment Object array = "[" _ ","..value* _ "]" @2;
+        @fragment Object object = "{" _ ","..pair* _ "}" @2;
+        @fragment Object pair = _ :key _ ":" _ :val _ |> [key, val];
+        @fragment String key = '"' <(~'"')*> '"' @1;
+        @fragment Object val = value;
+        _ = \s* { () };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -3411,12 +3411,12 @@ _ = \s* { () };
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-{
-int doubleIt(int x) => x * 2;
-}
-int rule = ^ :n $ |> doubleIt(n);
-@fragment int n = \d+ { int.parse($.join()) };
-""");
+        {
+          int doubleIt(int x) => x * 2;
+        }
+        int rule = ^ :n $ |> doubleIt(n);
+        @fragment int n = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -3435,8 +3435,8 @@ int rule = ^ :n $ |> doubleIt(n);
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-rule = ^ "hello" $;
-''');
+        rule = ^ "hello" $;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3459,10 +3459,10 @@ rule = ^ "hello" $;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-Object rule = ^ _ ","..item+ _ $  @2;
-@fragment int item = _ \d+ _ @1 { int.parse($.join()) };
-_ = \s* { () };
-""");
+        Object rule = ^ _ ","..item+ _ $  @2;
+        @fragment int item = _ \d+ _ @1 { int.parse($.join()) };
+        _ = \s* { () };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -3498,10 +3498,10 @@ _ = \s* { () };
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-Object rule = ^ :a $;
-Object a = b "!" | "p";
-Object b = a "?" | "q";
-''');
+        Object rule = ^ :a $;
+        Object a = b "!" | "p";
+        Object b = a "?" | "q";
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3557,11 +3557,11 @@ Object b = a "?" | "q";
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-Object rule = ^ :a $;
-Object a = b "!" | "a";
-Object b = c "?" | "b";
-Object c = a "#" | "c";
-''');
+        Object rule = ^ :a $;
+        Object a = b "!" | "a";
+        Object b = c "?" | "b";
+        Object c = a "#" | "c";
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3616,9 +3616,9 @@ Object c = a "#" | "c";
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-Object rule = ^ :expr $;
-Object expr = expr "a" | ε;
-''');
+        Object rule = ^ :expr $;
+        Object expr = expr "a" | ε;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3658,9 +3658,9 @@ Object expr = expr "a" | ε;
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-Object rule = ^ expr $;
-Object expr = "a" | expr "+" "a";
-''');
+        Object rule = ^ expr $;
+        Object expr = "a" | expr "+" "a";
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3686,9 +3686,9 @@ Object expr = "a" | expr "+" "a";
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-Object rule = ^ expr $;
-Object expr = expr "+" "a" | "a";
-''');
+        Object rule = ^ expr $;
+        Object expr = expr "+" "a" | "a";
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3728,10 +3728,10 @@ Object expr = expr "+" "a" | "a";
 
     setUpAll(() async {
       iso = await spawnParser(r'''
-Object rule = ^ expr $;
-Object expr = expr "+" term | term;
-Object term = term "*" expr | expr "-" "1" | \d+;
-''');
+        Object rule = ^ expr $;
+        Object expr = expr "+" term | term;
+        Object term = term "*" expr | expr "-" "1" | \d+;
+      ''');
     });
 
     tearDownAll(() => iso.dispose());
@@ -3782,11 +3782,11 @@ Object term = term "*" expr | expr "-" "1" | \d+;
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-int result = ^ :a $ |> a;
-int a = :b "+" :n { b + n } | :b |> b;
-int b = :a "*" :n { a * n } | :n |> n;
-@fragment int n = \d+ { int.parse($.join()) };
-""");
+        int result = ^ :a $ |> a;
+        int a = :b "+" :n { b + n } | :b |> b;
+        int b = :a "*" :n { a * n } | :n |> n;
+        @fragment int n = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -3833,50 +3833,50 @@ int b = :a "*" :n { a * n } | :n |> n;
 
     test("parse block with single expression (auto-return)", () {
       var result = parser.parse(r"""
-int rule = \d+ { int.parse($.join()) };
-""");
+        int rule = \d+ { int.parse($.join()) };
+      """);
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse block with multiple semicolon-separated statements", () {
       var result = parser.parse(r"""
-int rule = \d+ { var x = int.parse($.join()); x * 2 };
-""");
+        int rule = \d+ { var x = int.parse($.join()); x * 2 };
+      """);
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse block with explicit return", () {
       var result = parser.parse(r"""
-int rule = \d+ { var x = int.parse($.join()); return x * 2 };
-""");
+        int rule = \d+ { var x = int.parse($.join()); return x * 2 };
+      """);
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse block with trailing semicolon (no auto-return)", () {
       var result = parser.parse(r"""
-int rule = \d+ { var x = int.parse($.join()); return x * 2; };
-""");
+        int rule = \d+ { var x = int.parse($.join()); return x * 2; };
+      """);
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse block with (){} syntax", () {
       var result = parser.parse(r"""
-int rule = \d+() { return int.parse($.join()); };
-""");
+        int rule = \d+() { return int.parse($.join()); };
+      """);
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse block with (){} syntax and auto-return", () {
       var result = parser.parse(r"""
-int rule = \d+() { int.parse($.join()) };
-""");
+        int rule = \d+() { int.parse($.join()) };
+      """);
       expect(result, isA<ParserGenerator>());
     });
 
     test("parse block with nested curly braces", () {
       var result = parser.parse(r'''
-int rule = \d+ { var x = $.join(); if (x == "0") { 0 } else { int.parse(x) } };
-''');
+        int rule = \d+ { var x = $.join(); if (x == "0") { 0 } else { int.parse(x) } };
+      ''');
       expect(result, isA<ParserGenerator>());
     });
   });
@@ -3887,9 +3887,9 @@ int rule = \d+ { var x = $.join(); if (x == "0") { 0 } else { int.parse(x) } };
     setUpAll(() async {
       // { expr } should become () { return expr; }
       iso = await spawnParser(r"""
-int rule = ^ :val $ { val };
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $ { val };
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -3913,9 +3913,9 @@ int rule = ^ :val $ { val };
     setUpAll(() async {
       // { statement; expr } should become () { statement; return expr; }
       iso = await spawnParser(r"""
-int rule = ^ :val $ { var x = val; x * 2 };
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $ { var x = val; x * 2 };
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -3935,9 +3935,9 @@ int rule = ^ :val $ { var x = val; x * 2 };
     setUpAll(() async {
       // { statement; return expr } should keep the explicit return
       iso = await spawnParser(r"""
-int rule = ^ :val $ { var x = val; return x * 3; };
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $ { var x = val; return x * 3; };
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -3959,9 +3959,9 @@ int rule = ^ :val $ { var x = val; return x * 3; };
       // and the trailing semicolons produce empty items which get trimmed,
       // then `;` is added back. The last statement ends with `;` so no extra return.
       iso = await spawnParser(r"""
-int rule = ^ :val $ { return val * 4; };
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $ { return val * 4; };
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -3977,9 +3977,9 @@ int rule = ^ :val $ { return val * 4; };
     setUpAll(() async {
       // sequence(){ code } syntax with auto-return
       iso = await spawnParser(r"""
-int rule = ^ :val $() { val * 5 };
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $() { val * 5 };
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -3998,9 +3998,9 @@ int rule = ^ :val $() { val * 5 };
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-int rule = ^ :val $() { return val * 6; };
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $() { return val * 6; };
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4016,9 +4016,9 @@ int rule = ^ :val $() { return val * 6; };
     setUpAll(() async {
       // { stmt1; stmt2; expr } → () { stmt1; stmt2; return expr; }
       iso = await spawnParser(r"""
-int rule = ^ :val $ { var a = val; var b = a + 1; a + b };
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $ { var a = val; var b = a + 1; a + b };
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4040,9 +4040,9 @@ int rule = ^ :val $ { var a = val; var b = a + 1; a + b };
     setUpAll(() async {
       // { stmt; return expr; } — explicit return + trailing semicolon
       iso = await spawnParser(r"""
-int rule = ^ :val $ { var x = val + 1; return x; };
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $ { var x = val + 1; return x; };
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4058,9 +4058,9 @@ int rule = ^ :val $ { var x = val + 1; return x; };
     setUpAll(() async {
       // The last expression is a function call — should be auto-returned
       iso = await spawnParser(r"""
-String rule = ^ :val $ { val.toUpperCase() };
-@fragment String val = [a-z]+ { $.join() };
-""");
+        String rule = ^ :val $ { val.toUpperCase() };
+        @fragment String val = [a-z]+ { $.join() };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4080,9 +4080,9 @@ String rule = ^ :val $ { val.toUpperCase() };
     setUpAll(() async {
       // Last expression is a ternary — should be auto-returned
       iso = await spawnParser(r"""
-String rule = ^ :val $ { var n = int.parse(val); n > 5 ? "big" : "small" };
-@fragment String val = \d+ { $.join() };
-""");
+        String rule = ^ :val $ { var n = int.parse(val); n > 5 ? "big" : "small" };
+        @fragment String val = \d+ { $.join() };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4102,13 +4102,13 @@ String rule = ^ :val $ { var n = int.parse(val); n > 5 ? "big" : "small" };
     setUpAll(() async {
       // Different block actions in different branches
       iso = await spawnParser(r"""
-int rule = ^ :expr $ |> expr;
-int expr =
-  | "+" :val { val }
-  | "-" :val { var x = val; -x }
-  | val;
-@fragment int val = \d+ { int.parse($.join()) };
-""", parserName: "ChoiceBlockParser");
+        int rule = ^ :expr $ |> expr;
+        int expr =
+          | "+" :val { val }
+          | "-" :val { var x = val; -x }
+          | val;
+        @fragment int val = \d+ { int.parse($.join()) };
+      """, parserName: "ChoiceBlockParser");
     });
 
     tearDownAll(() => iso.dispose());
@@ -4131,10 +4131,10 @@ int expr =
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-String rule = ^ :a " " :b $ { var greeting = a; var name = b; "$greeting, $name!" };
-@fragment String a = [A-Za-z]+ { $.join() };
-@fragment String b = [A-Za-z]+ { $.join() };
-""");
+        String rule = ^ :a " " :b $ { var greeting = a; var name = b; "$greeting, $name!" };
+        @fragment String a = [A-Za-z]+ { $.join() };
+        @fragment String b = [A-Za-z]+ { $.join() };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4150,10 +4150,10 @@ String rule = ^ :a " " :b $ { var greeting = a; var name = b; "$greeting, $name!
     setUpAll(() async {
       // Block creates a list, adds to it, returns it
       iso = await spawnParser(r"""
-Object rule = ^ :items $ { var result = <int>[]; result.addAll(items.cast<int>()); result };
-items = ","..item+;
-@fragment int item = \d+ { int.parse($.join()) };
-""");
+        Object rule = ^ :items $ { var result = <int>[]; result.addAll(items.cast<int>()); result };
+        items = ","..item+;
+        @fragment int item = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4170,9 +4170,9 @@ items = ","..item+;
     setUpAll(() async {
       // Semicolons inside nested {} should not split the block
       iso = await spawnParser(r"""
-int rule = ^ :val $ { var x = () { return val + 1; }; x() };
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $ { var x = () { return val + 1; }; x() };
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4190,9 +4190,9 @@ int rule = ^ :val $ { var x = () { return val + 1; }; x() };
       // The auto-return check uses startsWith("return"), so this will NOT get auto-return.
       // That means we need explicit return with a trailing semicolon.
       iso = await spawnParser(r"""
-int rule = ^ :val $ { var returnValue = val * 2; return returnValue; };
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $ { var returnValue = val * 2; return returnValue; };
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4208,8 +4208,8 @@ int rule = ^ :val $ { var returnValue = val * 2; return returnValue; };
     setUpAll(() async {
       // Block is just { return 42; } — explicit return needs trailing semicolon
       iso = await spawnParser(r"""
-int rule = ^ "x" $ { return 42; };
-""");
+        int rule = ^ "x" $ { return 42; };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4226,14 +4226,14 @@ int rule = ^ "x" $ { return 42; };
     setUpAll(() async {
       // Block action: { val * 2 } should auto-return same as inline |> val * 2
       isoBlock = await spawnParser(r"""
-int rule = ^ :val $ { val * 2 };
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $ { val * 2 };
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
 
       isoInline = await spawnParser(r"""
-int rule = ^ :val $ |> val * 2;
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $ |> val * 2;
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() {
@@ -4262,8 +4262,8 @@ int rule = ^ :val $ |> val * 2;
     setUpAll(() async {
       // Block action using from/to for substring extraction
       iso = await spawnParser(r"""
-String rule = ^ [a-z]+ $ { buffer.substring(from, to) };
-""");
+        String rule = ^ [a-z]+ $ { buffer.substring(from, to) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4282,8 +4282,8 @@ String rule = ^ [a-z]+ $ { buffer.substring(from, to) };
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-String rule = ^ [a-z]+ $ { var raw = buffer.substring(from, to); raw.toUpperCase() };
-""");
+        String rule = ^ [a-z]+ $ { var raw = buffer.substring(from, to); raw.toUpperCase() };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4298,12 +4298,12 @@ String rule = ^ [a-z]+ $ { var raw = buffer.substring(from, to); raw.toUpperCase
 
     setUpAll(() async {
       iso = await spawnParser(r"""
-int rule = ^ :expr $ |> expr;
-int expr =
-  | :expr "+" :term { var sum = expr + term; sum }
-  | term;
-@fragment int term = \d+ { int.parse($.join()) };
-""", parserName: "RecursiveBlockParser");
+        int rule = ^ :expr $ |> expr;
+        int expr =
+          | :expr "+" :term { var sum = expr + term; sum }
+          | term;
+        @fragment int term = \d+ { int.parse($.join()) };
+      """, parserName: "RecursiveBlockParser");
     });
 
     tearDownAll(() => iso.dispose());
@@ -4329,9 +4329,9 @@ int expr =
       // trimmed.length != code.length → add ";" back: "return expr;"
       // last.trim() = "return expr;" → starts with "return" → no auto-return
       iso = await spawnParser(r"""
-int rule = ^ :val $ { var x = val + 100; return x; };
-@fragment int val = \d+ { int.parse($.join()) };
-""");
+        int rule = ^ :val $ { var x = val + 100; return x; };
+        @fragment int val = \d+ { int.parse($.join()) };
+      """);
     });
 
     tearDownAll(() => iso.dispose());
@@ -4347,8 +4347,8 @@ int rule = ^ :val $ { var x = val + 100; return x; };
     setUpAll(() async {
       // Block with just an expression and trailing semicolons: { return 99; }
       iso = await spawnParser(r"""
-int rule = ^ "x" $ { return 99; };
-""");
+        int rule = ^ "x" $ { return 99; };
+      """);
     });
 
     tearDownAll(() => iso.dispose());

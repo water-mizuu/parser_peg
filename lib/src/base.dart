@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_positional_boolean_parameters, unnecessary_this, unused_element, use_setters_to_change_properties
+// ignore_for_file: avoid_positional_boolean_parameters, unnecessary_non_null_assertion, unnecessary_this, unused_element, use_setters_to_change_properties
 
 // ignore: unused_shown_name
 import "dart:collection" show DoubleLinkedQueue, HashMap, Queue;
@@ -71,7 +71,7 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
-  T? apply<T extends Object>(_Rule<T> r, [int? p]) {
+  T? _applyLr<T extends Object>(_Rule<T> r, [int? p]) {
     p ??= this.pos;
 
     _Memo? m = _recall(r, p);
@@ -104,6 +104,23 @@ abstract base class _PegParser<R extends Object> {
       } else {
         return m.ans as T?;
       }
+    }
+  }
+
+  T? _applyMemo<T extends Object>(_Rule<T> r, [int? p]) {
+    p ??= this.pos;
+    _Memo? m = _recall(r, p);
+    if (m == null) {
+      m = _memo[(r, p)] = _Memo(null, p);
+      T? ans = r.call();
+      m.pos = this.pos;
+      m.ans = ans;
+
+      return ans;
+    } else {
+      this.pos = m.pos;
+
+      return m.ans as T?;
     }
   }
 
@@ -191,11 +208,10 @@ abstract base class _PegParser<R extends Object> {
   }
 
   String reportFailures() {
-    var MapEntry<int, Set<String>>(key: int pos, value: Set<String> messages) =
-        failures.entries.last;
-    var (int column, int row) = _columnRow(buffer, pos);
+    var MapEntry(:key, :value) = failures.entries.last;
+    var (int column, int row) = _columnRow(buffer, key);
 
-    return "($column:$row): Expected the following: $messages";
+    return "($column:$row): Expected the following: $value";
   }
 
   static final (RegExp, RegExp) whitespaceRegExp = (RegExp(r"\s"), RegExp(r"(?!\n)\s"));
@@ -213,7 +229,7 @@ abstract base class _PegParser<R extends Object> {
     this
       ..buffer = buffer
       ..reset(),
-    apply(start),
+    _applyLr(start),
   ).$2;
   _Rule<R> get start;
 }

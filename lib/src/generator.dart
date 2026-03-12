@@ -20,6 +20,7 @@ import "package:parser_peg/src/visitor/node_visitor/"
 import "package:parser_peg/src/visitor/node_visitor/"
     "simple_visitor/inline_visitor.dart";
 import "package:parser_peg/src/visitor/node_visitor/simple_visitor/is_cut_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/simple_visitor/is_recursive_visitor.dart";
 import "package:parser_peg/src/visitor/node_visitor/"
     "simple_visitor/referenced_visitor.dart";
 import "package:parser_peg/src/visitor/node_visitor/"
@@ -92,7 +93,7 @@ final class ParserGenerator {
   ///
   /// All optimization passes run immediately inside this constructor.
   ParserGenerator.fromParsed({required this.statements, required this.preamble}) {
-    var workingStatements = statements;
+    List<Statement> workingStatements = statements;
 
     /// We translate all hybrid namespaces to appropriate nodes.
     if (StatementTranslatorVisitor() case StatementTranslatorVisitor visitor) {
@@ -107,7 +108,7 @@ final class ParserGenerator {
 
     /// We add ALL the rules in advance.
     ///   Why? Because we need ALL the rules to be able to resolve references.
-    for (var statement in workingStatements) {
+    for (Statement statement in workingStatements) {
       var stack = Queue.of([
         (statement, ["global"], null as Tag?),
       ]);
@@ -148,7 +149,7 @@ final class ParserGenerator {
     ///
     /// This basically resolves all of the declarations in the grammar,
     ///   flattening the namespaces into a single map.
-    for (var statement in workingStatements) {
+    for (Statement statement in workingStatements) {
       var stack = Queue.of([
         (statement, ["global"], null as Tag?),
       ]);
@@ -221,28 +222,20 @@ final class ParserGenerator {
       _fragments[rootKey] = (type, FragmentNode(key));
     }
 
-    /// We determine two things.
-    ///   1. Which `fragment` rule can be inlined with the following condition:
-    ///     - It is only called once. (It is an exclusive fragment.)
-    ///   2. Which declarations can be removed with the following condition:
-    ///     - It is not referenced anywhere.
-    ///
-    /// Subsequently, we inline the fragments that can be inlined,
-    ///   and remove the declarations that can be removed.
-    ///
-    /// NOTE: This does not break the correctness of the grammar, since
-    ///   recursive fragments can't be inlined as determined by the next visitor.
+    /// We do two things:
+    ///   1. Inline fragments that are only called once.
+    ///   2. Remove declarations that are not referenced anywhere.
+    var referenceCounts = <(Tag, String), int>{
+      for (var name in _rules.keys) (Tag.rule, name): 0,
+      for (var name in _fragments.keys) (Tag.fragment, name): 0,
+      for (var name in _inline.keys) (Tag.fragment, name): 0,
+
+      (Tag.fragment, rootKey): 1,
+    };
     if (const ReferencedVisitor() case ReferencedVisitor visitor) {
       var (_, rootRule) = _fragments[rootKey]!;
       var stack = Queue.of([rootRule]);
       var visited = <Node>{};
-      var referenceCounts = <(Tag, String), int>{
-        for (var name in _rules.keys) (Tag.rule, name): 0,
-        for (var name in _fragments.keys) (Tag.fragment, name): 0,
-        for (var name in _inline.keys) (Tag.fragment, name): 0,
-
-        (Tag.fragment, rootKey): 1,
-      };
 
       /// Collect all of the reachable rules and fragments starting from the root rule.
       while (stack.isNotEmpty) {
@@ -272,9 +265,11 @@ final class ParserGenerator {
         }
       }
 
-      for (var ((tag, name), count) in referenceCounts.pairs) {
+      for (var (key && (tag, name), count) in referenceCounts.pairs.toSet()) {
         /// Remove the others that are not reachable.
         if (count == 0) {
+          referenceCounts.remove(key);
+
           if (tag == Tag.rule) {
             _rules.remove(name);
           } else if (tag == Tag.fragment) {
@@ -299,7 +294,6 @@ final class ParserGenerator {
     ///   declared as inline, but it is not actually inline-able, like in a namespace.
     if (CanInlineVisitor(_rules, _fragments, _inline) case CanInlineVisitor visitor) {
       for (var (name, (type, node)) in _inline.pairs.toList()) {
-        print((name, (type, node), !visitor.canBeInlined(node)));
         if (!visitor.canBeInlined(node)) {
           _inline.remove(name);
           _fragments[name] = (type, node);
@@ -381,6 +375,20 @@ final class ParserGenerator {
       }
       for (var (name, (type, node)) in _fragments.pairs) {
         _fragments[name] = (type, visitor.renameDeclarations(node));
+      }
+    }
+
+    /// We assign memoization levels to rules based on their usage.
+    /// LR -> Left Recursive Rules
+    /// Simple -> Non-left recursive rules / rules that are used more than once.
+    /// None -> Rules that are used only once.
+    for (var (name, (_, node)) in _rules.pairs) {
+      if (IsLeftRecursiveVisitor(name, _rules, _fragments, _inline).isLeftRecursive(node)) {
+        _memoLevels[name] = MemoizationLevel.lr;
+      } else if ((referenceCounts[(Tag.rule, _reverseRenames[name])] ?? 0) > 1) {
+        _memoLevels[name] = MemoizationLevel.simple;
+      } else {
+        _memoLevels[name] = MemoizationLevel.none;
       }
     }
   }
@@ -568,6 +576,7 @@ final class ParserGenerator {
   final List<Statement> statements;
   final Map<String, String> _renames = {};
   final Map<String, String> _reverseRenames = {};
+  final Map<String, MemoizationLevel> _memoLevels = {};
   final Map<String, (String?, Node)> _rules = {};
   final Map<String, (String?, Node)> _fragments = {};
   final Map<String, (String?, Node)> _inline = {};
@@ -617,7 +626,7 @@ final class ParserGenerator {
     fullBuffer.writeln("  get start => $parserStartRule;");
     fullBuffer.writeln();
 
-    if (ParserCompilerVisitor(isPassIfNull: isPassIfNull, reported: true)
+    if (ParserCompilerVisitor(isPassIfNull: isPassIfNull, reported: true, memoLevels: _memoLevels)
         case ParserCompilerVisitor compilerVisitor) {
       for (var (rawName, (type, node)) in fragments.pairs) {
         type ??= resolvedTypes?[_reverseRenames[rawName]]?.getDisplayString();
@@ -1318,6 +1327,15 @@ class _TypeConstraintSolver {
   Map<String, DartType>? solve() {
     /// If there are no invalid types, then we don't have to do anything.
     bool hasInvalid = invalidReturnTypes.values.any((v) => v.isNotEmpty);
+
+    /// [hasImprovable] is important in cases where self reference cause bleeding
+    ///   into Object. That is, in rules such as:
+    ///
+    /// ```
+    /// expression = expression | \d+ { int.parse($) };
+    /// ```
+    ///
+    /// It resolves
     bool hasImprovable = validReturnTypes.values.any((types) {
       // More than one type present and not all of them are Object/Object? —
       // meaning LUB landed on Object but a tighter common type may exist.

@@ -575,7 +575,7 @@ CHOICE_OP = <`|` `|`?>;
 ///   1. `(\s)` - Matches any whitespace character.
 ///   2. `(\/{2}.*((\r?\n)|($)))` - Matches a single line comment.
 ///   3. `(\/\*((?!\*\/).)*\*\/)` - Matches a multi-line comment.
-_    = (whitespace | &"/" comment)* |> "";
+_           = (whitespace | &"/" comment)* |> "";
 whitespace  = \s+                          |> "";
 
 comment = choice! {
