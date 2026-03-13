@@ -39,7 +39,7 @@ Future<void> _buildParser(List<String> arguments, {bool complete = false}) async
     String name = (parsedArgs["name"] as String?) ?? Casing.pascalCase(fileName);
     switch (grammar.parse(input)) {
       case ParserGenerator generator:
-        generator.setup(File(inputPath).parent.path);
+        generator.setup(File(inputPath).path);
         stdout.writeln("Successfully parsed grammar!");
         stdout.writeln("Generating parser.");
 

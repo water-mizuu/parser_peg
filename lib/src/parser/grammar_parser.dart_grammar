@@ -75,13 +75,22 @@ String preamble = `{` _ code:code.curly _ `}` @2;
 ///  A fragment is a declaration that is faster, but doesn't support left recursion / memoization.
 ///  A rule is a declaration, that supports left recursion & memoization.
 Statement statement =
+  | importStatement
+
   | untypedMacroChoice
   | typedMacroChoice
   | unnamedTypedMacroChoice
   | namespace
+
+/// A type declaration is a separate statement from the declaration
+///   that can be used as a basis for types or tags.
   | typeDeclaration
   | typedRule
   | untypedRule;
+
+importStatement = ("import" _ :literal.string _ "as" _ :literal.identifier `;`) {
+  return ImportStatement(string, identifier);
+};
 
 /// This is used as a helper for the macro choice operator.
 ///   Basically, it allows us to write things like a namespace, but then they're all
@@ -159,8 +168,6 @@ unnamedTypedMacroChoice =
 namespace = :kw.decorator? name:identifier? `{` statements:_..statement+ `}`
   |> NamespaceStatement(name, statements, tag: decorator);
 
-/// A type declaration is a separate statement from the declaration
-///   that can be used as a basis for types or tags.
 @inline
 typeDeclaration = :kw.decorator? :type? names:(`,`..name+) `;`
   |> DeclarationTypeStatement(type, names, tag: decorator);
@@ -334,6 +341,7 @@ code {
 }
 
 @fragment literal {
+  String identifier = _ :global.identifier _;
   String regexp = "/" ((\\ . @1 { r"\" + $ } | ~"/")+ { $.join() }) "/" @1;
   String string = _ string.main _ @1;
   string {
@@ -371,8 +379,6 @@ code {
 
     String atom = \\ . @1 | ~"]";
   }
-
-  String raw = "`" ~"`"* "`" @1 { $.join() };
 }
 
 /// Rules related to [Dart] expressions.
@@ -485,54 +491,54 @@ dart {
 }
 
 /// Shared code between declarations
-String type =
+type =
   | _ raw _ @1
   | _ ~> dart.type <~ _;
 
 /// [namespaceReference] is a reference to a namespace.
 ///   It is a sequence of identifiers separated by "::" or ".".
 ///   It should not match a macro.
-String namespaceReference =
+namespaceReference =
   | 1..(:identifier ("::" | !".." ".") !mac) |> $.join(ParserGenerator.separator)
   | std.epsilon;
 
 /// A [name] can be a single name, or multiple aliases.
 ///  The aliases are separated by `&&`, surrounded by parentheses.
-String name =
+name =
   | namespacedRaw
   | namespacedIdentifier;
 
 /// [namespacedRaw] refers to a name which may have accessed a namespace,
 ///   using a raw trailing name ``<example>``
-String namespacedRaw = namespaceReference literal.raw
+namespacedRaw = namespaceReference raw
   |> $0.isEmpty ? $1 : "${$0}${ParserGenerator.separator}${$1}";
 
-String namespacedIdentifier = namespaceReference identifier
+namespacedIdentifier = namespaceReference identifier
   |> $0.isEmpty ? $1 : "${$0}${ParserGenerator.separator}${$1}";
 
 /// Tokens used in the grammar.
 ///   Since they are not recursive, they are not defined as rules.
-String identifier = <[a-zA-Z_$] std.epsilon..[a-zA-Z0-9_$]*>;
-String raw        = "`" <0..(~"`")> "`" @1;
-int number        = \d+ { int.parse($.join()) };
+identifier = <[a-zA-Z_$] std.epsilon..[a-zA-Z0-9_$]*>;
+raw        = "`" <0..(~"`")> "`" @1;
+number     = \d+ { int.parse($.join()) };
 
 kw {
-  Tag decorator = _ "@" :_decorator _;
+  decorator = _ "@" :_decorator _;
   @inline _decorator = | "rule" {Tag.rule} | "fragment" {Tag.fragment} | "inline" {Tag.inline};
 
-  String start     = _ :"START" _;
-  String end       = _ :"END" _;
-  String epsilon   = _ :"EPSILON" _;
-  String any       = _ :"ANY" _;
-  String var       = _ :"var" _;
+  start     = _ :"START" _;
+  end       = _ :"END" _;
+  epsilon   = _ :"EPSILON" _;
+  any       = _ :"ANY" _;
+  var       = _ :"var" _;
 }
 
 /// Tokens used in "macro-like" rules.
-String mac = choice! {
+mac = choice! {
   choice = _ "choice!" _ @1;
 };
 
-String regexEscape = choice! @fragment {
+regexEscape {
   backslash       = _ ~> <\\ r"\"> <~ _;
 
   digit           = _ :<\\ r"d"> _;   notDigit        = _ :<\\ r"D"> _;
@@ -549,26 +555,24 @@ String regexEscape = choice! @fragment {
   control         = _ :<\\ r"c"> _;
   hex             = _ :<\\ r"x"> _;
   literal         = _ :<\\ r"."> _;
-};
+}
 
 /// Literal tokens
-String () = choice! @fragment {
-  CHOICE_OP = <`|` `|`?>;
+CHOICE_OP = <`|` `|`?>;
 
-  `#`  = _ "#"  _ @1;   `..` = _ ".." _ @1;   `::` = _ "::" _ @1;
-  `%%` = _ "%%" _ @1;   `=>` = _ "=>" _ @1;   `<-` = _ "<-" _ @1;
-  `->` = _ "->" _ @1;   `~>` = _ "~>" _ @1;   `<~` = _ "<~" _ @1;
-  `|>` = _ "|>" _ @1;   `&&` = _ "&&" _ @1;   `%`  = _ "%"  _ @1;
-  `@`  = _ "@"  _ @1;   `<`  = _ "<"  _ @1;   `>`  = _ ">"  _ @1;
-  `[`  = _ "["  _ @1;   `]`  = _ "]"  _ @1;   `{`  = _ "{"  _ @1;
-  `(`  = _ "("  _ @1;   `)`  = _ ")"  _ @1;   `}`  = _ "}"  _ @1;
-  `;`  = _ ";"  _ @1;   `=`  = _ "="  _ @1;   `?`  = _ "?"  _ @1;
-  `!`  = _ "!"  _ @1;   `~`  = _ "~"  _ @1;   `&`  = _ "&"  _ @1;
-  `*`  = _ "*"  _ @1;   `+`  = _ "+"  _ @1;   `,`  = _ ","  _ @1;
-  `:`  = _ ":"  _ @1;   `|`  = _ "|"  _ @1;   `/`  = _ "/"  _ @1;
-  `.`  = _ "."  _ @1;   `ε`  = _ "ε"  _ @1;   `^`  = _ "^"  _ @1;
-  `$`  = _ "$"  _ @1;
-}
+`#`  = _ "#"  _ @1;   `..` = _ ".." _ @1;   `::` = _ "::" _ @1;
+`%%` = _ "%%" _ @1;   `=>` = _ "=>" _ @1;   `<-` = _ "<-" _ @1;
+`->` = _ "->" _ @1;   `~>` = _ "~>" _ @1;   `<~` = _ "<~" _ @1;
+`|>` = _ "|>" _ @1;   `&&` = _ "&&" _ @1;   `%`  = _ "%"  _ @1;
+`@`  = _ "@"  _ @1;   `<`  = _ "<"  _ @1;   `>`  = _ ">"  _ @1;
+`[`  = _ "["  _ @1;   `]`  = _ "]"  _ @1;   `{`  = _ "{"  _ @1;
+`(`  = _ "("  _ @1;   `)`  = _ ")"  _ @1;   `}`  = _ "}"  _ @1;
+`;`  = _ ";"  _ @1;   `=`  = _ "="  _ @1;   `?`  = _ "?"  _ @1;
+`!`  = _ "!"  _ @1;   `~`  = _ "~"  _ @1;   `&`  = _ "&"  _ @1;
+`*`  = _ "*"  _ @1;   `+`  = _ "+"  _ @1;   `,`  = _ ","  _ @1;
+`:`  = _ ":"  _ @1;   `|`  = _ "|"  _ @1;   `/`  = _ "/"  _ @1;
+`.`  = _ "."  _ @1;   `ε`  = _ "ε"  _ @1;   `^`  = _ "^"  _ @1;
+`$`  = _ "$"  _ @1;
 
 /// Layout parser allows comments (like this) and space between parsers.
 /// Regular Expression monster below:
@@ -576,14 +580,12 @@ String () = choice! @fragment {
 ///   1. `(\s)` - Matches any whitespace character.
 ///   2. `(\/{2}.*((\r?\n)|($)))` - Matches a single line comment.
 ///   3. `(\/\*((?!\*\/).)*\*\/)` - Matches a multi-line comment.
-@rule {
-  String _    = (whitespace | &"/" comment)* |> "";
-  whitespace  = \s+                          |> "";
+_           = (whitespace | &"/" comment)* |> "";
+whitespace  = \s+                          |> "";
 
-  String comment = choice! {
-    single = "//" (~newlineOrEof)* |> "";
-    multi  = "/*" (~"*/")* "*/"    |> "";
-  };
+comment = choice! {
+  single = "//" (~newlineOrEof)* |> "";
+  multi  = "/*" (~"*/")* "*/"    |> "";
+};
 
-  @inline newlineOrEof = \r? \n \r? | $;
-}
+@inline newlineOrEof = \r? \n \r? | $;

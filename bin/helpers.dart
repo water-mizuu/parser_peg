@@ -116,41 +116,41 @@ Future<IsolateParser> spawnParser(String grammarSource, {String parserName = "Te
   // it receives via a SendPort.
   var driver =
       """
-import "dart:convert" show jsonEncode;
-import "dart:isolate" show ReceivePort, SendPort;
+      import "dart:convert" show jsonEncode;
+      import "dart:isolate" show ReceivePort, SendPort;
 
-$parserCode
+      $parserCode
 
-Object? _serialize(Object? v) {
-  if (v == null) return null;
-  if (v is num || v is bool || v is String) return v;
-  if (v is List) return v.map(_serialize).toList();
-  if (v is Map) return v.map((k, v) => MapEntry(k.toString(), _serialize(v)));
-  return v.toString();
-}
-
-void main(List<String> _, SendPort initPort) {
-  var receivePort = ReceivePort();
-  initPort.send(receivePort.sendPort);
-
-  var parser = $parserName();
-
-  receivePort.listen((msg) {
-    var [replyPort as SendPort, input as String] = msg as List;
-    try {
-      var result = parser.parse(input);
-
-      if (result == null) {
-        return replyPort.send(["fail", parser.reportFailures()]);
-      } else {
-        return replyPort.send(["ok", jsonEncode(_serialize(result))]);
+      Object? _serialize(Object? v) {
+        if (v == null) return null;
+        if (v is num || v is bool || v is String) return v;
+        if (v is List) return v.map(_serialize).toList();
+        if (v is Map) return v.map((k, v) => MapEntry(k.toString(), _serialize(v)));
+        return v.toString();
       }
-    } catch (e, st) {
-      replyPort.send(["error", e.toString(), st.toString()]);
-    }
-  });
-}
-""";
+
+      void main(List<String> _, SendPort initPort) {
+        var receivePort = ReceivePort();
+        initPort.send(receivePort.sendPort);
+
+        var parser = $parserName();
+
+        receivePort.listen((msg) {
+          var [replyPort as SendPort, input as String] = msg as List;
+          try {
+            var result = parser.parse(input);
+
+            if (result == null) {
+              return replyPort.send(["fail", parser.reportFailures()]);
+            } else {
+              return replyPort.send(["ok", jsonEncode(_serialize(result))]);
+            }
+          } catch (e, st) {
+            replyPort.send(["error", e.toString(), st.toString()]);
+          }
+        });
+      }
+      """;
 
   var uri = Uri.dataFromString(
     driver,

@@ -94,7 +94,7 @@ final class ParserGenerator {
   /// that grammar action code depends on).
   ///
   /// All optimization passes run immediately inside this constructor.
-  ParserGenerator.fromParsed({required this.statements, required this.preamble, this.workingPath});
+  ParserGenerator.fromParsed({required this.statements, required this.preamble, this.rootFilePath});
 
   /// The delimiter used between namespace components in fully-qualified rule names.
   ///
@@ -276,13 +276,13 @@ final class ParserGenerator {
   final String? preamble;
 
   /// Working path of the parser. This is needed when imports are involved.
-  String? workingPath;
+  String? rootFilePath;
 
   bool _isSetup = false;
   bool get isSetup => _isSetup;
 
-  void setup([String? workingPath]) {
-    this.workingPath = workingPath;
+  void setup([String? rootFilePath]) {
+    this.rootFilePath = rootFilePath;
     List<Statement> workingStatements = statements;
 
     /// We translate all hybrid namespaces to appropriate nodes.
@@ -301,8 +301,8 @@ final class ParserGenerator {
 
     int importCounter = 0;
     Map<String, (String, Set<String>)> importedUrls = {};
-    for (Statement statement in workingStatements) {
-      var stack = Queue.of([
+    for (Statement statement in workingStatements.toList()) {
+      Queue<(Statement, List<String>, Tag?)> stack = .of([
         (statement, ["global"], null as Tag?),
       ]);
 
@@ -313,20 +313,20 @@ final class ParserGenerator {
           /// If it is a declaration:
           ///   rule declaration, fragment declaration, inline declaration
           case ImportStatement(path: var importPath, :var alias):
-            if (workingPath == null) {
+            if (rootFilePath == null) {
               print("Tried to import '$importPath', but a working directory was not given.");
               continue;
             }
 
-            String workingDirectory = File(workingPath).parent.absolute.path;
-            String importUrl = path.join(workingDirectory, importPath);
-            print((workingDirectory, importPath));
+            String workingDirectory = File(rootFilePath).absolute.path;
+            String importUrl = path.canonicalize(path.join(workingDirectory, importPath));
             String resultingName = [...prefix, alias].join(separator);
 
             bool isAlreadyStitched = importedUrls.containsKey(importUrl);
-            var (String canonicalPrefix, Set<String> aliases) =
-                importedUrls //
-                    .putIfAbsent(importUrl, () => ("__imp${importCounter++}__", {}));
+            var (canonicalPrefix, aliases) = importedUrls.putIfAbsent(
+              importUrl,
+              () => ("__imp${importCounter++}__", {}),
+            );
 
             aliases.add(resultingName);
 
@@ -335,17 +335,22 @@ final class ParserGenerator {
             }
 
             String file = File(importUrl).absolute.readAsStringSync();
-            if (GrammarParser() case GrammarParser grammar) {
-              switch (grammar.parse(file)) {
-                case ParserGenerator generator:
-                  stdout.writeln("Successfully parsed grammar!");
-                  stdout.writeln("Generating parser.");
+            GrammarParser grammar = .new();
+            ParserGenerator? generator = grammar.parse(file);
+            if (generator == null) {
+              stdout.writeln("Failed to import '$importPath'");
+              stdout.writeln(grammar.reportFailures());
+              continue;
+            }
 
-                  stack.addAll(
-                    generator.statements.reversed.map((s) => (s, [canonicalPrefix], null as Tag?)),
-                  );
-                case _:
-                  stdout.writeln(grammar.reportFailures());
+            stdout.writeln("Successfully imported '$importPath'");
+            for (Statement statement in generator.statements.reversed) {
+              stack.addLast((statement, [canonicalPrefix], null));
+
+              if (statement is! NamespaceStatement) {
+                workingStatements.addAll(
+                  statement.acceptVisitor(StatementTranslatorVisitor(), null),
+                );
               }
             }
           case DeclarationStatement(:var type, :var name, tag: var declaredTag):
@@ -390,7 +395,15 @@ final class ParserGenerator {
             continue;
           case DeclarationStatement(:var type, :var name, :var node, tag: var declaredTag):
             var realName = [...prefixes, name].join(separator);
-            var visitor = ResolveReferencesVisitor(realName, prefixes, _rules, _fragments, _inline);
+            var visitor = ResolveReferencesVisitor(
+              importedUrls,
+              realName,
+              prefixes,
+              _rules,
+              _fragments,
+              _inline,
+            );
+
             var resolvedNode = node.acceptSimpleVisitor(visitor);
 
             var target = switch (declaredTag ?? tag) {
@@ -1124,11 +1137,13 @@ final class ParserGenerator {
     } else if (node is OptionalNode) {
       computed = true;
     } else if (node is ReferenceNode) {
+      _isNullable[node] = false;
       computed = isPassIfNull(
         _rules[node.ruleName]?.$2 ?? notFound(node.ruleName, Tag.rule, ruleName),
         ruleName,
       );
     } else if (node is FragmentNode) {
+      _isNullable[node] = false;
       computed = isPassIfNull(
         _fragments[node.fragmentName]?.$2 ??
             _inline[node.fragmentName]?.$2 ??

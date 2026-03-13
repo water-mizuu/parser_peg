@@ -88,7 +88,7 @@ Statement statement =
   | typedRule
   | untypedRule;
 
-importStatement = ("import" _ :dart.literal.string _ "as" _ :dart.literal.identifier `;`) {
+importStatement = ("import" _ :literal.string _ "as" _ :literal.identifier `;`) {
   return ImportStatement(string, identifier);
 };
 
@@ -341,6 +341,7 @@ code {
 }
 
 @fragment literal {
+  String identifier = _ :global.identifier _;
   String regexp = "/" ((\\ . @1 { r"\" + $ } | ~"/")+ { $.join() }) "/" @1;
   String string = _ string.main _ @1;
   string {

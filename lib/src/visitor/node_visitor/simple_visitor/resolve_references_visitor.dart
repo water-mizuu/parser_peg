@@ -7,6 +7,7 @@ import "package:parser_peg/src/visitor/node_visitor.dart";
 /// to more appropriate nodes such as [FragmentNode].
 class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
   const ResolveReferencesVisitor(
+    this.importedUrls,
     this.declarationName,
     this.prefixes,
     this.rules,
@@ -16,6 +17,7 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
 
   final String declarationName;
   final List<String> prefixes;
+  final Map<String, (String, Set<String>)> importedUrls;
   final Map<String, (String?, Node)> rules;
   final Map<String, (String?, Node)> fragments;
   final Map<String, (String?, Node)> inline;
@@ -138,14 +140,34 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
   /// identifying both the enclosing declaration ([declarationName]) and the
   /// unresolvable [name].
   Node resolveReference(String name) {
+    print(importedUrls);
     for (int i = prefixes.length; i >= 0; --i) {
       var potentialName = [...prefixes.sublist(0, i), name].join(ParserGenerator.separator);
+
+      print(potentialName);
       switch (potentialName) {
         case String name when rules.containsKey(name):
           return ReferenceNode(name);
         case String name when inline.containsKey(name):
         case String name when fragments.containsKey(name):
           return FragmentNode(name);
+      }
+
+      for (final (canonicalName, candidates) in importedUrls.values) {
+        for (final candidate in candidates) {
+          if (potentialName.startsWith(candidate)) {
+            var replacedName = potentialName.replaceFirst(candidate, canonicalName);
+
+            print(replacedName);
+            switch (replacedName) {
+              case String name when rules.containsKey(name):
+                return ReferenceNode(name);
+              case String name when inline.containsKey(name):
+              case String name when fragments.containsKey(name):
+                return FragmentNode(name);
+            }
+          }
+        }
       }
     }
 

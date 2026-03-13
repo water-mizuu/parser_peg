@@ -1,3 +1,4 @@
 import "B.dart_grammar" as B;
+import "A.dart_grammar" as C;
 
 rule = B.test "b" | "b";
