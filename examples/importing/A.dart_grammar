@@ -1,0 +1,3 @@
+import "B.dart_grammar" as B;
+
+rule = B.test "b" | "b";

@@ -11,8 +11,10 @@ import "package:analyzer/dart/ast/visitor.dart";
 import "package:analyzer/dart/element/type.dart";
 import "package:analyzer/dart/element/type_system.dart";
 import "package:parser_peg/src/node.dart";
+import "package:parser_peg/src/parser/grammar_parser.dart";
 import "package:parser_peg/src/statement.dart";
-import "package:parser_peg/src/visitor/node_visitor/parametrized_visitor/parser_compiler_visitor.dart";
+import "package:parser_peg/src/visitor/node_visitor/"
+    "parametrized_visitor/parser_compiler_visitor.dart";
 import "package:parser_peg/src/visitor/node_visitor/"
     "parametrized_visitor/simplify_visitor.dart";
 import "package:parser_peg/src/visitor/node_visitor/"
@@ -92,7 +94,195 @@ final class ParserGenerator {
   /// that grammar action code depends on).
   ///
   /// All optimization passes run immediately inside this constructor.
-  ParserGenerator.fromParsed({required this.statements, required this.preamble}) {
+  ParserGenerator.fromParsed({required this.statements, required this.preamble, this.workingPath});
+
+  /// The delimiter used between namespace components in fully-qualified rule names.
+  ///
+  /// For example, the `lower` rule inside the `alpha` namespace is stored as
+  /// `alpha::lower`.
+  static const String separator = "::";
+
+  /// Built-in grammar statements automatically prepended to every grammar.
+  ///
+  /// Defines two predefined namespaces:
+  /// - `@inline std` — common character classes: `any`, `epsilon`, `start`,
+  ///   `end`, `whitespace`, `digit`, `hex`, `alpha` (and their sub-rules).
+  /// - `@fragment json.atom` — basic JSON value patterns: `null`, `true`,
+  ///   `false`, `number`, and `string`.
+  static const List<Statement> predefined = [
+    /// @inline std {
+    ///   any = .;
+    ///   epsilon = ε;
+    ///   start = ^;
+    ///   end = $;
+    ///   whitespace = /\s/;
+    ///   digit = /\d/;
+    ///   hex = /[0-9A-Fa-f]/;
+    ///   alpha = /[a-zA-Z]/;
+    ///   alpha {
+    ///     lower = /[a-z]/;
+    ///     upper = /[A-Z]/;
+    ///   }
+    /// }
+    NamespaceStatement("std", [
+      DeclarationStatement.predefined("any", AnyCharacterNode()),
+      DeclarationStatement.predefined("epsilon", EpsilonNode()),
+      DeclarationStatement.predefined("start", StartOfInputNode(), type: "int"),
+      DeclarationStatement.predefined("end", EndOfInputNode(), type: "int"),
+      DeclarationStatement.predefined("whitespace", RegExpNode(r"\s")),
+      DeclarationStatement.predefined("digit", RegExpNode(r"\d")),
+      DeclarationStatement.predefined("hex", RegExpNode("[0-9A-Fa-f]")),
+      NamespaceStatement.predefined("hex", <Statement>[
+        DeclarationStatement.predefined("lower", RegExpNode("[0-9a-f]")),
+        DeclarationStatement.predefined("upper", RegExpNode("[0-9A-F]")),
+      ]),
+      DeclarationStatement.predefined("alpha", RegExpNode("[a-zA-Z]")),
+      NamespaceStatement.predefined("alpha", <Statement>[
+        DeclarationStatement.predefined("lower", RegExpNode("[a-z]")),
+        DeclarationStatement.predefined("upper", RegExpNode("[A-Z]")),
+      ]),
+    ], tag: Tag.inline),
+    NamespaceStatement("json", [
+      NamespaceStatement.predefined("atom", [
+        DeclarationStatement.predefined("null", StringLiteralNode("null")),
+        DeclarationStatement.predefined("true", StringLiteralNode("true")),
+        DeclarationStatement.predefined("false", StringLiteralNode("false")),
+        DeclarationStatement.predefined("number", RegExpNode(r"-?\d+(\.\d+)?([eE][+-]?\d+)?")),
+
+        // number
+        //    integer fraction exponent
+
+        // integer
+        //    digit
+        //    onenine digits
+        //    '-' digit
+        //    '-' onenine digits
+
+        // digits
+        //    digit
+        //    digit digits
+
+        // digit
+        //    '0'
+        //    onenine
+
+        // onenine
+        //    '1' . '9'
+
+        // fraction
+        //    ""
+        //    '.' digits
+
+        // exponent
+        //    ""
+        //    'E' sign digits
+        //    'e' sign digits
+
+        // sign
+        //    ""
+        //    '+'
+        //    '-'
+        NamespaceStatement(tag: Tag.fragment, "number", [
+          DeclarationStatement.predefined("slow", ReferenceNode("number"), type: "Object"),
+          DeclarationStatement.predefined(
+            "number",
+            SequenceNode([
+              ReferenceNode("integer"),
+              ReferenceNode("fraction"),
+              ReferenceNode("exponent"),
+            ], chosenIndex: null),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "integer",
+            ChoiceNode([
+              SequenceNode([ReferenceNode("onenine"), ReferenceNode("digits")], chosenIndex: null),
+              ReferenceNode("digit"),
+              SequenceNode([
+                StringLiteralNode("-"),
+                ReferenceNode("onenine"),
+                ReferenceNode("digits"),
+              ], chosenIndex: null),
+              SequenceNode([StringLiteralNode("-"), ReferenceNode("digit")], chosenIndex: null),
+            ]),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "digits",
+            ChoiceNode([
+              SequenceNode([ReferenceNode("digit"), ReferenceNode("digits")], chosenIndex: null),
+              ReferenceNode("digit"),
+            ]),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "digit",
+            ChoiceNode([StringLiteralNode("0"), ReferenceNode("onenine")]),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "onenine",
+            ChoiceNode([
+              StringLiteralNode("1"),
+              StringLiteralNode("2"),
+              StringLiteralNode("3"),
+              StringLiteralNode("4"),
+              StringLiteralNode("5"),
+              StringLiteralNode("6"),
+              StringLiteralNode("7"),
+              StringLiteralNode("8"),
+              StringLiteralNode("9"),
+            ]),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "fraction",
+            ChoiceNode([
+              SequenceNode([StringLiteralNode("."), ReferenceNode("digits")], chosenIndex: null),
+              EpsilonNode(),
+            ]),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "exponent",
+            ChoiceNode([
+              SequenceNode([
+                ChoiceNode([StringLiteralNode("E"), StringLiteralNode("e")]),
+                ReferenceNode("sign"),
+                ReferenceNode("digits"),
+              ], chosenIndex: null),
+              EpsilonNode(),
+            ]),
+            type: "Object",
+          ),
+          DeclarationStatement.predefined(
+            "sign",
+            ChoiceNode([StringLiteralNode("+"), StringLiteralNode("-"), EpsilonNode()]),
+            type: "Object",
+          ),
+        ]),
+        DeclarationStatement.predefined("string", StringLiteralNode(r'"([^"\\]|\\.)*"')),
+      ]),
+    ], tag: Tag.fragment),
+  ];
+
+  /// Running counter used by the renaming pass to produce short, sequential
+  /// identifiers for rules (`r0`, `r1`, …) and fragments (`f0`, `f1`, …).
+  int redirectId = 0;
+
+  /// Optional raw Dart source prepended verbatim to the generated parser file.
+  ///
+  /// Set via [ParserGenerator.fromParsed]. `null` means no preamble is emitted.
+  final String? preamble;
+
+  /// Working path of the parser. This is needed when imports are involved.
+  String? workingPath;
+
+  bool _isSetup = false;
+  bool get isSetup => _isSetup;
+
+  void setup([String? workingPath]) {
+    this.workingPath = workingPath;
     List<Statement> workingStatements = statements;
 
     /// We translate all hybrid namespaces to appropriate nodes.
@@ -108,6 +298,9 @@ final class ParserGenerator {
 
     /// We add ALL the rules in advance.
     ///   Why? Because we need ALL the rules to be able to resolve references.
+
+    int importCounter = 0;
+    Map<String, (String, Set<String>)> importedUrls = {};
     for (Statement statement in workingStatements) {
       var stack = Queue.of([
         (statement, ["global"], null as Tag?),
@@ -119,7 +312,42 @@ final class ParserGenerator {
         switch (statement) {
           /// If it is a declaration:
           ///   rule declaration, fragment declaration, inline declaration
+          case ImportStatement(path: var importPath, :var alias):
+            if (workingPath == null) {
+              print("Tried to import '$importPath', but a working directory was not given.");
+              continue;
+            }
 
+            String workingDirectory = File(workingPath).parent.absolute.path;
+            String importUrl = path.join(workingDirectory, importPath);
+            print((workingDirectory, importPath));
+            String resultingName = [...prefix, alias].join(separator);
+
+            bool isAlreadyStitched = importedUrls.containsKey(importUrl);
+            var (String canonicalPrefix, Set<String> aliases) =
+                importedUrls //
+                    .putIfAbsent(importUrl, () => ("__imp${importCounter++}__", {}));
+
+            aliases.add(resultingName);
+
+            if (isAlreadyStitched) {
+              continue;
+            }
+
+            String file = File(importUrl).absolute.readAsStringSync();
+            if (GrammarParser() case GrammarParser grammar) {
+              switch (grammar.parse(file)) {
+                case ParserGenerator generator:
+                  stdout.writeln("Successfully parsed grammar!");
+                  stdout.writeln("Generating parser.");
+
+                  stack.addAll(
+                    generator.statements.reversed.map((s) => (s, [canonicalPrefix], null as Tag?)),
+                  );
+                case _:
+                  stdout.writeln(grammar.reportFailures());
+              }
+            }
           case DeclarationStatement(:var type, :var name, tag: var declaredTag):
             var realName = [...prefix, name].join(separator);
             var target = switch (declaredTag ?? tag) {
@@ -158,6 +386,8 @@ final class ParserGenerator {
         var (statement, prefixes, tag) = stack.removeLast();
 
         switch (statement) {
+          case ImportStatement():
+            continue;
           case DeclarationStatement(:var type, :var name, :var node, tag: var declaredTag):
             var realName = [...prefixes, name].join(separator);
             var visitor = ResolveReferencesVisitor(realName, prefixes, _rules, _fragments, _inline);
@@ -169,21 +399,19 @@ final class ParserGenerator {
               Tag.rule || null => _rules,
             };
 
-            if (target[realName] case (
-              var type,
-              ReferenceNode(:var ruleName),
-            ) when ruleName == realName) {
-              target[realName] = (type, resolvedNode);
-            } else if (target[realName] case (var type, var existingNode)) {
-              target[realName] = (
-                type,
-                switch (existingNode) {
-                  ChoiceNode(:var children) => ChoiceNode([...children, resolvedNode]),
-                  var other => ChoiceNode([other, resolvedNode]),
-                },
-              );
-            } else {
-              target[realName] = (type, resolvedNode);
+            switch (target[realName]) {
+              case (String? type, ReferenceNode(:var ruleName)) when ruleName == realName:
+                target[realName] = (type, resolvedNode);
+              case (String? type, Node existingNode):
+                target[realName] = (
+                  type,
+                  switch (existingNode) {
+                    ChoiceNode(:var children) => ChoiceNode([...children, resolvedNode]),
+                    var other => ChoiceNode([other, resolvedNode]),
+                  },
+                );
+              case _:
+                target[realName] = (type, resolvedNode);
             }
 
           case NamespaceStatement(:var name?, :var children, tag: var declaredTag):
@@ -391,186 +619,9 @@ final class ParserGenerator {
         _memoLevels[name] = MemoizationLevel.none;
       }
     }
+
+    _isSetup = true;
   }
-
-  /// The delimiter used between namespace components in fully-qualified rule names.
-  ///
-  /// For example, the `lower` rule inside the `alpha` namespace is stored as
-  /// `alpha::lower`.
-  static const String separator = "::";
-
-  /// Built-in grammar statements automatically prepended to every grammar.
-  ///
-  /// Defines two predefined namespaces:
-  /// - `@inline std` — common character classes: `any`, `epsilon`, `start`,
-  ///   `end`, `whitespace`, `digit`, `hex`, `alpha` (and their sub-rules).
-  /// - `@fragment json.atom` — basic JSON value patterns: `null`, `true`,
-  ///   `false`, `number`, and `string`.
-  static const List<Statement> predefined = [
-    /// @inline std {
-    ///   any = .;
-    ///   epsilon = ε;
-    ///   start = ^;
-    ///   end = $;
-    ///   whitespace = /\s/;
-    ///   digit = /\d/;
-    ///   hex = /[0-9A-Fa-f]/;
-    ///   alpha = /[a-zA-Z]/;
-    ///   alpha {
-    ///     lower = /[a-z]/;
-    ///     upper = /[A-Z]/;
-    ///   }
-    /// }
-    NamespaceStatement("std", [
-      DeclarationStatement.predefined("any", AnyCharacterNode()),
-      DeclarationStatement.predefined("epsilon", EpsilonNode()),
-      DeclarationStatement.predefined("start", StartOfInputNode(), type: "int"),
-      DeclarationStatement.predefined("end", EndOfInputNode(), type: "int"),
-      DeclarationStatement.predefined("whitespace", RegExpNode(r"\s")),
-      DeclarationStatement.predefined("digit", RegExpNode(r"\d")),
-      DeclarationStatement.predefined("hex", RegExpNode("[0-9A-Fa-f]")),
-      NamespaceStatement.predefined("hex", <Statement>[
-        DeclarationStatement.predefined("lower", RegExpNode("[0-9a-f]")),
-        DeclarationStatement.predefined("upper", RegExpNode("[0-9A-F]")),
-      ]),
-      DeclarationStatement.predefined("alpha", RegExpNode("[a-zA-Z]")),
-      NamespaceStatement.predefined("alpha", <Statement>[
-        DeclarationStatement.predefined("lower", RegExpNode("[a-z]")),
-        DeclarationStatement.predefined("upper", RegExpNode("[A-Z]")),
-      ]),
-    ], tag: Tag.inline),
-    NamespaceStatement("json", [
-      NamespaceStatement.predefined("atom", [
-        DeclarationStatement.predefined("null", StringLiteralNode("null")),
-        DeclarationStatement.predefined("true", StringLiteralNode("true")),
-        DeclarationStatement.predefined("false", StringLiteralNode("false")),
-        DeclarationStatement.predefined("number", RegExpNode(r"-?\d+(\.\d+)?([eE][+-]?\d+)?")),
-
-        // number
-        //    integer fraction exponent
-
-        // integer
-        //    digit
-        //    onenine digits
-        //    '-' digit
-        //    '-' onenine digits
-
-        // digits
-        //    digit
-        //    digit digits
-
-        // digit
-        //    '0'
-        //    onenine
-
-        // onenine
-        //    '1' . '9'
-
-        // fraction
-        //    ""
-        //    '.' digits
-
-        // exponent
-        //    ""
-        //    'E' sign digits
-        //    'e' sign digits
-
-        // sign
-        //    ""
-        //    '+'
-        //    '-'
-        NamespaceStatement(tag: Tag.fragment, "number", [
-          DeclarationStatement.predefined("slow", ReferenceNode("number"), type: "Object"),
-          DeclarationStatement.predefined(
-            "number",
-            SequenceNode([
-              ReferenceNode("integer"),
-              ReferenceNode("fraction"),
-              ReferenceNode("exponent"),
-            ], chosenIndex: null),
-            type: "Object",
-          ),
-          DeclarationStatement.predefined(
-            "integer",
-            ChoiceNode([
-              SequenceNode([ReferenceNode("onenine"), ReferenceNode("digits")], chosenIndex: null),
-              ReferenceNode("digit"),
-              SequenceNode([
-                StringLiteralNode("-"),
-                ReferenceNode("onenine"),
-                ReferenceNode("digits"),
-              ], chosenIndex: null),
-              SequenceNode([StringLiteralNode("-"), ReferenceNode("digit")], chosenIndex: null),
-            ]),
-            type: "Object",
-          ),
-          DeclarationStatement.predefined(
-            "digits",
-            ChoiceNode([
-              SequenceNode([ReferenceNode("digit"), ReferenceNode("digits")], chosenIndex: null),
-              ReferenceNode("digit"),
-            ]),
-            type: "Object",
-          ),
-          DeclarationStatement.predefined(
-            "digit",
-            ChoiceNode([StringLiteralNode("0"), ReferenceNode("onenine")]),
-            type: "Object",
-          ),
-          DeclarationStatement.predefined(
-            "onenine",
-            ChoiceNode([
-              StringLiteralNode("1"),
-              StringLiteralNode("2"),
-              StringLiteralNode("3"),
-              StringLiteralNode("4"),
-              StringLiteralNode("5"),
-              StringLiteralNode("6"),
-              StringLiteralNode("7"),
-              StringLiteralNode("8"),
-              StringLiteralNode("9"),
-            ]),
-            type: "Object",
-          ),
-          DeclarationStatement.predefined(
-            "fraction",
-            ChoiceNode([
-              SequenceNode([StringLiteralNode("."), ReferenceNode("digits")], chosenIndex: null),
-              EpsilonNode(),
-            ]),
-            type: "Object",
-          ),
-          DeclarationStatement.predefined(
-            "exponent",
-            ChoiceNode([
-              SequenceNode([
-                ChoiceNode([StringLiteralNode("E"), StringLiteralNode("e")]),
-                ReferenceNode("sign"),
-                ReferenceNode("digits"),
-              ], chosenIndex: null),
-              EpsilonNode(),
-            ]),
-            type: "Object",
-          ),
-          DeclarationStatement.predefined(
-            "sign",
-            ChoiceNode([StringLiteralNode("+"), StringLiteralNode("-"), EpsilonNode()]),
-            type: "Object",
-          ),
-        ]),
-        DeclarationStatement.predefined("string", StringLiteralNode(r'"([^"\\]|\\.)*"')),
-      ]),
-    ], tag: Tag.fragment),
-  ];
-
-  /// Running counter used by the renaming pass to produce short, sequential
-  /// identifiers for rules (`r0`, `r1`, …) and fragments (`f0`, `f1`, …).
-  int redirectId = 0;
-
-  /// Optional raw Dart source prepended verbatim to the generated parser file.
-  ///
-  /// Set via [ParserGenerator.fromParsed]. `null` means no preamble is emitted.
-  final String? preamble;
 
   /// The top-level grammar [Statement]s supplied at construction time.
   final List<Statement> statements;
@@ -590,6 +641,10 @@ final class ParserGenerator {
     String? type,
     Map<String, DartType>? resolvedTypes,
   }) {
+    if (!_isSetup) {
+      setup();
+    }
+
     var parserTypeString =
         type ?? //
         resolvedTypes?["ROOT"]?.getDisplayString() ??
@@ -826,8 +881,9 @@ final class ParserGenerator {
         return false;
       }
 
-      var hasObject = types.any((t) => t.getDisplayString().contains("Object"));
-      var hasConcrete = types.any((t) => !t.getDisplayString().contains("Object"));
+      bool hasObject = types.any((t) => _topTypes.contains(t.getDisplayString()));
+      bool hasConcrete = types.any((t) => !_topTypes.contains(t.getDisplayString()));
+
       return hasObject && hasConcrete;
     });
 
@@ -878,8 +934,7 @@ final class ParserGenerator {
             continue;
           }
 
-          String rule = _reverseRenames[_renames[name] ?? name] ?? name;
-          rule = rule.unwrappedName; // Remove the global:: prefix
+          String rule = (_reverseRenames[_renames[name] ?? name] ?? name).unwrappedName;
 
           String prev = resolvedTypes?[name]?.getDisplayString() ?? "unknown";
           String next = type.getDisplayString();
@@ -1217,6 +1272,8 @@ extension on String {
   String get unwrappedName => startsWith("global::") ? substring(8) : this;
 }
 
+const Set<String> _topTypes = {"Object", "Object?", "dynamic"};
+
 // ignore: unused_element
 class _TypeResolutionVisitor extends RecursiveAstVisitor<void> {
   _TypeResolutionVisitor({
@@ -1320,8 +1377,6 @@ class _TypeConstraintSolver {
   final Map<String, (String?, Node)> fragments;
   final Map<String, String> reverseRenames;
 
-  static const Set<String> topTypes = {"Object", "Object?", "dynamic"};
-
   /// Returns an updated type map with better hypotheses for stuck SCCs,
   /// or `null` if no improvement is possible.
   Map<String, DartType>? solve() {
@@ -1343,8 +1398,8 @@ class _TypeConstraintSolver {
         return false;
       }
 
-      var hasObject = types.any((t) => topTypes.contains(t.getDisplayString()));
-      var hasConcrete = types.any((t) => !topTypes.contains(t.getDisplayString()));
+      var hasObject = types.any((t) => _topTypes.contains(t.getDisplayString()));
+      var hasConcrete = types.any((t) => !_topTypes.contains(t.getDisplayString()));
 
       return hasObject && hasConcrete;
     });
@@ -1363,15 +1418,15 @@ class _TypeConstraintSolver {
       /// where the Object came from a self-reference typed too broadly).
       var hasInvalidInScc = component.any((r) => invalidReturnTypes[r]?.isNotEmpty ?? false);
       var hasImprovableInScc =
-          _isSccRecursive(component, deps) &&
+          _isSccSinglyRecursive(component, deps) &&
           component.any((r) {
             var types = validReturnTypes[r] ?? [];
             if (types.length <= 1) {
               return false;
             }
 
-            var hasObject = types.any((t) => topTypes.contains(t.getDisplayString()));
-            var hasConcrete = types.any((t) => !topTypes.contains(t.getDisplayString()));
+            var hasObject = types.any((t) => _topTypes.contains(t.getDisplayString()));
+            var hasConcrete = types.any((t) => !_topTypes.contains(t.getDisplayString()));
 
             return hasObject && hasConcrete;
           });
@@ -1421,7 +1476,7 @@ class _TypeConstraintSolver {
     return deps;
   }
 
-  bool _isSccRecursive(Set<String> component, Map<String, Set<String>> deps) {
+  bool _isSccSinglyRecursive(Set<String> component, Map<String, Set<String>> deps) {
     if (component.length > 1) {
       return true;
     }
@@ -1475,7 +1530,7 @@ class _TypeConstraintSolver {
 
   /// Returns the most specific upper bound, without Object.
   DartType? _mostSpecific(List<DartType> types) {
-    var concrete = types.where((t) => !topTypes.contains(t.getDisplayString())).toList();
+    var concrete = types.where((t) => !_topTypes.contains(t.getDisplayString())).toList();
     if (concrete.isEmpty) {
       return null;
     }

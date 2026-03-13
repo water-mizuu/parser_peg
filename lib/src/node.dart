@@ -1,5 +1,3 @@
-// ignore_for_file: use_to_and_as_if_applicable
-
 import "package:parser_peg/src/visitor/node_visitor.dart";
 
 sealed class Node {

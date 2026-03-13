@@ -87,4 +87,9 @@ class StatementTranslatorVisitor implements StatementVisitor<List<Statement>, St
       ),
     ];
   }
+
+  @override
+  List<Statement> visitImportStatement(ImportStatement statement, String? parameters) {
+    return [statement];
+  }
 }

@@ -21,6 +21,8 @@ import "package:parser_peg/src/statement.dart";
 ///   that both groups child statements and introduces a top-level rule for
 ///   the namespace itself.
 abstract class StatementVisitor<O, I> {
+  O visitImportStatement(ImportStatement statement, I parameters);
+
   /// Visits a [NamespaceStatement] with the given [parameters].
   O visitNamespaceStatement(NamespaceStatement statement, I parameters);
 

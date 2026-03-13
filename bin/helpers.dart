@@ -139,7 +139,12 @@ void main(List<String> _, SendPort initPort) {
     var [replyPort as SendPort, input as String] = msg as List;
     try {
       var result = parser.parse(input);
-      replyPort.send(["ok", result == null ? null : jsonEncode(_serialize(result))]);
+
+      if (result == null) {
+        return replyPort.send(["fail", parser.reportFailures()]);
+      } else {
+        return replyPort.send(["ok", jsonEncode(_serialize(result))]);
+      }
     } catch (e, st) {
       replyPort.send(["error", e.toString(), st.toString()]);
     }

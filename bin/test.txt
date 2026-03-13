@@ -1,4 +1,4 @@
-{
+Parsing the input: {
 import "package:parser_peg/src/node.dart";
 import "package:parser_peg/src/generator.dart";
 import "package:parser_peg/src/statement.dart";
@@ -88,7 +88,7 @@ Statement statement =
   | typedRule
   | untypedRule;
 
-importStatement = ("import" _ :dart.literal.string _ "as" _ :dart.literal.identifier `;`) {
+importStatement = ("import" _ :dart.literal.string _ "as" :dart.literal.identifier `;`) {
   return ImportStatement(string, identifier);
 };
 

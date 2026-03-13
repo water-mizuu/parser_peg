@@ -9,6 +9,18 @@ sealed class Statement {
   O acceptVisitor<O, I>(StatementVisitor<O, I> visitor, I parameters);
 }
 
+final class ImportStatement implements Statement {
+  const ImportStatement(this.path, this.alias);
+
+  final String path;
+  final String? alias;
+
+  @override
+  O acceptVisitor<O, I>(StatementVisitor<O, I> visitor, I parameters) {
+    return visitor.visitImportStatement(this, parameters);
+  }
+}
+
 final class NamespaceStatement implements Statement {
   const NamespaceStatement(this.name, this.children, {required this.tag});
   const NamespaceStatement.predefined(this.name, this.children) : tag = null;
