@@ -1,0 +1,4 @@
+import "letters.dart_grammar" as L;
+import "digits.dart_grammar" as D;
+
+rule = ^ (L.letter | D.digit)+ $;

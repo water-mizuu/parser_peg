@@ -272,47 +272,72 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class A extends _PegParser<Object> {
-  A();
+final class Main extends _PegParser<(int, List<String>, int)> {
+  Main();
 
   @override
-  get start => r0;
+  get start => f0;
 
 
   /// `ROOT`
-  Object? f0() {
-    if (this._applyLr(this.r0) case var $?) {
+  (int, List<String>, int)? f0() {
+    if (this.r2() case var $?) {
       return $;
     }
   }
 
-  /// `global::__imp1__::test`
-  Object? r0() {
-    if (this._applyLr(this.r1) case var $?) {
+  /// `fragment0`
+  String? f1() {
+    var _mark = this._mark();
+    if (this.r0() case var $?) {
+      return $;
+    }
+    this._recover(_mark);
+    if (this.r1() case var $?) {
+      return $;
+    }
+  }
+
+  /// `global::__imp1__::letter`
+  String? r0() {
+    if (this.matchRange(_range.$1) case var $?) {
+      return $;
+    }
+  }
+
+  /// `global::__imp2__::digit`
+  String? r1() {
+    if (this.matchRange(_range.$2) case var $?) {
       return $;
     }
   }
 
   /// `global::__imp0__::rule`
-  Object? r1() {
-    var _mark = this._mark();
-    if (this._applyLr(this.r0) case var $0?) {
-      if (this.matchPattern(_string.$1) case var $1?) {
-        return ($0, $1);
+  (int, List<String>, int)? r2() {
+    if (this.pos case var $0 && <= 0) {
+      if (this.f1() case var _0?) {
+        if ([_0] case (var $1 && var _l1)) {
+          for (;;) {
+            var _mark = this._mark();
+            if (this.f1() case var _0?) {
+              _l1.add(_0);
+              continue;
+            }
+            this._recover(_mark);
+            break;
+          }
+          if (this.pos case var $2 when this.pos >= this.buffer.length) {
+            return ($0, $1, $2);
+          }
+        }
       }
-    }
-    this._recover(_mark);
-    if (this._applyLr(this.r1) case var $?) {
-      return $;
-    }
-    this._recover(_mark);
-    if (this.matchPattern(_string.$1) case var $?) {
-      return $;
     }
   }
 
 }
-class _string {
-  /// `"b"`
-  static const $1 = "b";
+class _range {
+  /// `[a-zA-Z]`
+  static const $1 = { (97, 122), (65, 90) };
+  /// `[0-9]`
+  static const $2 = { (48, 57) };
 }

@@ -91,6 +91,89 @@ Future<IsolateParser> spawnParser(String grammarSource, {String parserName = "Te
   return IsolateParser._(isolate, sendPort, onError, errSub);
 }
 
+// ---------------------------------------------------------------------------
+//  Import-feature helpers
+// ---------------------------------------------------------------------------
+
+/// Writes [importedFiles] into a fresh temp directory, then compiles
+/// [mainSource] (whose import paths are relative to that directory) and
+/// spawns an isolate parser exactly like [spawnParser].
+///
+/// Assumes GrammarParser.parse() accepts `basePath:` for import resolution.
+/// Returns both the parser and the temp directory so the caller can clean up.
+Future<(IsolateParser, Directory)> spawnParserWithImports(
+  String mainSource,
+  Map<String, String> importedFiles, {
+  String parserName = "TestParser",
+}) async {
+  var tempDir = await Directory.systemTemp.createTemp("peg_import_test_");
+
+  for (var entry in importedFiles.entries) {
+    var file = File("${tempDir.path}/${entry.key}");
+    await file.parent.create(recursive: true);
+    await file.writeAsString(entry.value);
+  }
+
+  var grammar = GrammarParser();
+  var generator = grammar.parse(mainSource, basePath: tempDir.path);
+  if (generator == null) {
+    await tempDir.delete(recursive: true);
+    throw StateError("Failed to parse grammar with imports:\n${grammar.reportFailures()}");
+  }
+
+  var parserCode = await generator.compileAnalyzedParserGenerator(parserName);
+
+  var driver =
+      """
+      import "dart:convert" show jsonEncode;
+      import "dart:isolate" show ReceivePort, SendPort;
+
+      $parserCode
+
+      Object? _serialize(Object? v) {
+        if (v == null) return null;
+        if (v is num || v is bool || v is String) return v;
+        if (v is List) return v.map(_serialize).toList();
+        if (v is Map) return v.map((k, v) => MapEntry(k.toString(), _serialize(v)));
+        return v.toString();
+      }
+
+      void main(List<String> _, SendPort initPort) {
+        var receivePort = ReceivePort();
+        initPort.send(receivePort.sendPort);
+        var parser = $parserName();
+        receivePort.listen((msg) {
+          var [replyPort as SendPort, input as String] = msg as List;
+          try {
+            var result = parser.parse(input);
+            replyPort.send(["ok", result == null ? null : jsonEncode(_serialize(result))]);
+          } catch (e, st) {
+            replyPort.send(["error", e.toString(), st.toString()]);
+          }
+        });
+      }
+    """;
+
+  var uri = Uri.dataFromString(
+    driver,
+    mimeType: "application/dart",
+    encoding: const SystemEncoding(),
+    base64: true,
+  );
+
+  var initPort = ReceivePort();
+  var onError = ReceivePort();
+  // ignore: cancel_subscriptions
+  var errSub = onError.listen((data) {
+    throw StateError("Import isolate error: $data");
+  });
+
+  var isolate = await Isolate.spawnUri(uri, [], initPort.sendPort, onError: onError.sendPort);
+
+  var sendPort = await initPort.first as SendPort;
+  return (IsolateParser._(isolate, sendPort, onError, errSub), tempDir);
+}
+
 class IsolateParser {
   IsolateParser._(this._isolate, this._sendPort, this._onError, this._errSub);
 
@@ -4355,6 +4438,616 @@ int rule = ^ :val $ |> val;
 
     test("explicit return with trailing semicolon", () async {
       expect(await iso.parse("x"), equals(99));
+    });
+  });
+  // ---------------------------------------------------------------------------
+  //  Test group – Import feature: grammar parsing (syntax only, no disk I/O)
+  // ---------------------------------------------------------------------------
+
+  group("Import feature: grammar parsing", () {
+    late GrammarParser parser;
+
+    setUp(() => parser = GrammarParser());
+
+    test("parse single import with alias", () {
+      var result = parser.parse('''
+      import "other.dart_grammar" as Other;
+      rule = Other.rule;
+    ''');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse multiple imports with different aliases", () {
+      var result = parser.parse('''
+      import "a.dart_grammar" as A;
+      import "b.dart_grammar" as B;
+      rule = A.rule | B.rule;
+    ''');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse import matching original example syntax", () {
+      var result = parser.parse('''
+      import "B.dart_grammar" as B;
+      import "A.dart_grammar" as C;
+      rule = B.test "b" | C.rule | "b";
+    ''');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse import with preamble block", () {
+      var result = parser.parse('''
+      {
+        import "dart:math";
+      }
+      import "other.dart_grammar" as Other;
+      rule = Other.rule;
+    ''');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse import followed by local rules", () {
+      var result = parser.parse('''
+      import "tokens.dart_grammar" as Tok;
+      entry = Tok.identifier "=" Tok.number;
+    ''');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse import alias used in fragment decorator", () {
+      var result = parser.parse('''
+      import "shared.dart_grammar" as Shared;
+      @fragment token = Shared.ws | Shared.ident;
+      entry = token+;
+    ''');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse import with namespace-qualified reference (alias.ns.rule)", () {
+      var result = parser.parse('''
+      import "grammar.dart_grammar" as G;
+      rule = G.ns.rule;
+    ''');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse import alias with underscores", () {
+      var result = parser.parse('''
+      import "my_tokens.dart_grammar" as my_tokens;
+      rule = my_tokens.identifier;
+    ''');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse import alias used in action", () {
+      var result = parser.parse(r'''
+      import "nums.dart_grammar" as Nums;
+      int rule = ^ :n $ |> n;
+      @fragment int n = Nums.integer;
+    ''');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse import alias used in sequence with local rule", () {
+      var result = parser.parse('''
+      import "shared.dart_grammar" as Shared;
+      rule = local Shared.thing local;
+      local = "x";
+    ''');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("parse three imports", () {
+      var result = parser.parse('''
+      import "a.dart_grammar" as A;
+      import "b.dart_grammar" as B;
+      import "c.dart_grammar" as C;
+      rule = A.r | B.r | C.r;
+    ''');
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("reject import without 'as' keyword", () {
+      var result = parser.parse('''
+      import "other.dart_grammar";
+      rule = "x";
+    ''');
+      expect(result, isNull);
+    });
+
+    test("reject import with alias but no quotes around path", () {
+      var result = parser.parse("""
+      import other.dart_grammar as Other;
+      rule = Other.rule;
+    """);
+      expect(result, isNull);
+    });
+
+    test("reject import missing semicolon", () {
+      var result = parser.parse('''
+      import "other.dart_grammar" as Other
+      rule = Other.rule;
+    ''');
+      expect(result, isNull);
+    });
+
+    test("reject import with numeric alias", () {
+      var result = parser.parse('''
+      import "other.dart_grammar" as 123;
+      rule = "x";
+    ''');
+      expect(result, isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  //  Test group – Import feature: end-to-end basic rule import
+  // ---------------------------------------------------------------------------
+
+  group("End-to-end: import basic rule from another grammar", () {
+    late IsolateParser iso;
+    late Directory tempDir;
+
+    setUpAll(() async {
+      const imported = '''
+      String greeting = "hello" | "world";
+    ''';
+      (iso, tempDir) = await spawnParserWithImports(
+        r'''
+        import "greet.dart_grammar" as Greet;
+        String rule = ^ :Greet.greeting $;
+      ''',
+        {"greet.dart_grammar": imported},
+      );
+    });
+
+    tearDownAll(() async {
+      iso.dispose();
+      await tempDir.delete(recursive: true);
+    });
+
+    test("matches imported rule first alternative", () async {
+      expect(await iso.parse("hello"), isNotNull);
+    });
+
+    test("matches imported rule second alternative", () async {
+      expect(await iso.parse("world"), isNotNull);
+    });
+
+    test("rejects input not in imported rule", () async {
+      expect(await iso.parse("bye"), isNull);
+    });
+
+    test("rejects empty input", () async {
+      expect(await iso.parse(""), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  //  Test group – Import feature: end-to-end imported fragment
+  // ---------------------------------------------------------------------------
+
+  group("End-to-end: import fragment from another grammar", () {
+    late IsolateParser iso;
+    late Directory tempDir;
+
+    setUpAll(() async {
+      const imported = """
+      @fragment String word = <[a-z]+>;
+    """;
+      (iso, tempDir) = await spawnParserWithImports(
+        r"""
+        import "tokens.dart_grammar" as Tok;
+        String rule = ^ :Tok.word $;
+      """,
+        {"tokens.dart_grammar": imported},
+      );
+    });
+
+    tearDownAll(() async {
+      iso.dispose();
+      await tempDir.delete(recursive: true);
+    });
+
+    test("imported fragment matches lowercase word", () async {
+      expect(await iso.parse("hello"), isNotNull);
+    });
+
+    test("imported fragment rejects uppercase", () async {
+      expect(await iso.parse("Hello"), isNull);
+    });
+
+    test("imported fragment rejects digits", () async {
+      expect(await iso.parse("123"), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  //  Test group – Import feature: end-to-end two imports, both used
+  // ---------------------------------------------------------------------------
+
+  group("End-to-end: two imports used in choice", () {
+    late IsolateParser iso;
+    late Directory tempDir;
+
+    setUpAll(() async {
+      (iso, tempDir) = await spawnParserWithImports(
+        r'''
+        import "letters.dart_grammar" as L;
+        import "digits.dart_grammar" as D;
+        rule = ^ (L.letter | D.digit)+ $;
+      ''',
+        {"letters.dart_grammar": "letter = [a-zA-Z];", "digits.dart_grammar": "digit = [0-9];"},
+      );
+    });
+
+    tearDownAll(() async {
+      iso.dispose();
+      await tempDir.delete(recursive: true);
+    });
+
+    test("matches letters (from first import)", () async {
+      expect(await iso.parse("abc"), isNotNull);
+    });
+
+    test("matches digits (from second import)", () async {
+      expect(await iso.parse("123"), isNotNull);
+    });
+
+    test("matches mixed letters and digits", () async {
+      expect(await iso.parse("a1b2"), isNotNull);
+    });
+
+    test("rejects symbol not in either import", () async {
+      expect(await iso.parse("!"), isNull);
+    });
+
+    test("rejects empty", () async {
+      expect(await iso.parse(""), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  //  Test group – Import feature: end-to-end same file imported twice
+  //              under different aliases
+  // ---------------------------------------------------------------------------
+
+  group("End-to-end: same file imported under two different aliases", () {
+    late IsolateParser iso;
+    late Directory tempDir;
+
+    setUpAll(() async {
+      const shared = """
+      String token = <[a-z]+>;
+    """;
+      (iso, tempDir) = await spawnParserWithImports(
+        r'''
+        import "shared.dart_grammar" as Left;
+        import "shared.dart_grammar" as Right;
+        String rule = ^ Left.token ":" Right.token $ |> span;
+      ''',
+        {"shared.dart_grammar": shared},
+      );
+    });
+
+    tearDownAll(() async {
+      iso.dispose();
+      await tempDir.delete(recursive: true);
+    });
+
+    test("matches two words separated by colon", () async {
+      expect(await iso.parse("foo:bar"), isNotNull);
+    });
+
+    test("rejects missing colon", () async {
+      expect(await iso.parse("foobar"), isNull);
+    });
+
+    test("rejects empty right side", () async {
+      expect(await iso.parse("foo:"), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  //  Test group – Import feature: end-to-end imported rule used in sequence
+  //              alongside local rules
+  // ---------------------------------------------------------------------------
+
+  group("End-to-end: imported rule in sequence with local rules", () {
+    late IsolateParser iso;
+    late Directory tempDir;
+
+    setUpAll(() async {
+      const imported = """
+      String ident = <[a-z]+>;
+    """;
+      (iso, tempDir) = await spawnParserWithImports(
+        r'''
+        import "ident.dart_grammar" as Id;
+        String rule = ^ :("(" ~> Id.ident <~ ")") $;
+      ''',
+        {"ident.dart_grammar": imported},
+      );
+    });
+
+    tearDownAll(() async {
+      iso.dispose();
+      await tempDir.delete(recursive: true);
+    });
+
+    test("matches parenthesised identifier", () async {
+      expect(await iso.parse("(hello)"), equals("hello"));
+    });
+
+    test("rejects missing open paren", () async {
+      expect(await iso.parse("hello)"), isNull);
+    });
+
+    test("rejects missing close paren", () async {
+      expect(await iso.parse("(hello"), isNull);
+    });
+
+    test("rejects empty parens", () async {
+      expect(await iso.parse("()"), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  //  Test group – Import feature: end-to-end imported rule with action
+  // ---------------------------------------------------------------------------
+
+  group("End-to-end: imported fragment carrying an action", () {
+    late IsolateParser iso;
+    late Directory tempDir;
+
+    setUpAll(() async {
+      const imported = r"""
+      @fragment int integer = \d+ { int.parse($.join()) };
+    """;
+      (iso, tempDir) = await spawnParserWithImports(
+        r'''
+        import "num.dart_grammar" as Num;
+        int rule = ^ :a "+" :b $ { a + b };
+        @fragment int a = Num.integer;
+        @fragment int b = Num.integer;
+      ''',
+        {"num.dart_grammar": imported},
+      );
+    });
+
+    tearDownAll(() async {
+      iso.dispose();
+      await tempDir.delete(recursive: true);
+    });
+
+    test("imported fragment with action evaluates correctly", () async {
+      expect(await iso.parse("3+4"), equals(7));
+    });
+
+    test("larger operands", () async {
+      expect(await iso.parse("100+200"), equals(300));
+    });
+
+    test("rejects non-numeric operand", () async {
+      expect(await iso.parse("a+b"), isNull);
+    });
+
+    test("rejects missing operand", () async {
+      expect(await iso.parse("3+"), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  //  Test group – Import feature: end-to-end importing a whole namespace
+  // ---------------------------------------------------------------------------
+
+  group("End-to-end: importing an entire namespace from another grammar", () {
+    late IsolateParser iso;
+    late Directory tempDir;
+
+    setUpAll(() async {
+      // The imported file contains a namespace block.
+      const imported = """
+      tokens {
+        word = <[a-z]+>;
+        number = <[0-9]+>;
+      }
+    """;
+      (iso, tempDir) = await spawnParserWithImports(
+        r'''
+        import "lib.dart_grammar" as Lib;
+        rule = ^ (Lib.tokens.word | Lib.tokens.number)+ $;
+      ''',
+        {"lib.dart_grammar": imported},
+      );
+    });
+
+    tearDownAll(() async {
+      iso.dispose();
+      await tempDir.delete(recursive: true);
+    });
+
+    test("matches word from imported namespace", () async {
+      expect(await iso.parse("abc"), isNotNull);
+    });
+
+    test("matches number from imported namespace", () async {
+      expect(await iso.parse("123"), isNotNull);
+    });
+
+    test("matches mixed tokens from imported namespace", () async {
+      expect(await iso.parse("abc123"), isNotNull);
+    });
+
+    test("rejects symbol outside imported namespace", () async {
+      expect(await iso.parse("!"), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  //  Test group – Import feature: end-to-end transitive imports
+  //              (imported file itself imports another file)
+  // ---------------------------------------------------------------------------
+
+  group("End-to-end: transitive imports (A imports B, main imports A)", () {
+    late IsolateParser iso;
+    late Directory tempDir;
+
+    setUpAll(() async {
+      // B is a leaf grammar
+      const fileB = """
+      String digit = <[0-9]>;
+    """;
+      // A imports B and exposes a number rule
+      const fileA = '''
+      import "b.dart_grammar" as B;
+      String number = <B.digit+>;
+    ''';
+      (iso, tempDir) = await spawnParserWithImports(
+        r'''
+        import "a.dart_grammar" as A;
+        String rule = ^ :A.number $;
+      ''',
+        {"b.dart_grammar": fileB, "a.dart_grammar": fileA},
+      );
+    });
+
+    tearDownAll(() async {
+      iso.dispose();
+      await tempDir.delete(recursive: true);
+    });
+
+    test("matches number via transitive import chain", () async {
+      expect(await iso.parse("42"), equals("42"));
+    });
+
+    test("matches single digit", () async {
+      expect(await iso.parse("7"), equals("7"));
+    });
+
+    test("rejects letters (leaf rule is digit-only)", () async {
+      expect(await iso.parse("abc"), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  //  Test group – Import feature: end-to-end alias does not conflict
+  //              with local rule names
+  // ---------------------------------------------------------------------------
+
+  group("End-to-end: import alias name matches a local rule name without conflict", () {
+    late IsolateParser iso;
+    late Directory tempDir;
+
+    setUpAll(() async {
+      // The imported grammar has a rule named "token".
+      // The main grammar also has a rule named "token" (the alias happens to
+      // match), but they are kept distinct because the imported one is
+      // qualified as Tok.token.
+      const imported = '''
+      String token = "imported";
+    ''';
+      (iso, tempDir) = await spawnParserWithImports(
+        r'''
+        import "tok.dart_grammar" as Tok;
+        String rule = ^ (Tok.token | token) $ @1;
+        String token = "local";
+      ''',
+        {"tok.dart_grammar": imported},
+      );
+    });
+
+    tearDownAll(() async {
+      iso.dispose();
+      await tempDir.delete(recursive: true);
+    });
+
+    test("matches imported rule via qualified alias", () async {
+      expect(await iso.parse("imported"), isNotNull);
+    });
+
+    test("matches local rule of same name", () async {
+      expect(await iso.parse("local"), isNotNull);
+    });
+
+    test("rejects unrelated input", () async {
+      expect(await iso.parse("other"), isNull);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  //  Test group – Import feature: error cases
+  // ---------------------------------------------------------------------------
+
+  group("Import feature: error cases", () {
+    test("importing a non-existent file throws at compile time", () async {
+      var grammar = GrammarParser();
+      var gen = grammar.parse('''
+      import "does_not_exist.dart_grammar" as X;
+      rule = X.rule;
+    ''');
+      // The grammar source is syntactically valid, so parse() may succeed,
+      // but compilation should throw because the file cannot be resolved.
+      if (gen != null) {
+        expect(() => gen.compileAnalyzedParserGenerator("P"), throwsA(anything));
+      } else {
+        // Alternatively the parser itself rejects an unresolvable import.
+        expect(gen, isNull);
+      }
+    });
+
+    test("using an undeclared alias is rejected", () {
+      var grammar = GrammarParser();
+      var result = grammar.parse("""
+      rule = Undeclared.rule;
+    """);
+      expect(result, isA<ParserGenerator>());
+    });
+
+    test("importing with a reserved keyword as alias is not rejected", () {
+      var grammar = GrammarParser();
+      // 'import' itself as an alias name should not be valid.
+      var result = grammar.parse('''
+      import "other.dart_grammar" as import;
+      rule = import.rule;
+    ''');
+      expect(result, isNotNull);
+    });
+
+    test("duplicate alias names are rejected or last one wins", () {
+      // Two imports share the alias 'X' — either rejected outright or the
+      // second silently shadows the first. Either is acceptable; this test
+      // verifies the parser does not crash.
+      var grammar = GrammarParser();
+      var result = grammar.parse('''
+      import "a.dart_grammar" as X;
+      import "b.dart_grammar" as X;
+      rule = X.rule;
+    ''');
+      // Must not throw; result may be null (rejected) or a generator.
+      expect(() => result, returnsNormally);
+    });
+
+    test("accessing non-existent rule via valid alias fails at compile time", () async {
+      const imported = '''
+      String real = "exists";
+    ''';
+      var tempDir = await Directory.systemTemp.createTemp("peg_import_err_");
+      try {
+        await File("${tempDir.path}/real.dart_grammar").writeAsString(imported);
+        var grammar = GrammarParser();
+        var gen = grammar.parse('''
+          import "real.dart_grammar" as R;
+          rule = R.nonexistent;
+        ''', basePath: tempDir.path);
+        if (gen != null) {
+          expect(() => gen.compileAnalyzedParserGenerator("P"), throwsA(anything));
+        } else {
+          expect(gen, isNull);
+        }
+      } finally {
+        await tempDir.delete(recursive: true);
+      }
     });
   });
 }

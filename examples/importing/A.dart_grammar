@@ -1,4 +1,15 @@
 import "B.dart_grammar" as B;
 import "A.dart_grammar" as C;
 
-rule = B.test "b" | "b";
+rule = B.test "b" | C.rule | "b";
+my_name {
+  identifier = "a";
+
+  inner_2 {
+    inner_3 {
+      test = global.identifier;
+    }
+  }
+}
+
+identifier = "b";

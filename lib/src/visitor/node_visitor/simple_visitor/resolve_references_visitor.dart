@@ -17,7 +17,8 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
 
   final String declarationName;
   final List<String> prefixes;
-  final Map<String, (String, Set<String>)> importedUrls;
+  final Map<String, ({String canonicalPrefix, Set<String> aliases})> importedUrls;
+
   final Map<String, (String?, Node)> rules;
   final Map<String, (String?, Node)> fragments;
   final Map<String, (String?, Node)> inline;
@@ -140,31 +141,30 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
   /// identifying both the enclosing declaration ([declarationName]) and the
   /// unresolvable [name].
   Node resolveReference(String name) {
-    print(importedUrls);
     for (int i = prefixes.length; i >= 0; --i) {
       var potentialName = [...prefixes.sublist(0, i), name].join(ParserGenerator.separator);
 
-      print(potentialName);
-      switch (potentialName) {
-        case String name when rules.containsKey(name):
-          return ReferenceNode(name);
-        case String name when inline.containsKey(name):
-        case String name when fragments.containsKey(name):
-          return FragmentNode(name);
+      /// First, we try to resolve the name as a local rule, inline or fragment.
+      if (_checkReference(potentialName) case Node node) {
+        return node;
       }
 
-      for (final (canonicalName, candidates) in importedUrls.values) {
-        for (final candidate in candidates) {
+      /// Then, we try to resolve it by renaming prefixes with imported URLs.
+      for (var (:canonicalPrefix, :aliases) in importedUrls.values) {
+        for (var candidate in aliases) {
           if (potentialName.startsWith(candidate)) {
-            var replacedName = potentialName.replaceFirst(candidate, canonicalName);
+            /// We try climbing the current prefix outside.
+            List<String> replacements = [
+              "global${ParserGenerator.separator}$canonicalPrefix",
+              canonicalPrefix,
+            ];
 
-            print(replacedName);
-            switch (replacedName) {
-              case String name when rules.containsKey(name):
-                return ReferenceNode(name);
-              case String name when inline.containsKey(name):
-              case String name when fragments.containsKey(name):
-                return FragmentNode(name);
+            for (String replacement in replacements) {
+              String replacedName = potentialName.replaceFirst(candidate, replacement);
+
+              if (_checkReference(replacedName) case Node node) {
+                return node;
+              }
             }
           }
         }
@@ -172,6 +172,17 @@ class ResolveReferencesVisitor implements SimpleNodeVisitor<Node> {
     }
 
     throw Exception("Unknown reference from $declarationName: $name");
+  }
+
+  Node? _checkReference(String name) {
+    if (rules.containsKey(name)) {
+      return ReferenceNode(name);
+    }
+    if (fragments.containsKey(name) || inline.containsKey(name)) {
+      return FragmentNode(name);
+    }
+
+    return null;
   }
 
   @override

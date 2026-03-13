@@ -281,10 +281,12 @@ abstract base class _PegParser<R extends Object> {
 
   late String buffer;
   int pos = 0;
+  String? rootFilePath;
 
-  R? parse(String buffer) => (
+  R? parse(String buffer, {String? basePath}) => (
     this
       ..buffer = buffer
+      ..rootFilePath = basePath
       ..reset(),
     _applyLr(start),
   ).$2;
@@ -2546,7 +2548,11 @@ final class GrammarParser extends _PegParser<ParserGenerator> {
             }
             if (this.fh() case _) {
               if (this.pos >= this.buffer.length) {
-                return ParserGenerator.fromParsed(preamble: $1, statements: $2);
+                return ParserGenerator.fromParsed(
+                  preamble: $1,
+                  statements: $2,
+                  rootFilePath: this.rootFilePath,
+                );
               }
             }
           }

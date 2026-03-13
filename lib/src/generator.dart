@@ -1,3 +1,5 @@
+// ignore_for_file: literal_only_boolean_expressions, unused_label
+
 import "dart:collection";
 import "dart:convert";
 import "dart:io";
@@ -33,6 +35,8 @@ import "package:parser_peg/src/visitor/node_visitor/"
     "simple_visitor/rename_visitors.dart";
 import "package:parser_peg/src/visitor/node_visitor/"
     "simple_visitor/resolve_references_visitor.dart";
+import "package:parser_peg/src/visitor/statement_visitor/declaration_statement_visitor.dart";
+import "package:parser_peg/src/visitor/statement_visitor/is_importing_visitor.dart";
 import "package:parser_peg/src/visitor/statement_visitor/"
     "statement_translator_visitor.dart";
 import "package:path/path.dart" as path;
@@ -196,28 +200,40 @@ final class ParserGenerator {
           DeclarationStatement.predefined(
             "integer",
             ChoiceNode([
-              SequenceNode([ReferenceNode("onenine"), ReferenceNode("digits")], chosenIndex: null),
+              SequenceNode([
+                ReferenceNode("onenine"), //
+                ReferenceNode("digits"),
+              ], chosenIndex: null),
               ReferenceNode("digit"),
               SequenceNode([
                 StringLiteralNode("-"),
                 ReferenceNode("onenine"),
                 ReferenceNode("digits"),
               ], chosenIndex: null),
-              SequenceNode([StringLiteralNode("-"), ReferenceNode("digit")], chosenIndex: null),
+              SequenceNode([
+                StringLiteralNode("-"), //
+                ReferenceNode("digit"),
+              ], chosenIndex: null),
             ]),
             type: "Object",
           ),
           DeclarationStatement.predefined(
             "digits",
             ChoiceNode([
-              SequenceNode([ReferenceNode("digit"), ReferenceNode("digits")], chosenIndex: null),
+              SequenceNode([
+                ReferenceNode("digit"), //
+                ReferenceNode("digits"),
+              ], chosenIndex: null),
               ReferenceNode("digit"),
             ]),
             type: "Object",
           ),
           DeclarationStatement.predefined(
             "digit",
-            ChoiceNode([StringLiteralNode("0"), ReferenceNode("onenine")]),
+            ChoiceNode([
+              StringLiteralNode("0"), //
+              ReferenceNode("onenine"),
+            ]),
             type: "Object",
           ),
           DeclarationStatement.predefined(
@@ -238,7 +254,10 @@ final class ParserGenerator {
           DeclarationStatement.predefined(
             "fraction",
             ChoiceNode([
-              SequenceNode([StringLiteralNode("."), ReferenceNode("digits")], chosenIndex: null),
+              SequenceNode([
+                StringLiteralNode("."), //
+                ReferenceNode("digits"),
+              ], chosenIndex: null),
               EpsilonNode(),
             ]),
             type: "Object",
@@ -247,7 +266,10 @@ final class ParserGenerator {
             "exponent",
             ChoiceNode([
               SequenceNode([
-                ChoiceNode([StringLiteralNode("E"), StringLiteralNode("e")]),
+                ChoiceNode([
+                  StringLiteralNode("E"), //
+                  StringLiteralNode("e"),
+                ]),
                 ReferenceNode("sign"),
                 ReferenceNode("digits"),
               ], chosenIndex: null),
@@ -257,11 +279,15 @@ final class ParserGenerator {
           ),
           DeclarationStatement.predefined(
             "sign",
-            ChoiceNode([StringLiteralNode("+"), StringLiteralNode("-"), EpsilonNode()]),
+            ChoiceNode([
+              StringLiteralNode("+"), //
+              StringLiteralNode("-"),
+              EpsilonNode(),
+            ]),
             type: "Object",
           ),
         ]),
-        DeclarationStatement.predefined("string", StringLiteralNode(r'"([^"\\]|\\.)*"')),
+        DeclarationStatement.predefined("string", RegExpNode(r'"([^"\\]|\\.)*"')),
       ]),
     ], tag: Tag.fragment),
   ];
@@ -278,10 +304,16 @@ final class ParserGenerator {
   /// Working path of the parser. This is needed when imports are involved.
   String? rootFilePath;
 
+  String? start;
+
   bool _isSetup = false;
   bool get isSetup => _isSetup;
 
   void setup([String? rootFilePath]) {
+    if (isSetup) {
+      return;
+    }
+
     this.rootFilePath = rootFilePath;
     List<Statement> workingStatements = statements;
 
@@ -293,43 +325,104 @@ final class ParserGenerator {
       ];
     }
 
+    String? startingRuleName;
+    DeclarationStatement? startingRule = workingStatements
+        .expand((s) => s.acceptVisitor(const DeclarationStatementVisitor(), null))
+        .firstOrNull;
+
+    if (startingRule == null) {
+      throw StateError("No rules found in declaration.");
+    }
+
     /// We add all the special nodes :)
     workingStatements.insertAll(0, predefined);
 
     /// We add ALL the rules in advance.
     ///   Why? Because we need ALL the rules to be able to resolve references.
-
     int importCounter = 0;
-    Map<String, (String, Set<String>)> importedUrls = {};
+    Map<String, ({String canonicalPrefix, Set<String> aliases})> importedUrls = {};
+
+    /// We check if we need to make a special transformation for imports:
+    ///   We wrap ourselves in a namespace if we need to do that.
+    ///   (This is necessary so that if another library imports our own library,
+    ///     then it does not get stitched twice.)
+    importsCheck:
+    do {
+      IsImportingVisitor visitor = const .new();
+      bool isImporting = false;
+      for (Statement statement in workingStatements) {
+        if (isImporting |= visitor.isImporting(statement)) {
+          break;
+        }
+      }
+
+      if (!isImporting) {
+        break importsCheck;
+      }
+
+      if (rootFilePath == null) {
+        throw StateError(
+          "Tried to import other grammar files, "
+          "but a working directory was not given.",
+        );
+      }
+
+      /// We get the import Url this file takes if ever it gets imported,
+      String importUrl = path.canonicalize(path.absolute(rootFilePath));
+
+      /// Give it a canonical name already,
+      importedUrls[importUrl] = (
+        canonicalPrefix: "__imp${importCounter++}__", //
+        /// We give it the alias of global.
+        aliases: {"global"},
+      );
+
+      /// And then wrap our entire root grammar in this namespace.
+      var (:String canonicalPrefix, :Set<String> aliases) = importedUrls[importUrl]!;
+      workingStatements = [NamespaceStatement(canonicalPrefix, workingStatements, tag: null)];
+    } while (false);
+
+    /// We collect all of the statements involved in our parsing.
+    ///   If we have an import, we read it once by the URL, and give it a canonical name.
+    ///
+    String? rootWorkingDirectory = rootFilePath == null
+        ? null
+        : FileSystemEntity.isDirectorySync(rootFilePath)
+        ? rootFilePath
+        : File(rootFilePath).parent.absolute.path;
     for (Statement statement in workingStatements.toList()) {
-      Queue<(Statement, List<String>, Tag?)> stack = .of([
-        (statement, ["global"], null as Tag?),
+      Queue<(Statement, List<String>, Tag?, String?)> stack = .of([
+        (statement, ["global"], null as Tag?, rootWorkingDirectory),
       ]);
 
       while (stack.isNotEmpty) {
-        var (statement, prefix, tag) = stack.removeLast();
+        var (statement, prefix, tag, sourceDirectory) = stack.removeLast();
 
         switch (statement) {
           /// If it is a declaration:
           ///   rule declaration, fragment declaration, inline declaration
           case ImportStatement(path: var importPath, :var alias):
-            if (rootFilePath == null) {
+            if (sourceDirectory == null) {
               print("Tried to import '$importPath', but a working directory was not given.");
               continue;
             }
 
-            String workingDirectory = File(rootFilePath).absolute.path;
-            String importUrl = path.canonicalize(path.join(workingDirectory, importPath));
+            String importUrl = path.canonicalize(path.join(sourceDirectory, importPath));
+            String importedDirectory = File(importUrl).parent.absolute.path; // <-- NEW
             String resultingName = [...prefix, alias].join(separator);
 
             bool isAlreadyStitched = importedUrls.containsKey(importUrl);
-            var (canonicalPrefix, aliases) = importedUrls.putIfAbsent(
+            var (
+              :String canonicalPrefix, //
+              :Set<String> aliases,
+            ) = importedUrls.putIfAbsent(
               importUrl,
-              () => ("__imp${importCounter++}__", {}),
+              () => (canonicalPrefix: "__imp${importCounter++}__", aliases: {}),
             );
 
+            /// We add the expected name of the current import from the current namespace
+            ///   into the aliases of this same exact file.
             aliases.add(resultingName);
-
             if (isAlreadyStitched) {
               continue;
             }
@@ -344,15 +437,11 @@ final class ParserGenerator {
             }
 
             stdout.writeln("Successfully imported '$importPath'");
-            for (Statement statement in generator.statements.reversed) {
-              stack.addLast((statement, [canonicalPrefix], null));
+            var imported = NamespaceStatement(canonicalPrefix, generator.statements, tag: null);
+            workingStatements.insert(0, imported);
 
-              if (statement is! NamespaceStatement) {
-                workingStatements.addAll(
-                  statement.acceptVisitor(StatementTranslatorVisitor(), null),
-                );
-              }
-            }
+            /// We add the new namespace to the very last of the stack.
+            stack.addLast((imported, ["global"], null, importedDirectory));
           case DeclarationStatement(:var type, :var name, tag: var declaredTag):
             var realName = [...prefix, name].join(separator);
             var target = switch (declaredTag ?? tag) {
@@ -362,13 +451,16 @@ final class ParserGenerator {
             };
 
             target[realName] = (type, ReferenceNode(realName));
+            if (statement == startingRule) {
+              startingRuleName = realName;
+            }
           case NamespaceStatement(:var name?, :var children, tag: var declaredTag):
             for (var sub in children.reversed) {
-              stack.addLast((sub, [...prefix, name], declaredTag ?? tag));
+              stack.addLast((sub, [...prefix, name], declaredTag ?? tag, sourceDirectory));
             }
           case NamespaceStatement(name: null, :var children, tag: var declaredTag):
             for (var sub in children.reversed) {
-              stack.addLast((sub, prefix, declaredTag ?? tag));
+              stack.addLast((sub, prefix, declaredTag ?? tag, sourceDirectory));
             }
 
           case DeclarationTypeStatement():
@@ -377,6 +469,10 @@ final class ParserGenerator {
         }
       }
     }
+
+    // for (Statement statement in workingStatements) {
+    //   print(statement.acceptVisitor(const StatementPrinterVisitor(), null));
+    // }
 
     /// Resolve the references from inside namespaces.
     ///
@@ -392,6 +488,8 @@ final class ParserGenerator {
 
         switch (statement) {
           case ImportStatement():
+
+            /// We do not do anything else.
             continue;
           case DeclarationStatement(:var type, :var name, :var node, tag: var declaredTag):
             var realName = [...prefixes, name].join(separator);
@@ -444,23 +542,10 @@ final class ParserGenerator {
     }
 
     /// Simple guard against fully inline declarations.
-    if (_rules.isNotEmpty) {
-      var (key, (type, _)) = _rules.pairs.first;
-
-      _fragments[rootKey] = (type, ReferenceNode(key));
-    } else if (_fragments.isNotEmpty) {
-      var (key, (type, _)) = _fragments.pairs.first;
-
-      _fragments[rootKey] = (type, FragmentNode(key));
+    if (_rules.containsKey(startingRuleName)) {
+      _fragments[rootKey] = (startingRule.type, ReferenceNode(startingRuleName!));
     } else {
-      if (_inline.isEmpty) {
-        throw Exception("There are no declarations!");
-      }
-
-      /// Since there is no rule / fragment, we can add a fake rule.
-      var (key, (type, _)) = _inline.pairs.first;
-
-      _fragments[rootKey] = (type, FragmentNode(key));
+      _fragments[rootKey] = (startingRule.type, FragmentNode(startingRuleName!));
     }
 
     /// We do two things:
@@ -650,26 +735,20 @@ final class ParserGenerator {
     String parserName, {
     required Map<String, (String?, Node)> rules,
     required Map<String, (String?, Node)> fragments,
-    String? start,
     String? type,
     Map<String, DartType>? resolvedTypes,
   }) {
-    if (!_isSetup) {
-      setup();
-    }
+    setup(rootFilePath);
 
     var parserTypeString =
         type ?? //
-        resolvedTypes?["ROOT"]?.getDisplayString() ??
+        resolvedTypes?[rootKey]?.getDisplayString() ??
         rules.values.firstOrNull?.$1 ??
         fragments.values.firstOrNull?.$1 ??
         "Object";
     parserTypeString = parserTypeString.trim();
 
-    var parserStartRule =
-        start ?? //
-        rules.keys.firstOrNull ??
-        fragments.keys.first;
+    var parserStartRule = start ?? _renames[rootKey]!;
     var fullBuffer = StringBuffer();
 
     fullBuffer.writeln("// ignore_for_file: ${ignores.join(", ")}");
@@ -847,7 +926,6 @@ final class ParserGenerator {
       parserName,
       rules: rules,
       fragments: fragments,
-      start: start,
       resolvedTypes: resolvedTypes,
     );
     File tempFile = .new(path.join("lib", "temp", "hidden.compiled.dart"))
@@ -939,7 +1017,7 @@ final class ParserGenerator {
       if (nextTriedConfigurations.contains(configuration)) {
         StringBuffer descriptionBuilder = .new();
         for (var (String name, DartType type) in nextResolvedTypes.pairs) {
-          if (name == "ROOT") {
+          if (name == rootKey) {
             continue;
           }
 
@@ -998,7 +1076,7 @@ final class ParserGenerator {
   ///
   /// Returns the complete Dart source as a string, ready to be written to a file.
   String compileParserGenerator(String parserName, {String? start, String? type}) {
-    return _compile(parserName, rules: _rules, fragments: _fragments, start: start, type: type);
+    return _compile(parserName, rules: _rules, fragments: _fragments, type: type);
   }
 
   /// Generates a Dart parser that produces an untyped Abstract Syntax Tree.
@@ -1010,6 +1088,8 @@ final class ParserGenerator {
   ///
   /// Returns the complete Dart source as a string.
   String compileAstParserGenerator(String parserName, {String? start}) {
+    setup(rootFilePath);
+
     RemoveActionNodeVisitor removeActionNodeVisitor = const RemoveActionNodeVisitor();
     Map<String, (String?, Node)> rules = <String, (String?, Node)>{
       for (var (String name, (_, Node node)) in _rules.pairs)
@@ -1020,7 +1100,7 @@ final class ParserGenerator {
         name: ("Object", node.acceptSimpleVisitor(removeActionNodeVisitor)),
     };
 
-    return _compile(parserName, rules: rules, fragments: fragments, start: start, type: "Object");
+    return _compile(parserName, rules: rules, fragments: fragments, type: "Object");
   }
 
   /// Generates a Dart parser that produces a Concrete Syntax Tree (CST).
@@ -1033,6 +1113,8 @@ final class ParserGenerator {
   ///
   /// Returns the complete Dart source as a string.
   String compileCstParserGenerator(String parserName, {String? start}) {
+    setup(rootFilePath);
+
     var removeActionNodeVisitor = const RemoveActionNodeVisitor();
     var removeSelectionVisitor = const RemoveSelectionVisitor();
 
@@ -1077,7 +1159,6 @@ final class ParserGenerator {
       parserName, //
       rules: rules,
       fragments: fragments,
-      start: start,
       type: "Object",
     );
   }
@@ -1354,8 +1435,6 @@ class _TypeResolutionVisitor extends RecursiveAstVisitor<void> {
     } else {
       resolvedReturnTypes[originalName] = valid.reduce(typeSystem.leastUpperBound);
     }
-
-    // print((originalName, types, resolvedReturnTypes[originalName]));
   }
 }
 
