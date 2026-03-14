@@ -1,1 +1,5 @@
-digit = [0-9];
+{
+  print("Loading digit");
+}
+
+digit = [0-9] |> int.parse($);

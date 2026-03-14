@@ -6,6 +6,9 @@
 // ignore: unused_shown_name
 import "dart:collection" show DoubleLinkedQueue, HashMap, Queue;
 import "dart:math" as math show Random;
+
+// PREAMBLE
+
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -272,22 +275,21 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class Main extends _PegParser<(int, List<String>, int)> {
+final class Main extends _PegParser<(int, List<Object>, int)> {
   Main();
 
   @override
   get start => f0;
 
-
   /// `ROOT`
-  (int, List<String>, int)? f0() {
+  (int, List<Object>, int)? f0() {
     if (this.r2() case var $?) {
       return $;
     }
   }
 
   /// `fragment0`
-  String? f1() {
+  Object? f1() {
     var _mark = this._mark();
     if (this.r0() case var $?) {
       return $;
@@ -306,14 +308,14 @@ final class Main extends _PegParser<(int, List<String>, int)> {
   }
 
   /// `global::__imp2__::digit`
-  String? r1() {
+  int? r1() {
     if (this.matchRange(_range.$2) case var $?) {
-      return $;
+      return int.parse($);
     }
   }
 
   /// `global::__imp0__::rule`
-  (int, List<String>, int)? r2() {
+  (int, List<Object>, int)? r2() {
     if (this.pos case var $0 && <= 0) {
       if (this.f1() case var _0?) {
         if ([_0] case (var $1 && var _l1)) {
@@ -333,11 +335,12 @@ final class Main extends _PegParser<(int, List<String>, int)> {
       }
     }
   }
-
 }
+
 class _range {
   /// `[a-zA-Z]`
-  static const $1 = { (97, 122), (65, 90) };
+  static const $1 = {(97, 122), (65, 90)};
+
   /// `[0-9]`
-  static const $2 = { (48, 57) };
+  static const $2 = {(48, 57)};
 }

@@ -1,1 +1,5 @@
-letter = [a-zA-Z];
+{
+  print("Loading letter");
+}
+
+letter = [a-zA-Z] |> $;

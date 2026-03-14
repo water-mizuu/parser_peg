@@ -98,7 +98,11 @@ final class ParserGenerator {
   /// that grammar action code depends on).
   ///
   /// All optimization passes run immediately inside this constructor.
-  ParserGenerator.fromParsed({required this.statements, required this.preamble, this.rootFilePath});
+  ParserGenerator.fromParsed({
+    required this.statements,
+    required String? preamble,
+    this.rootFilePath,
+  }) : _preamble = preamble;
 
   /// The delimiter used between namespace components in fully-qualified rule names.
   ///
@@ -299,7 +303,8 @@ final class ParserGenerator {
   /// Optional raw Dart source prepended verbatim to the generated parser file.
   ///
   /// Set via [ParserGenerator.fromParsed]. `null` means no preamble is emitted.
-  final String? preamble;
+  String? _preamble;
+  String? get preamble => _preamble;
 
   /// Working path of the parser. This is needed when imports are involved.
   String? rootFilePath;
@@ -384,7 +389,6 @@ final class ParserGenerator {
 
     /// We collect all of the statements involved in our parsing.
     ///   If we have an import, we read it once by the URL, and give it a canonical name.
-    ///
     String? rootWorkingDirectory = rootFilePath == null
         ? null
         : FileSystemEntity.isDirectorySync(rootFilePath)
@@ -396,7 +400,8 @@ final class ParserGenerator {
       ]);
 
       while (stack.isNotEmpty) {
-        var (statement, prefix, tag, sourceDirectory) = stack.removeLast();
+        var (Statement statement, List<String> prefix, Tag? tag, String? sourceDirectory) = stack
+            .removeLast();
 
         switch (statement) {
           /// If it is a declaration:
@@ -436,6 +441,12 @@ final class ParserGenerator {
               continue;
             }
 
+            if (generator.preamble case var newPreamble?) {
+              _preamble ??= "";
+              _preamble = "$_preamble \n\n $newPreamble";
+              _preamble = _preamble!.trimLeft();
+            }
+
             stdout.writeln("Successfully imported '$importPath'");
             var imported = NamespaceStatement(canonicalPrefix, generator.statements, tag: null);
             workingStatements.insert(0, imported);
@@ -469,10 +480,6 @@ final class ParserGenerator {
         }
       }
     }
-
-    // for (Statement statement in workingStatements) {
-    //   print(statement.acceptVisitor(const StatementPrinterVisitor(), null));
-    // }
 
     /// Resolve the references from inside namespaces.
     ///
@@ -551,7 +558,7 @@ final class ParserGenerator {
     /// We do two things:
     ///   1. Inline fragments that are only called once.
     ///   2. Remove declarations that are not referenced anywhere.
-    var referenceCounts = <(Tag, String), int>{
+    var referenceCounts = {
       for (var name in _rules.keys) (Tag.rule, name): 0,
       for (var name in _fragments.keys) (Tag.fragment, name): 0,
       for (var name in _inline.keys) (Tag.fragment, name): 0,
@@ -756,7 +763,7 @@ final class ParserGenerator {
 
     fullBuffer.writeln("// imports");
     fullBuffer.writeln(importCode);
-    if (preamble?.unindent() case String preamble?) {
+    if (_preamble?.unindent() case String preamble?) {
       fullBuffer.writeln("// PREAMBLE");
       fullBuffer.writeln(preamble);
     }
