@@ -115,12 +115,13 @@ Future<(IsolateParser, Directory)> spawnParserWithImports(
   }
 
   var grammar = GrammarParser();
-  var generator = grammar.parse(mainSource, basePath: tempDir.path);
+  var generator = grammar.parse(mainSource);
   if (generator == null) {
     await tempDir.delete(recursive: true);
     throw StateError("Failed to parse grammar with imports:\n${grammar.reportFailures()}");
   }
 
+  generator.setup(tempDir.path);
   var parserCode = await generator.compileAnalyzedParserGenerator(parserName);
 
   var driver =
@@ -5039,7 +5040,7 @@ int rule = ^ :val $ |> val;
         var gen = grammar.parse('''
           import "real.dart_grammar" as R;
           rule = R.nonexistent;
-        ''', basePath: tempDir.path);
+        ''');
         if (gen != null) {
           expect(() => gen.compileAnalyzedParserGenerator("P"), throwsA(anything));
         } else {

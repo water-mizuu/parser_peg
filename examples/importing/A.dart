@@ -276,12 +276,12 @@ final class A extends _PegParser<Object> {
   A();
 
   @override
-  get start => r0;
+  get start => f0;
 
 
   /// `ROOT`
   Object? f0() {
-    if (this._applyLr(this.r0) case var $?) {
+    if (this._applyLr(this.r1) case var $?) {
       return $;
     }
   }

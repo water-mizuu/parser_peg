@@ -37,6 +37,7 @@ import "package:parser_peg/src/visitor/node_visitor/"
     "simple_visitor/resolve_references_visitor.dart";
 import "package:parser_peg/src/visitor/statement_visitor/declaration_statement_visitor.dart";
 import "package:parser_peg/src/visitor/statement_visitor/is_importing_visitor.dart";
+import "package:parser_peg/src/visitor/statement_visitor/statement_printer_visitor.dart";
 import "package:parser_peg/src/visitor/statement_visitor/"
     "statement_translator_visitor.dart";
 import "package:path/path.dart" as path;
@@ -548,7 +549,7 @@ final class ParserGenerator {
       }
     }
 
-    /// Simple guard against fully inline declarations.
+    /// Assign an entry point through the root.
     if (_rules.containsKey(startingRuleName)) {
       _fragments[rootKey] = (startingRule.type, ReferenceNode(startingRuleName!));
     } else {
@@ -558,10 +559,10 @@ final class ParserGenerator {
     /// We do two things:
     ///   1. Inline fragments that are only called once.
     ///   2. Remove declarations that are not referenced anywhere.
-    var referenceCounts = {
-      for (var name in _rules.keys) (Tag.rule, name): 0,
-      for (var name in _fragments.keys) (Tag.fragment, name): 0,
-      for (var name in _inline.keys) (Tag.fragment, name): 0,
+    Map<(Tag, String), int> referenceCounts = {
+      for (String name in _rules.keys) (Tag.rule, name): 0,
+      for (String name in _fragments.keys) (Tag.fragment, name): 0,
+      for (String name in _inline.keys) (Tag.fragment, name): 0,
 
       (Tag.fragment, rootKey): 1,
     };
@@ -626,10 +627,14 @@ final class ParserGenerator {
     ///   We shouldn't throw an error, because it may just be that a rule is
     ///   declared as inline, but it is not actually inline-able, like in a namespace.
     if (CanInlineVisitor(_rules, _fragments, _inline) case CanInlineVisitor visitor) {
-      for (var (name, (type, node)) in _inline.pairs.toList()) {
-        if (!visitor.canBeInlined(node)) {
+      for (var (String name, (String? type, Node body)) in _inline.pairs.toList()) {
+        bool isInlineable =
+            visitor.canBeInlined(body) || //
+            referenceCounts[(Tag.fragment, name)] == 1;
+
+        if (!isInlineable) {
           _inline.remove(name);
-          _fragments[name] = (type, node);
+          _fragments[name] = (type, body);
         }
       }
     }
@@ -658,7 +663,7 @@ final class ParserGenerator {
     /// We simplify the rules to prepare for codegen.
     /// Basically, we limit the depth of each node in the tree.
     /// This allows us to have more simple code.
-    if (ParametrizedSimplifyVisitor() case ParametrizedSimplifyVisitor visitor) {
+    if (SimplifyVisitor() case SimplifyVisitor visitor) {
       for (var (name, (type, node)) in _rules.pairs) {
         _rules[name] = (type, visitor.simplify(node));
       }
@@ -670,16 +675,28 @@ final class ParserGenerator {
       _fragments.addAll(visitor.addedFragments);
     }
 
-    /// Precompute which high-level rules contain cut nodes.
-    ///   This is so that we can optimize the generated code later.
-    if (const IsCutVisitor() case IsCutVisitor visitor) {
-      for (var (name, (_, node)) in _rules.pairs) {
-        _isCut[(Tag.rule, name)] = node.acceptSimpleVisitor(visitor);
-      }
-      for (var (name, (_, node)) in _fragments.pairs) {
-        _isCut[(Tag.fragment, name)] = node.acceptSimpleVisitor(visitor);
-      }
-    }
+    print(
+      NamespaceStatement(null, [
+        for (var (String name, (String? type, Node body)) in _fragments.pairs)
+          DeclarationStatement(
+            type,
+            name,
+            body.acceptSimpleVisitor(const RemoveActionNodeVisitor()),
+            tag: null,
+          ),
+      ], tag: Tag.fragment).acceptVisitor(const StatementPrinterVisitor(), null),
+    );
+    print(
+      NamespaceStatement(null, [
+        for (var (String name, (String? type, Node body)) in _rules.pairs)
+          DeclarationStatement(
+            type,
+            name,
+            body.acceptSimpleVisitor(const RemoveActionNodeVisitor()),
+            tag: null,
+          ),
+      ], tag: Tag.rule).acceptVisitor(const StatementPrinterVisitor(), null),
+    );
 
     /// We rename the rules and fragments.
     redirectId = 0;
@@ -736,7 +753,6 @@ final class ParserGenerator {
   final Map<String, (String?, Node)> _rules = {};
   final Map<String, (String?, Node)> _fragments = {};
   final Map<String, (String?, Node)> _inline = {};
-  final Map<(Tag, String), bool> _isCut = {};
 
   String _compile(
     String parserName, {
@@ -788,7 +804,7 @@ final class ParserGenerator {
 
         var inner = StringBuffer();
         var displayName = _reverseRenames[rawName]!;
-        var isCut = _isCut[(Tag.fragment, displayName)] == true;
+        var isCut = node.acceptSimpleVisitor(const IsCutVisitor());
         var body = node
             .acceptParametrizedVisitor(
               compilerVisitor,
@@ -826,7 +842,7 @@ final class ParserGenerator {
 
         var inner = StringBuffer();
         var displayName = _reverseRenames[rawName]!;
-        var isCut = _isCut[(Tag.rule, displayName)] == true;
+        var isCut = node.acceptSimpleVisitor(const IsCutVisitor());
         var body = node
             .acceptParametrizedVisitor(
               compilerVisitor,
