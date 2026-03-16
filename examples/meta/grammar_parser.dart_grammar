@@ -544,7 +544,7 @@ regexEscape {
   digit           = _ :<\\ r"d"> _;   notDigit        = _ :<\\ r"D"> _;
   word            = _ :<\\ r"w"> _;   notWord         = _ :<\\ r"W"> _;
   whitespace      = _ :<\\ r"s"> _;   notWhitespace   = _ :<\\ r"S"> _;
-  wordBoundary    = _ :<\\ r"b"> _;   notWordBoundary = _ :<\\ r"b"> _;
+  wordBoundary    = _ :<\\ r"b"> _;   notWordBoundary = _ :<\\ r"B"> _;
   unicode         = _ :<\\ r"u"> _;   unicodeExtended = _ :<\\ r"U"> _;
   newline         = _ :<\\ r"n"> _;   carriageReturn  = _ :<\\ r"r"> _;
 
