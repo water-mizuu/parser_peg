@@ -6,9 +6,16 @@
 // ignore: unused_shown_name
 import "dart:collection" show DoubleLinkedQueue, HashMap, Queue;
 import "dart:math" as math show Random;
-
 // PREAMBLE
+void letters() {
+  print("Loading letter");
+}
 
+
+
+ void digits() {
+  print("Loading digit");
+}
 // base.dart
 abstract base class _PegParser<R extends Object> {
   _PegParser();
@@ -281,6 +288,7 @@ final class Main extends _PegParser<(int, List<Object>, int)> {
   @override
   get start => f0;
 
+
   /// `ROOT`
   (int, List<Object>, int)? f0() {
     if (this.r2() case var $?) {
@@ -335,12 +343,11 @@ final class Main extends _PegParser<(int, List<Object>, int)> {
       }
     }
   }
-}
 
+}
 class _range {
   /// `[a-zA-Z]`
-  static const $1 = {(97, 122), (65, 90)};
-
+  static const $1 = { (97, 122), (65, 90) };
   /// `[0-9]`
-  static const $2 = {(48, 57)};
+  static const $2 = { (48, 57) };
 }

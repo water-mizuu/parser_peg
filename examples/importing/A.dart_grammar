@@ -1,7 +1,7 @@
 import "B.dart_grammar" as B;
 import "A.dart_grammar" as C;
 
-rule = B.test "b" | C.rule | "b";
+rule = B.test "b" | C.rule | "b" | my_name.inner_2.inner_3.test;
 my_name {
   identifier = "a";
 

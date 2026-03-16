@@ -1,5 +1,9 @@
 {
+
+void letters() {
   print("Loading letter");
+}
+
 }
 
 letter = [a-zA-Z] |> $;

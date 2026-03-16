@@ -1,13 +1,9 @@
 rule = ^ _ :expr _ $ { expr };
 
 expr =
-  | addition
+  | :expr _ ("+" | "-") _ :primary
   | primary;
-
-@inline addition = :expr _ "+" _ :primary { expr + primary };
-
-@inline primary =
-  | "(" _ :expr _ ")" { expr }
+primary =
+  | "(" _ :expr _ ")"
   | \d+ { int.parse(span) };
-
 _ = \s*;

@@ -522,13 +522,7 @@ final class ParserGenerator {
               case (String? type, ReferenceNode(:var ruleName)) when ruleName == realName:
                 target[realName] = (type, resolvedNode);
               case (String? type, Node existingNode):
-                target[realName] = (
-                  type,
-                  switch (existingNode) {
-                    ChoiceNode(:var children) => ChoiceNode([...children, resolvedNode]),
-                    var other => ChoiceNode([other, resolvedNode]),
-                  },
-                );
+                target[realName] = (type, existingNode | resolvedNode);
               case _:
                 target[realName] = (type, resolvedNode);
             }

@@ -1,7 +1,7 @@
 // ignore_for_file: type=lint, body_might_complete_normally_nullable, unused_local_variable, inference_failure_on_function_return_type, unused_import, duplicate_ignore, unused_element, collection_methods_unrelated_type, unused_element, use_setters_to_change_properties
 
 // imports
-// ignore_for_file: avoid_positional_boolean_parameters, unnecessary_this, unused_element, use_setters_to_change_properties
+// ignore_for_file: avoid_positional_boolean_parameters, unnecessary_non_null_assertion, unnecessary_this, unused_element, use_setters_to_change_properties
 
 // ignore: unused_shown_name
 import "dart:collection" show DoubleLinkedQueue, HashMap, Queue;
@@ -72,7 +72,7 @@ abstract base class _PegParser<R extends Object> {
     }
   }
 
-  T? apply<T extends Object>(_Rule<T> r, [int? p]) {
+  T? _applyLr<T extends Object>(_Rule<T> r, [int? p]) {
     p ??= this.pos;
 
     _Memo? m = _recall(r, p);
@@ -105,6 +105,23 @@ abstract base class _PegParser<R extends Object> {
       } else {
         return m.ans as T?;
       }
+    }
+  }
+
+  T? _applyMemo<T extends Object>(_Rule<T> r, [int? p]) {
+    p ??= this.pos;
+    _Memo? m = _recall(r, p);
+    if (m == null) {
+      m = _memo[(r, p)] = _Memo(null, p);
+      T? ans = r.call();
+      m.pos = this.pos;
+      m.ans = ans;
+
+      return ans;
+    } else {
+      this.pos = m.pos;
+
+      return m.ans as T?;
     }
   }
 
@@ -192,11 +209,10 @@ abstract base class _PegParser<R extends Object> {
   }
 
   String reportFailures() {
-    var MapEntry<int, Set<String>>(key: int pos, value: Set<String> messages) =
-        failures.entries.last;
-    var (int column, int row) = _columnRow(buffer, pos);
+    var MapEntry(:key, :value) = failures.entries.last;
+    var (int column, int row) = _columnRow(buffer, key);
 
-    return "($column:$row): Expected the following: $messages";
+    return "($column:$row): Expected the following: $value";
   }
 
   static final (RegExp, RegExp) whitespaceRegExp = (RegExp(r"\s"), RegExp(r"(?!\n)\s"));
@@ -214,7 +230,7 @@ abstract base class _PegParser<R extends Object> {
     this
       ..buffer = buffer
       ..reset(),
-    apply(start),
+    _applyLr(start),
   ).$2;
   _Rule<R> get start;
 }
@@ -256,44 +272,29 @@ class _Memo {
 }
 
 // GENERATED CODE
-final class Math extends _PegParser<int> {
+final class Math extends _PegParser<Object> {
   Math();
 
   @override
-  get start => r0;
+  get start => f0;
 
 
   /// `ROOT`
-  int? f0() {
-    if (this.apply(this.r0) case var $?) {
+  Object? f0() {
+    if (this.r0() case var $?) {
       return $;
     }
   }
 
-  /// `global::addition`
-  int? f1() {
-    if (this.apply(this.r1) case var expr?) {
-      if (this.apply(this.r2)! case _) {
-        if (this.matchPattern(_string.$1) case _?) {
-          if (this.apply(this.r2)! case _) {
-            if (this.f2() case var primary?) {
-              return expr + primary ;
-            }
-          }
-        }
-      }
-    }
-  }
-
   /// `global::primary`
-  int? f2() {
+  Object? f1() {
     var _mark = this._mark();
-    if (this.matchPattern(_string.$3) case _?) {
-      if (this.apply(this.r2)! case _) {
-        if (this.apply(this.r1) case (var $2 && var expr)?) {
-          if (this.apply(this.r2)! case _) {
-            if (this.matchPattern(_string.$2) case _?) {
-              return expr ;
+    if (this.matchPattern(_string.$2) case _?) {
+      if (this._applyMemo(this.r2)! case _) {
+        if (this._applyLr(this.r1) case (var $2 && var expr)?) {
+          if (this._applyMemo(this.r2)! case _) {
+            if (this.matchPattern(_string.$1) case _?) {
+              return $2;
             }
           }
         }
@@ -322,12 +323,24 @@ final class Math extends _PegParser<int> {
     }
   }
 
+  /// `fragment0`
+  String? f2() {
+    var _mark = this._mark();
+    if (this.matchPattern(_string.$3) case var $?) {
+      return $;
+    }
+    this._recover(_mark);
+    if (this.matchPattern(_string.$4) case var $?) {
+      return $;
+    }
+  }
+
   /// `global::rule`
-  int? r0() {
+  Object? r0() {
     if (this.pos <= 0) {
-      if (this.apply(this.r2)! case _) {
-        if (this.apply(this.r1) case (var $2 && var expr)?) {
-          if (this.apply(this.r2)! case _) {
+      if (this._applyMemo(this.r2)! case _) {
+        if (this._applyLr(this.r1) case (var $2 && var expr)?) {
+          if (this._applyMemo(this.r2)! case _) {
             if (this.pos >= this.buffer.length) {
               return expr ;
             }
@@ -338,13 +351,21 @@ final class Math extends _PegParser<int> {
   }
 
   /// `global::expr`
-  int? r1() {
+  Object? r1() {
     var _mark = this._mark();
-    if (this.f1() case var $?) {
-      return $;
+    if (this._applyLr(this.r1) case (var $0 && var expr)?) {
+      if (this._applyMemo(this.r2)! case var $1) {
+        if (this.f2() case var $2?) {
+          if (this._applyMemo(this.r2)! case var $3) {
+            if (this.f1() case (var $4 && var primary)?) {
+              return ($0, $1, $2, $3, $4);
+            }
+          }
+        }
+      }
     }
     this._recover(_mark);
-    if (this.f2() case var $?) {
+    if (this.f1() case var $?) {
       return $;
     }
   }
@@ -380,10 +401,12 @@ class _regexp {
   static final $2 = RegExp("\\s");
 }
 class _string {
-  /// `"+"`
-  static const $1 = "+";
   /// `")"`
-  static const $2 = ")";
+  static const $1 = ")";
   /// `"("`
-  static const $3 = "(";
+  static const $2 = "(";
+  /// `"+"`
+  static const $3 = "+";
+  /// `"-"`
+  static const $4 = "-";
 }

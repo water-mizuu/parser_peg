@@ -378,3 +378,12 @@ class AnyCharacterNode implements SpecialSymbolNode {
   O acceptParametrizedVisitor<O, I>(ParametrizedNodeVisitor<O, I> visitor, I parameters) =>
       visitor.visitAnyCharacterNode(this, parameters);
 }
+
+extension ChoiceOperator on Node {
+  Node operator |(Node other) => switch ((this, other)) {
+    (ChoiceNode a, ChoiceNode b) => ChoiceNode([...a.children, ...b.children]),
+    (ChoiceNode a, _) => ChoiceNode([...a.children, other]),
+    (_, ChoiceNode b) => ChoiceNode([this, ...b.children]),
+    _ => ChoiceNode([this, other]),
+  };
+}

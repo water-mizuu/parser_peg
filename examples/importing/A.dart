@@ -309,6 +309,24 @@ final class A extends _PegParser<Object> {
     if (this.matchPattern(_string.$1) case var $?) {
       return $;
     }
+    this._recover(_mark);
+    if (this.r2() case var $?) {
+      return $;
+    }
+  }
+
+  /// `global::__imp0__::my_name::inner_2::inner_3::test`
+  String? r2() {
+    if (this.r3() case var $?) {
+      return $;
+    }
+  }
+
+  /// `global::__imp0__::identifier`
+  String? r3() {
+    if (this.matchPattern(_string.$1) case var $?) {
+      return $;
+    }
   }
 
 }
