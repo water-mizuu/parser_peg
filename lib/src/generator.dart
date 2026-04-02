@@ -37,7 +37,6 @@ import "package:parser_peg/src/visitor/node_visitor/"
     "simple_visitor/resolve_references_visitor.dart";
 import "package:parser_peg/src/visitor/statement_visitor/declaration_statement_visitor.dart";
 import "package:parser_peg/src/visitor/statement_visitor/is_importing_visitor.dart";
-import "package:parser_peg/src/visitor/statement_visitor/statement_printer_visitor.dart";
 import "package:parser_peg/src/visitor/statement_visitor/"
     "statement_translator_visitor.dart";
 import "package:path/path.dart" as path;
@@ -669,28 +668,28 @@ final class ParserGenerator {
       _fragments.addAll(visitor.addedFragments);
     }
 
-    print(
-      NamespaceStatement(null, [
-        for (var (String name, (String? type, Node body)) in _fragments.pairs)
-          DeclarationStatement(
-            type,
-            name,
-            body.acceptSimpleVisitor(const RemoveActionNodeVisitor()),
-            tag: null,
-          ),
-      ], tag: Tag.fragment).acceptVisitor(const StatementPrinterVisitor(), null),
-    );
-    print(
-      NamespaceStatement(null, [
-        for (var (String name, (String? type, Node body)) in _rules.pairs)
-          DeclarationStatement(
-            type,
-            name,
-            body.acceptSimpleVisitor(const RemoveActionNodeVisitor()),
-            tag: null,
-          ),
-      ], tag: Tag.rule).acceptVisitor(const StatementPrinterVisitor(), null),
-    );
+    // print(
+    //   NamespaceStatement(null, [
+    //     for (var (String name, (String? type, Node body)) in _fragments.pairs)
+    //       DeclarationStatement(
+    //         type,
+    //         name,
+    //         body.acceptSimpleVisitor(const RemoveActionNodeVisitor()),
+    //         tag: null,
+    //       ),
+    //   ], tag: Tag.fragment).acceptVisitor(const StatementPrinterVisitor(), null),
+    // );
+    // print(
+    //   NamespaceStatement(null, [
+    //     for (var (String name, (String? type, Node body)) in _rules.pairs)
+    //       DeclarationStatement(
+    //         type,
+    //         name,
+    //         body.acceptSimpleVisitor(const RemoveActionNodeVisitor()),
+    //         tag: null,
+    //       ),
+    //   ], tag: Tag.rule).acceptVisitor(const StatementPrinterVisitor(), null),
+    // );
 
     /// We rename the rules and fragments.
     redirectId = 0;
