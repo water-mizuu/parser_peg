@@ -1,21 +1,21 @@
 
 dart {
-  Object expression =
+  expression =
     | assignableExpression assignmentOperator expression
     | conditionalExpression
     | cascade
     | throwExpression
     ;
 
-  Object expressionWithoutCascade =
+  expressionWithoutCascade =
     | assignableExpression assignmentOperator expressionWithoutCascade
     | conditionalExpression
     | throwExpressionWithoutCascade
     ;
 
-  Object expressionList = COMMA..expression+;
+  expressionList = COMMA..expression+;
 
-  Object primary =
+  primary =
     | thisExpression
     | SUPER unconditionalAssignableSelector
     | SUPER argumentPart
@@ -28,7 +28,7 @@ dart {
     | L_PAREN expression R_PAREN
     ;
 
-  Object literal =
+  literal =
     | nullLiteral
     | numericLiteral
     | stringLiteral
@@ -38,10 +38,10 @@ dart {
     ;
 
   /// 17.9 Collection Literals
-  Object listLiteral = CONST? typeArguments? L_SQUARE elements? R_SQUARE;
-  Object setOrMapLiteral = CONST? typeArguments? L_CURLY elements? R_CURLY;
-  Object elements = element? (COMMA element)* COMMA?;
-  Object element =
+  listLiteral = CONST? typeArguments? L_SQUARE elements? R_SQUARE;
+  setOrMapLiteral = CONST? typeArguments? L_CURLY elements? R_CURLY;
+  elements = element? (COMMA element)* COMMA?;
+  element =
     | mapElement
     | expressionElement
     | spreadElement
@@ -49,11 +49,11 @@ dart {
     | forElement
     ;
 
-  Object expressionElement = expression;
-  Object mapElement = expression COLON expression;
-  Object spreadElement = (_ ("..." | "...?") _ @1) expression;
-  Object ifElement = IF L_PAREN element R_PAREN (ELSE element)?;
-  Object forElement = AWAIT? FOR L_PAREN forLoopParts R_PAREN element;
+  expressionElement = expression;
+  mapElement = expression COLON expression;
+  spreadElement = (_ ("..." | "...?") _ @1) expression;
+  ifElement = IF L_PAREN element R_PAREN (ELSE element)?;
+  forElement = AWAIT? FOR L_PAREN forLoopParts R_PAREN element;
 }
 
 @fragment {
