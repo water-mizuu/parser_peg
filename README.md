@@ -118,10 +118,12 @@ number = \d+;
 
 ### Named Captures
 
-Use `:name` to capture matched content:
+Use `name:expression` to capture matched content, or the shortcut `:name` for a named rule reference.
+:
 
 ```
 rule = :left "+" :right { left + right };
+rule = left:left "+" right:right { left + right }; // These are equivalent
 ```
 
 ### Action Expressions
@@ -129,7 +131,7 @@ rule = :left "+" :right { left + right };
 Embed Dart code to transform matched content:
 
 ```
-number = \d+ { int.parse(buffer.substring(from, to)) };
+number = \d+ { int.parse(span) };
 value = "true" { true } | "false" { false };
 ```
 
