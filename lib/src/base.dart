@@ -193,6 +193,11 @@ abstract base class _PegParser<R extends Object> {
     mark.isCut = false;
   }
 
+  void _clearMemo() {
+    this._memo.clear();
+    this._patternMemo.clear();
+  }
+
   void reset() {
     this.pos = 0;
     this.failures.clear();

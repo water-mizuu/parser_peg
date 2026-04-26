@@ -152,30 +152,58 @@ class SimplifyVisitor implements ParametrizedNodeVisitor<Node, int> {
 
   @override
   Node visitPlusSeparatedNode(PlusSeparatedNode node, int depth) {
-    return PlusSeparatedNode(
-      node.separator.acceptParametrizedVisitor(this, depth + 1),
-      node.child.acceptParametrizedVisitor(this, depth + 1),
-      isTrailingAllowed: node.isTrailingAllowed,
-    );
+    if (depth > 0) {
+      return createFragment(
+        PlusSeparatedNode(
+          node.separator.acceptParametrizedVisitor(this, 1),
+          node.child.acceptParametrizedVisitor(this, 1),
+          isTrailingAllowed: node.isTrailingAllowed,
+        ),
+      );
+    } else {
+      return PlusSeparatedNode(
+        node.separator.acceptParametrizedVisitor(this, depth + 1),
+        node.child.acceptParametrizedVisitor(this, depth + 1),
+        isTrailingAllowed: node.isTrailingAllowed,
+      );
+    }
   }
 
   @override
   Node visitStarSeparatedNode(StarSeparatedNode node, int depth) {
-    return StarSeparatedNode(
-      node.separator.acceptParametrizedVisitor(this, depth + 1),
-      node.child.acceptParametrizedVisitor(this, depth + 1),
-      isTrailingAllowed: node.isTrailingAllowed,
-    );
+    if (depth > 0) {
+      return createFragment(
+        StarSeparatedNode(
+          node.separator.acceptParametrizedVisitor(this, 1),
+          node.child.acceptParametrizedVisitor(this, 1),
+          isTrailingAllowed: node.isTrailingAllowed,
+        ),
+      );
+    } else {
+      return StarSeparatedNode(
+        node.separator.acceptParametrizedVisitor(this, depth + 1),
+        node.child.acceptParametrizedVisitor(this, depth + 1),
+        isTrailingAllowed: node.isTrailingAllowed,
+      );
+    }
   }
 
   @override
   Node visitPlusNode(PlusNode node, int depth) {
-    return PlusNode(node.child.acceptParametrizedVisitor(this, depth + 1));
+    if (depth > 0) {
+      return createFragment(PlusNode(node.child.acceptParametrizedVisitor(this, 1)));
+    } else {
+      return PlusNode(node.child.acceptParametrizedVisitor(this, depth + 1));
+    }
   }
 
   @override
   Node visitStarNode(StarNode node, int depth) {
-    return StarNode(node.child.acceptParametrizedVisitor(this, depth + 1));
+    if (depth > 0) {
+      return createFragment(StarNode(node.child.acceptParametrizedVisitor(this, 1)));
+    } else {
+      return StarNode(node.child.acceptParametrizedVisitor(this, depth + 1));
+    }
   }
 
   @override

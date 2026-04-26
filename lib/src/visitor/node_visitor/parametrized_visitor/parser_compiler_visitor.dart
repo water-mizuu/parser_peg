@@ -91,6 +91,7 @@ class ParserCompilerVisitor implements ParametrizedNodeVisitor<String, Parameter
   @override
   String visitCutNode(node, parameters) {
     String body = parameters.inner ?? "return null";
+    body = body.prepend("this._clearMemo();");
     if (parameters.isCuttable) {
       body = body.prepend("_mark.isCut = true;");
     }

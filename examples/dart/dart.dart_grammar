@@ -1,16 +1,448 @@
 
 dart {
+  startSymbol =
+    | libraryDeclaration
+    | partDeclaration
+    ;
+
+  libraryDeclaration =
+    FEFF? SCRIPT_TAG?
+    libraryName?
+    importOrExport*
+    partDirective*
+    (metadata topLevelDeclaration)*
+    $
+    ;
+
+  topLevelDeclaration =
+    | classDeclaration
+    | mixinDeclaration
+    | extensionTypeDeclaration
+    | extensionDeclaration
+    | enumType
+    | typeAlias
+    | AUGMENT? EXTERNAL functionSignature SEMICOLON
+    | AUGMENT? EXTERNAL getterSignature SEMICOLON
+    | AUGMENT? EXTERNAL setterSignature SEMICOLON
+    | AUGMENT? EXTERNAL finalVarOrType identifierList SEMICOLON
+    | AUGMENT? ABSTRACT finalVarOrType identifierList SEMICOLON
+    | AUGMENT? getterSignature (functionBody | SEMICOLON)
+    | AUGMENT? setterSignature (functionBody | SEMICOLON)
+    | AUGMENT? functionSignature (functionBody | SEMICOLON)
+    | AUGMENT? (FINAL | CONST) type? staticFinalDeclarationList SEMICOLON
+    | AUGMENT? LATE FINAL type? initializedIdentifierList SEMICOLON
+    | AUGMENT? LATE? varOrType initializedIdentifierList SEMICOLON
+    ;
+
+  finalVarOrType = FINAL type? | varOrType;
+  varOrType = VAR | type;
+
+  identifierList = COMMA..identifier+;
+
+  metadata = ("@" metadatum)*;
+  metadatum =
+    | constructorDesignation arguments
+    | identifier
+    | qualifiedName
+    ;
+
+  qualifiedName =
+    | typeIdentifier DOT identifierOrNew
+    | typeIdentifier DOT typeIdentifier DOT identifierOrNew
+    ;
+
+  identifierOrNew = identifier | NEW;
+
+  constructorDesignation =
+    | typeIdentifier
+    | qualifiedName
+    | typeName typeArguments (DOT identifierOrNew)?
+    ;
+
+  typeName = typeIdentifier (DOT typeIdentifier)?;
+
+  typeIdentifier =
+    | typeIdentifierNotType
+    | TYPE
+    ;
+
+  typeIdentifierNotType =
+    | IDENTIFIER
+    | DYNAMIC
+    | ASYNC | BASE | HIDE | OF | ON | SEALED | SHOW | SYNC | WHEN
+    | AWAIT | YIELD
+    ;
+
+  /// Types
+  type = functionType QUESTION? | typeNotFunction;
+  
+  typeNotFunction =
+    | typeNotVoidNotFunction QUESTION?
+    | recordType QUESTION?
+    | VOID
+    ;
+
+  typeNotVoid =
+    | functionType QUESTION?
+    | recordType QUESTION?
+    | typeNotVoidNotFunction QUESTION?
+    ;
+
+  typeNotVoidNotFunction =
+    | typeName typeArguments?
+    | typeNamedFunction
+    ;
+
+  typeNamedFunction = (typeIdentifier DOT)? FUNCTION;
+
+  typeArguments = LT typeList GT;
+  typeList = COMMA..type+;
+
+  recordType =
+    | L_PAREN R_PAREN
+    | L_PAREN recordTypeFields COMMA recordTypeNamedFields R_PAREN
+    | L_PAREN recordTypeFields COMMA? R_PAREN
+    | L_PAREN recordTypeNamedFields R_PAREN
+    ;
+
+  recordTypeFields = COMMA..recordTypeField+;
+  recordTypeField = metadata type identifier?;
+
+  recordTypeNamedFields = L_CURLY COMMA..recordTypeNamedField+ COMMA? R_CURLY;
+  recordTypeNamedField = metadata typedIdentifier;
+
+  typedIdentifier = type identifier;
+
+  functionType = typeNotFunction? functionTypeTails;
+  functionTypeTails = (functionTypeTail QUESTION?)* functionTypeTail;
+  functionTypeTail = FUNCTION typeParameters? parameterTypeList;
+
+  parameterTypeList =
+    | L_PAREN R_PAREN
+    | L_PAREN normalParameterTypes COMMA optionalParameterTypes R_PAREN
+    | L_PAREN normalParameterTypes COMMA? R_PAREN
+    | L_PAREN optionalParameterTypes R_PAREN
+    ;
+
+  normalParameterTypes = COMMA..normalParameterType+;
+  normalParameterType = metadata (typedIdentifier | type);
+
+  optionalParameterTypes =
+    | optionalPositionalParameterTypes
+    | namedParameterTypes
+    ;
+
+  optionalPositionalParameterTypes = L_SQUARE COMMA..normalParameterType+ COMMA? R_SQUARE;
+  namedParameterTypes = L_CURLY COMMA..namedParameterType+ COMMA? R_CURLY;
+  namedParameterType = metadata REQUIRED? typedIdentifier;
+
+  typeParameters = LT COMMA..typeParameter+ GT;
+  typeParameter = metadata typeIdentifier (EXTENDS typeNotVoid)?;
+
+  /// Classes, Mixins, Enums, Extensions
+  classDeclaration =
+    | AUGMENT? (mixinClassModifiers | classModifiers) CLASS classNameMaybePrimary superclass? interfaces? memberedDeclarationBody
+    | classModifiers MIXIN? CLASS mixinApplicationClass
+    ;
+
+  classModifiers = SEALED | ABSTRACT? (BASE | INTERFACE | FINAL)?;
+  mixinClassModifiers = ABSTRACT? BASE? MIXIN;
+
+  classNameMaybePrimary = primaryConstructor | typeWithParameters;
+  typeWithParameters = typeIdentifier typeParameters?;
+
+  superclass = 
+    | EXTENDS typeNotVoidNotFunction mixins?
+    | mixins
+    ;
+  mixins = WITH typeNotVoidNotFunctionList;
+  interfaces = IMPLEMENTS typeNotVoidNotFunctionList;
+  typeNotVoidNotFunctionList = COMMA..typeNotVoidNotFunction+;
+
+  mixinApplicationClass = typeWithParameters EQ mixinApplication SEMICOLON;
+  mixinApplication = typeNotVoidNotFunction mixins interfaces?;
+
+  memberedDeclarationBody = L_CURLY memberDeclarations R_CURLY | SEMICOLON;
+  memberDeclarations = (metadata AUGMENT? memberDeclaration)*;
+  memberDeclaration =
+    | methodSignature functionBody
+    | declaration SEMICOLON
+    ;
+
+  methodSignature =
+    | constructorSignature initializers
+    | factoryConstructorSignature
+    | STATIC? functionSignature
+    | STATIC? getterSignature
+    | STATIC? setterSignature
+    | operatorSignature
+    | constructorSignature
+    | primaryConstructorBodySignature
+    ;
+
+  declaration =
+    | EXTERNAL? factoryConstructorSignature
+    | EXTERNAL constantConstructorSignature
+    | EXTERNAL constructorSignature
+    | EXTERNAL? STATIC? getterSignature
+    | EXTERNAL? STATIC? setterSignature
+    | EXTERNAL? STATIC? functionSignature
+    | EXTERNAL (STATIC? finalVarOrType | COVARIANT varOrType) identifierList
+    | EXTERNAL? operatorSignature
+    | ABSTRACT (finalVarOrType | COVARIANT varOrType) identifierList
+    | STATIC ABSTRACT finalVarOrType identifierList
+    | STATIC (FINAL | CONST) type? staticFinalDeclarationList
+    | STATIC LATE FINAL type? initializedIdentifierList
+    | STATIC LATE? varOrType initializedIdentifierList
+    | COVARIANT LATE FINAL type? identifierList
+    | COVARIANT LATE? varOrType initializedIdentifierList
+    | LATE? (FINAL type? | varOrType) initializedIdentifierList
+    | redirectingFactoryConstructorSignature
+    | constantConstructorSignature (redirection | initializers)?
+    | constructorSignature (redirection | initializers)?
+    | primaryConstructorBodySignature
+    ;
+
+  staticFinalDeclarationList = COMMA..staticFinalDeclaration+;
+  staticFinalDeclaration = identifier EQ expression;
+
+  operatorSignature = type? OPERATOR operator formalParameterList;
+  operator = TILDE | binaryOperator | L_SQUARE R_SQUARE | L_SQUARE R_SQUARE EQ;
+  binaryOperator = 
+    | multiplicativeOperator | additiveOperator | shiftOperator | relationalOperator 
+    | EQ_EQ | bitwiseOperator;
+
+  getterSignature = type? GET identifier;
+  setterSignature = type? SET identifier formalParameterList;
+
+  constructorSignature = (constructorName | constructorHead) formalParameterList;
+  constructorName = typeIdentifier (DOT identifierOrNew)?;
+  constructorHead = NEW identifier?;
+
+  primaryConstructor = CONST? typeWithParameters (DOT identifierOrNew)? declaringParameterList;
+  primaryConstructorBodySignature = THIS initializers?;
+
+  declaringParameterList = 
+    | L_PAREN R_PAREN
+    | L_PAREN declaringFormalParameters COMMA? R_PAREN
+    | L_PAREN declaringFormalParameters COMMA optionalOrNamedDeclaringFormalParameters R_PAREN
+    | L_PAREN optionalOrNamedDeclaringFormalParameters R_PAREN
+    ;
+
+  declaringFormalParameters = COMMA..declaringFormalParameter+;
+  declaringFormalParameter = metadata declaringFormalParameterNoMetadata;
+  declaringFormalParameterNoMetadata =
+    | declaringFunctionFormalParameter
+    | fieldFormalParameter
+    | declaringSimpleFormalParameter
+    | superFormalParameter
+    ;
+
+  declaringFunctionFormalParameter = COVARIANT? (VAR | FINAL)? type? identifier formalParameterPart QUESTION?;
+  declaringSimpleFormalParameter = COVARIANT? (VAR | FINAL)? type? identifier;
+
+  optionalOrNamedDeclaringFormalParameters = optionalPositionalDeclaringFormalParameters | namedDeclaringFormalParameters;
+  optionalPositionalDeclaringFormalParameters = L_SQUARE COMMA..defaultDeclaringFormalParameter+ COMMA? R_SQUARE;
+  defaultDeclaringFormalParameter = declaringFormalParameter (EQ expression)?;
+
+  namedDeclaringFormalParameters = L_CURLY COMMA..defaultDeclaringNamedParameter+ COMMA? R_CURLY;
+  defaultDeclaringNamedParameter = metadata REQUIRED? declaringFormalParameterNoMetadata (EQ expression)?;
+
+  initializers = COLON COMMA..initializerListEntry+;
+  initializerListEntry =
+    | SUPER arguments
+    | SUPER DOT identifierOrNew arguments
+    | fieldInitializer
+    | assertion
+    ;
+
+  fieldInitializer = (THIS DOT)? identifier EQ initializerExpression;
+  initializerExpression = throwExpression | assignableExpression assignmentOperator expression | conditionalExpression | cascade;
+
+  redirection = COLON THIS (DOT identifierOrNew)? arguments;
+
+  factoryConstructorSignature = 
+    | CONST? FACTORY constructorTwoPartName formalParameterList
+    | CONST? factoryConstructorHead formalParameterList
+    ;
+  constructorTwoPartName = typeIdentifier DOT identifierOrNew;
+  factoryConstructorHead = FACTORY identifier?;
+  redirectingFactoryConstructorSignature = factoryConstructorSignature EQ constructorDesignation;
+  constantConstructorSignature = CONST constructorSignature;
+
+  mixinDeclaration =
+    | BASE? MIXIN typeWithParameters (ON typeNotVoidNotFunctionList)? interfaces? memberedDeclarationBody
+    | AUGMENT BASE? MIXIN typeWithParameters interfaces? memberedDeclarationBody
+    ;
+
+  extensionTypeDeclaration =
+    | EXTENSION TYPE primaryConstructor interfaces? memberedDeclarationBody
+    | AUGMENT EXTENSION TYPE typeWithParameters interfaces? memberedDeclarationBody
+    ;
+
+  extensionDeclaration =
+    | EXTENSION typeIdentifierNotType? typeParameters? ON type memberedDeclarationBody
+    | AUGMENT EXTENSION typeIdentifierNotType typeParameters? memberedDeclarationBody
+    ;
+
+  enumType = AUGMENT? ENUM classNameMaybePrimary mixins? interfaces? enumBody;
+  enumBody = L_CURLY (COMMA..enumEntry+ COMMA?)? (SEMICOLON memberDeclarations)? R_CURLY | SEMICOLON;
+  enumEntry = 
+    | metadata AUGMENT? identifier argumentPart?
+    | metadata AUGMENT? identifier typeArguments? DOT identifierOrNew arguments
+    ;
+
+  typeAlias =
+    | AUGMENT? TYPEDEF typeWithParameters EQ type SEMICOLON
+    | AUGMENT? TYPEDEF functionTypeAlias
+    ;
+  functionTypeAlias = functionPrefix formalParameterPart SEMICOLON;
+  functionPrefix = type identifier | identifier;
+
+  /// Functions and Parameters
+  functionSignature = type? identifier formalParameterPart;
+  formalParameterPart = typeParameters? formalParameterList;
+  formalParameterList =
+    | L_PAREN R_PAREN
+    | L_PAREN normalFormalParameters COMMA? R_PAREN
+    | L_PAREN normalFormalParameters COMMA optionalOrNamedFormalParameters R_PAREN
+    | L_PAREN optionalOrNamedFormalParameters R_PAREN
+    ;
+
+  normalFormalParameters = COMMA..normalFormalParameter+;
+  normalFormalParameter = metadata normalFormalParameterNoMetadata;
+  normalFormalParameterNoMetadata = functionFormalParameter | fieldFormalParameter | simpleFormalParameter | superFormalParameter;
+
+  functionFormalParameter = COVARIANT? type? identifier formalParameterPart QUESTION?;
+  simpleFormalParameter = COVARIANT? type? identifier;
+  fieldFormalParameter = type? THIS DOT identifier (formalParameterPart QUESTION?)?;
+  superFormalParameter = type? SUPER DOT identifier (formalParameterPart QUESTION?)?;
+
+  optionalOrNamedFormalParameters = optionalPositionalFormalParameters | namedFormalParameters;
+  optionalPositionalFormalParameters = L_SQUARE COMMA..defaultFormalParameter+ COMMA? R_SQUARE;
+  defaultFormalParameter = normalFormalParameter (EQ expression)?;
+
+  namedFormalParameters = L_CURLY COMMA..defaultNamedParameter+ COMMA? R_CURLY;
+  defaultNamedParameter = metadata REQUIRED? normalFormalParameterNoMetadata (EQ expression)?;
+
+  functionBody =
+    | ARROW expression SEMICOLON
+    | block
+    | ASYNC ARROW expression SEMICOLON
+    | (ASYNC | ASYNC STAR | SYNC STAR) block
+    ;
+
+  block = L_CURLY statements R_CURLY;
+  statements = statement*;
+
+  /// Statements
+  statement = label* nonLabelledStatement;
+  nonLabelledStatement =
+    | block
+    | localVariableDeclaration
+    | forStatement
+    | whileStatement
+    | doStatement
+    | switchStatement
+    | ifStatement
+    | rethrowStatement
+    | tryStatement
+    | breakStatement
+    | continueStatement
+    | returnStatement
+    | localFunctionDeclaration
+    | assertStatement
+    | yieldStatement
+    | yieldEachStatement
+    | expressionStatement
+    ;
+
+  label = identifier COLON;
+  expressionStatement = expression? SEMICOLON;
+  localVariableDeclaration = 
+    | metadata initializedVariableDeclaration SEMICOLON
+    | metadata patternVariableDeclaration SEMICOLON
+    ;
+  initializedVariableDeclaration = declaredIdentifier (EQ expression)? (COMMA initializedIdentifier)*;
+  declaredIdentifier = COVARIANT? finalConstVarOrType identifier;
+  finalConstVarOrType = LATE? FINAL type? | CONST type? | LATE? varOrType;
+  varOrType = VAR | type;
+  initializedIdentifier = identifier (EQ expression)?;
+  initializedIdentifierList = COMMA..initializedIdentifier+;
+
+  patternVariableDeclaration = outerPatternDeclarationPrefix EQ expression;
+  outerPatternDeclarationPrefix = (FINAL | VAR) outerPattern;
+
+  localFunctionDeclaration = metadata functionSignature functionBody;
+
+  ifStatement = ifCondition statement (ELSE statement)? ;
+  ifCondition = IF L_PAREN expression (CASE guardedPattern)? R_PAREN;
+
+  forStatement = AWAIT? FOR L_PAREN forLoopParts R_PAREN statement;
+  forLoopParts =
+    | forInLoopPrefix IN expression
+    | forInitializerStatement expression? SEMICOLON expressionList?
+    ;
+  forInLoopPrefix = metadata declaredIdentifier | metadata outerPatternDeclarationPrefix | identifier;
+  forInitializerStatement = localVariableDeclaration | expression? SEMICOLON;
+
+  whileStatement = WHILE L_PAREN expression R_PAREN statement;
+  doStatement = DO statement WHILE L_PAREN expression R_PAREN SEMICOLON;
+
+  switchStatement = SWITCH L_PAREN expression R_PAREN L_CURLY switchStatementCase* switchStatementDefault? R_CURLY;
+  switchStatementCase = label* CASE guardedPattern COLON statements;
+  switchStatementDefault = label* DEFAULT COLON statements;
+
+  rethrowStatement = RETHROW SEMICOLON;
+  tryStatement = TRY block (onPart+ finallyPart? | finallyPart);
+  onPart = catchPart block | ON typeNotVoid catchPart? block;
+  catchPart = CATCH L_PAREN identifier (COMMA identifier)? R_PAREN;
+  finallyPart = FINALLY block;
+
+  returnStatement = RETURN expression? SEMICOLON;
+  breakStatement = BREAK identifier? SEMICOLON;
+  continueStatement = CONTINUE identifier? SEMICOLON;
+  yieldStatement = YIELD expression SEMICOLON;
+  yieldEachStatement = YIELD STAR expression SEMICOLON;
+  assertStatement = assertion SEMICOLON;
+  assertion = ASSERT L_PAREN expression (COMMA expression)? COMMA? R_PAREN;
+
+  /// Top-level Directives
+  libraryName = metadata libraryNameBody SEMICOLON;
+  libraryNameBody = LIBRARY dottedIdentifierList? | AUGMENT LIBRARY uri;
+  dottedIdentifierList = DOT..identifier+;
+
+  importOrExport = libraryImport | libraryAugmentImport | libraryExport;
+  libraryImport = metadata importSpecification;
+  libraryAugmentImport = metadata IMPORT AUGMENT uri SEMICOLON;
+  importSpecification = IMPORT configurableUri (DEFERRED? AS typeIdentifier)? combinator* SEMICOLON;
+  combinator = SHOW identifierList | HIDE identifierList;
+
+  libraryExport = metadata EXPORT configurableUri combinator* SEMICOLON;
+  partDirective = metadata PART configurableUri SEMICOLON;
+  partHeader = metadata PART OF uri SEMICOLON;
+  partDeclaration = partHeader importOrExport* partDirective* (metadata topLevelDeclaration)* $;
+
+  uri = stringLiteral;
+  configurableUri = uri configurationUri*;
+  configurationUri = IF L_PAREN uriTest R_PAREN uri;
+  uriTest = dottedIdentifierList (EQ_EQ stringLiteral)?;
+
+  /// Expressions
   expression =
+    | patternAssignment
+    | functionExpression
+    | throwExpression
     | assignableExpression assignmentOperator expression
     | conditionalExpression
     | cascade
-    | throwExpression
     ;
 
   expressionWithoutCascade =
+    | functionExpressionWithoutCascade
+    | throwExpressionWithoutCascade
     | assignableExpression assignmentOperator expressionWithoutCascade
     | conditionalExpression
-    | throwExpressionWithoutCascade
     ;
 
   expressionList = COMMA..expression+;
@@ -19,59 +451,407 @@ dart {
     | thisExpression
     | SUPER unconditionalAssignableSelector
     | SUPER argumentPart
-    | functionExpression
+    | functionPrimary
     | literal
     | identifier
     | newExpression
     | constObjectExpression
     | constructorInvocation
     | L_PAREN expression R_PAREN
+    | constructorTearoff
+    | switchExpression
+    ;
+
+  constructorInvocation = 
+    | typeName typeArguments DOT NEW arguments
+    | typeName DOT NEW arguments
     ;
 
   literal =
     | nullLiteral
+    | booleanLiteral
     | numericLiteral
     | stringLiteral
     | symbolLiteral
-    | listLiteral
     | setOrMapLiteral
+    | listLiteral
+    | recordLiteral
     ;
 
-  /// 17.9 Collection Literals
-  listLiteral = CONST? typeArguments? L_SQUARE elements? R_SQUARE;
+  nullLiteral = NULL;
+  numericLiteral = NUMBER | HEX_NUMBER;
+  booleanLiteral = TRUE | FALSE;
+
   setOrMapLiteral = CONST? typeArguments? L_CURLY elements? R_CURLY;
-  elements = element? (COMMA element)* COMMA?;
+  listLiteral = CONST? typeArguments? L_SQUARE elements? R_SQUARE;
+  recordLiteral = CONST? recordLiteralNoConst;
+  recordLiteralNoConst =
+    | L_PAREN R_PAREN
+    | L_PAREN expression COMMA R_PAREN
+    | L_PAREN label expression COMMA? R_PAREN
+    | L_PAREN recordField (COMMA recordField)+ COMMA? R_PAREN
+    ;
+  recordField = label? expression;
+
+  elements = COMMA..element+?;
   element =
-    | mapElement
+    | nullAwareExpressionElement
+    | nullAwareMapElement
     | expressionElement
+    | mapElement
     | spreadElement
     | ifElement
     | forElement
     ;
 
+  nullAwareExpressionElement = QUESTION expression;
+  nullAwareMapElement = 
+    | QUESTION expression COLON QUESTION? expression
+    | expression COLON QUESTION expression
+    ;
   expressionElement = expression;
   mapElement = expression COLON expression;
-  spreadElement = (_ ("..." | "...?") _ @1) expression;
-  ifElement = IF L_PAREN element R_PAREN (ELSE element)?;
+  spreadElement = (DOT_DOT_DOT | DOT_DOT_DOT_QUEST) expression;
+  ifElement = ifCondition element (ELSE element)?;
   forElement = AWAIT? FOR L_PAREN forLoopParts R_PAREN element;
+
+  constructorTearoff = typeName typeArguments? DOT NEW;
+  switchExpression = SWITCH L_PAREN expression R_PAREN L_CURLY (COMMA..switchExpressionCase+?)? R_CURLY;
+  switchExpressionCase = guardedPattern ARROW expression;
+
+  throwExpression = THROW expression;
+  throwExpressionWithoutCascade = THROW expressionWithoutCascade;
+
+  functionExpression = formalParameterPart functionExpressionBody;
+  functionExpressionBody = ARROW expression | ASYNC ARROW expression;
+
+  functionExpressionWithoutCascade = formalParameterPart functionExpressionWithoutCascadeBody;
+  functionExpressionWithoutCascadeBody = ARROW expressionWithoutCascade | ASYNC ARROW expressionWithoutCascade;
+
+  functionPrimary = formalParameterPart functionPrimaryBody;
+  functionPrimaryBody = block | (ASYNC | ASYNC STAR | SYNC STAR) block;
+
+  thisExpression = THIS;
+  newExpression = NEW constructorDesignation arguments;
+  constObjectExpression = CONST constructorDesignation arguments;
+
+  arguments = L_PAREN (argumentList COMMA?)? R_PAREN;
+  argumentList = COMMA..argument+;
+  argument = label? expression;
+
+  cascade =
+    | cascade DOT_DOT cascadeSection
+    | conditionalExpression (QUEST_DOT_DOT | DOT_DOT) cascadeSection
+    ;
+  cascadeSection = cascadeSelector cascadeSectionTail;
+  cascadeSelector = L_SQUARE expression R_SQUARE | identifier;
+  cascadeSectionTail = cascadeAssignment | selector* (assignableSelector cascadeAssignment)?;
+  cascadeAssignment = assignmentOperator expressionWithoutCascade;
+
+  assignmentOperator = EQ | compoundAssignmentOperator;
+  compoundAssignmentOperator = 
+    | STAR_EQ | SLASH_EQ | TILDE_SLASH_EQ | PERCENT_EQ | PLUS_EQ | MINUS_EQ 
+    | LT_LT_EQ | (GT GT GT EQ) | (GT GT EQ) | AMP_EQ | CARET_EQ | BAR_EQ | QUEST_QUEST_EQ;
+
+  conditionalExpression = ifNullExpression (QUESTION expressionWithoutCascade COLON expressionWithoutCascade)?;
+  ifNullExpression = logicalOrExpression (QUEST_QUEST logicalOrExpression)*;
+  logicalOrExpression = logicalAndExpression (BAR_BAR logicalAndExpression)*;
+  logicalAndExpression = equalityExpression (AMP_AMP equalityExpression)*;
+  
+  equalityExpression = 
+    | relationalExpression (equalityOperator relationalExpression)?
+    | SUPER equalityOperator relationalExpression
+    ;
+  equalityOperator = EQ_EQ | BANG_EQ;
+
+  relationalExpression =
+    | bitwiseOrExpression (typeTest | typeCast | relationalOperator bitwiseOrExpression)?
+    | SUPER relationalOperator bitwiseOrExpression
+    ;
+  relationalOperator = GT_EQ | GT | LT_EQ | LT;
+
+  bitwiseOrExpression = bitwiseXorExpression (BAR bitwiseXorExpression)* | SUPER (BAR bitwiseXorExpression)+;
+  bitwiseXorExpression = bitwiseAndExpression (CARET bitwiseAndExpression)* | SUPER (CARET bitwiseAndExpression)+;
+  bitwiseAndExpression = shiftExpression (AMP shiftExpression)* | SUPER (AMP shiftExpression)+;
+  bitwiseOperator = AMP | CARET | BAR;
+
+  shiftExpression = additiveExpression (shiftOperator additiveExpression)* | SUPER (shiftOperator additiveExpression)+;
+  shiftOperator = LT_LT | (GT GT GT) | (GT GT);
+
+  additiveExpression = multiplicativeExpression (additiveOperator multiplicativeExpression)* | SUPER (additiveOperator multiplicativeExpression)+;
+  additiveOperator = PLUS | MINUS;
+
+  multiplicativeExpression = unaryExpression (multiplicativeOperator unaryExpression)* | SUPER (multiplicativeOperator unaryExpression)+;
+  multiplicativeOperator = STAR | SLASH | PERCENT | TILDE_SLASH;
+
+  unaryExpression =
+    | prefixOperator unaryExpression
+    | awaitExpression
+    | postfixExpression
+    | (MINUS | TILDE) SUPER
+    | incrementOperator assignableExpression
+    ;
+  prefixOperator = MINUS | BANG | TILDE;
+  awaitExpression = AWAIT unaryExpression;
+
+  postfixExpression =
+    | assignableExpression postfixOperator
+    | primary selector*
+    | staticMemberShorthand
+    ;
+  postfixOperator = incrementOperator;
+
+  selector = BANG | assignableSelector | argumentPart | typeArguments;
+  argumentPart = typeArguments? arguments;
+  incrementOperator = PLUS_PLUS | MINUS_MINUS;
+
+  assignableExpression =
+    | SUPER unconditionalAssignableSelector
+    | primary assignableSelectorPart
+    | identifier
+    ;
+  assignableSelectorPart = selector* assignableSelector;
+  unconditionalAssignableSelector = L_SQUARE expression R_SQUARE | DOT identifier;
+  assignableSelector = unconditionalAssignableSelector | QUEST_DOT identifier | QUESTION L_SQUARE expression R_SQUARE;
+
+  staticMemberShorthand = staticMemberShorthandHead selector*;
+  staticMemberShorthandHead = DOT identifierOrNew | CONST DOT identifierOrNew arguments;
+
+  /// Patterns
+  pattern = logicalOrPattern;
+  logicalOrPattern = logicalAndPattern (BAR_BAR logicalAndPattern)*;
+  logicalAndPattern = relationalPattern (AMP_AMP relationalPattern)*;
+  relationalPattern = (equalityOperator | relationalOperator) bitwiseOrExpression | unaryPattern;
+  unaryPattern = castPattern | nullCheckPattern | nullAssertPattern | primaryPattern;
+  primaryPattern =
+    | constantPattern
+    | variablePattern
+    | parenthesizedPattern
+    | listPattern
+    | mapPattern
+    | recordPattern
+    | objectPattern
+    ;
+
+  castPattern = primaryPattern AS type;
+  nullCheckPattern = primaryPattern QUESTION;
+  nullAssertPattern = primaryPattern BANG;
+
+  constantPattern =
+    | booleanLiteral
+    | nullLiteral
+    | MINUS? numericLiteral
+    | stringLiteral
+    | symbolLiteral
+    | identifier
+    | qualifiedName
+    | constObjectExpression
+    | CONST typeArguments? L_SQUARE elements? R_SQUARE
+    | CONST typeArguments? L_CURLY elements? R_CURLY
+    | CONST L_PAREN expression R_PAREN
+    | staticMemberShorthand
+    ;
+
+  variablePattern = (VAR | FINAL | FINAL? type)? identifier;
+  parenthesizedPattern = L_PAREN pattern R_PAREN;
+  listPattern = typeArguments? L_SQUARE listPatternElements? R_SQUARE;
+  listPatternElements = COMMA..listPatternElement+ COMMA?;
+  listPatternElement = pattern | restPattern;
+  restPattern = DOT_DOT_DOT pattern?;
+
+  mapPattern = typeArguments? L_CURLY mapPatternEntries? R_CURLY;
+  mapPatternEntries = COMMA..mapPatternEntry+ COMMA?;
+  mapPatternEntry = expression COLON pattern | DOT_DOT_DOT;
+
+  recordPattern = L_PAREN patternFields? R_PAREN;
+  patternFields = COMMA..patternField+ COMMA?;
+  patternField = (identifier? COLON)? pattern;
+
+  objectPattern = (typeName typeArguments? | typeNamedFunction) L_PAREN patternFields? R_PAREN;
+  guardedPattern = pattern (WHEN expression)?;
+
+  patternAssignment = outerPattern EQ expression;
+  outerPattern = parenthesizedPattern | listPattern | mapPattern | recordPattern | objectPattern;
+
+  typeTest = IS BANG? typeNotVoid;
+  typeCast = AS typeNotVoid;
+
+  /// Misc
+  identifier = IDENTIFIER | builtInIdentifier | otherIdentifier | AWAIT | YIELD;
+  builtInIdentifier = 
+    | ABSTRACT | AS | AUGMENT | COVARIANT | DEFERRED | DYNAMIC | EXPORT | EXTENSION 
+    | EXTERNAL | FACTORY | FUNCTION | GET | IMPLEMENTS | IMPORT | INTERFACE | LATE 
+    | LIBRARY | OPERATOR | MIXIN | PART | REQUIRED | SET | STATIC | TYPEDEF;
+  otherIdentifier = ASYNC | BASE | HIDE | OF | ON | SEALED | SHOW | SYNC | TYPE | WHEN;
+
+  symbolLiteral = HASH (operator | DOT..identifier+ | VOID);
 }
 
-@fragment {
-  CONST    = _ "const" _ @1;
-  SUPER    = _ "super" _ @1;
-  THIS     = _ "this"  _ @1;
-  NEW      = _ "new"   _ @1;
-  AWAIT    = _ "await" _ @1;
-  IF       = _ "if"    _ @1;
-  ELSE     = _ "else"  _ @1;
-  COLON    = _ ":"     _ @1;
-  COMMA    = _ ","     _ @1;
-  L_PAREN  = _ "("     _ @1;
-  R_PAREN  = _ ")"     _ @1;
-  L_CURLY  = _ "{"     _ @1;
-  R_CURLY  = _ "}"     _ @1;
-  L_SQUARE = _ "["     _ @1;
-  R_SQUARE = _ "]"     _ @1;
 
-  _ = std::whitespace;
+@fragment {
+  /// Keywords
+  ABSTRACT  = _ "abstract"  _ @1;
+  AS        = _ "as"        _ @1;
+  ASSERT    = _ "assert"    _ @1;
+  ASYNC     = _ "async"     _ @1;
+  AUGMENT   = _ "augment"   _ @1;
+  AWAIT     = _ "await"     _ @1;
+  BASE      = _ "base"      _ @1;
+  BREAK     = _ "break"     _ @1;
+  CASE      = _ "case"      _ @1;
+  CATCH     = _ "catch"     _ @1;
+  CLASS     = _ "class"     _ @1;
+  CONST     = _ "const"     _ @1;
+  CONTINUE  = _ "continue"  _ @1;
+  COVARIANT = _ "covariant" _ @1;
+  DEFAULT   = _ "default"   _ @1;
+  DEFERRED  = _ "deferred"  _ @1;
+  DO        = _ "do"        _ @1;
+  DYNAMIC   = _ "dynamic"   _ @1;
+  ELSE      = _ "else"      _ @1;
+  ENUM      = _ "enum"      _ @1;
+  EXPORT    = _ "export"    _ @1;
+  EXTENDS   = _ "extends"   _ @1;
+  EXTENSION = _ "extension" _ @1;
+  EXTERNAL  = _ "external"  _ @1;
+  FACTORY   = _ "factory"   _ @1;
+  FALSE     = _ "false"     _ @1;
+  FINAL     = _ "final"     _ @1;
+  FINALLY   = _ "finally"   _ @1;
+  FOR       = _ "for"       _ @1;
+  FUNCTION  = _ "Function"  _ @1;
+  GET       = _ "get"       _ @1;
+  HIDE      = _ "hide"      _ @1;
+  IF        = _ "if"        _ @1;
+  IMPLEMENTS = _ "implements" _ @1;
+  IMPORT    = _ "import"    _ @1;
+  IN        = _ "in"        _ @1;
+  INTERFACE = _ "interface" _ @1;
+  IS        = _ "is"        _ @1;
+  LATE      = _ "late"      _ @1;
+  LIBRARY   = _ "library"   _ @1;
+  MIXIN     = _ "mixin"     _ @1;
+  NEW       = _ "new"       _ @1;
+  NULL      = _ "null"      _ @1;
+  OF        = _ "of"        _ @1;
+  ON        = _ "on"        _ @1;
+  OPERATOR  = _ "operator"  _ @1;
+  PART      = _ "part"      _ @1;
+  REQUIRED  = _ "required"  _ @1;
+  RETHROW   = _ "rethrow"   _ @1;
+  RETURN    = _ "return"    _ @1;
+  SEALED    = _ "sealed"    _ @1;
+  SET       = _ "set"       _ @1;
+  SHOW      = _ "show"      _ @1;
+  STATIC    = _ "static"    _ @1;
+  SUPER     = _ "super"     _ @1;
+  SWITCH    = _ "switch"    _ @1;
+  SYNC      = _ "sync"      _ @1;
+  THIS      = _ "this"      _ @1;
+  THROW     = _ "throw"     _ @1;
+  TRUE      = _ "true"      _ @1;
+  TRY       = _ "try"       _ @1;
+  TYPE      = _ "type"      _ @1;
+  TYPEDEF   = _ "typedef"   _ @1;
+  VAR       = _ "var"       _ @1;
+  VOID      = _ "void"      _ @1;
+  WHILE     = _ "while"     _ @1;
+  WITH      = _ "with"      _ @1;
+  YIELD     = _ "yield"     _ @1;
+  WHEN      = _ "when"      _ @1;
+
+  /// Operators and Punctuation
+  L_PAREN    = _ "("   _ @1;
+  R_PAREN    = _ ")"   _ @1;
+  L_SQUARE   = _ "["   _ @1;
+  R_SQUARE   = _ "]"   _ @1;
+  L_CURLY    = _ "{"   _ @1;
+  R_CURLY    = _ "}"   _ @1;
+  COMMA      = _ ","   _ @1;
+  COLON      = _ ":"   _ @1;
+  SEMICOLON  = _ ";"   _ @1;
+  DOT        = _ "."   _ @1;
+  QUESTION   = _ "?"   _ @1;
+  EQ         = _ "="   _ @1;
+  GT         = _ ">"   _ @1;
+  LT         = _ "<"   _ @1;
+  BANG       = _ "!"   _ @1;
+  TILDE      = _ "~"   _ @1;
+  PLUS       = _ "+"   _ @1;
+  MINUS      = _ "-"   _ @1;
+  STAR       = _ "*"   _ @1;
+  SLASH      = _ "/"   _ @1;
+  PERCENT    = _ "%"   _ @1;
+  AMP        = _ "&"   _ @1;
+  CARET      = _ "^"   _ @1;
+  BAR        = _ "|"   _ @1;
+  HASH       = _ "#"   _ @1;
+
+  /// Multi-character operators
+  EQ_EQ      = _ "=="  _ @1;
+  BANG_EQ    = _ "!="  _ @1;
+  GT_EQ      = _ ">="  _ @1;
+  LT_EQ      = _ "<="  _ @1;
+  AMP_AMP    = _ "&&"  _ @1;
+  BAR_BAR    = _ "||"  _ @1;
+  QUEST_QUEST = _ "??"  _ @1;
+  QUEST_QUEST_EQ = _ "??=" _ @1;
+  PLUS_EQ    = _ "+="  _ @1;
+  MINUS_EQ   = _ "-="  _ @1;
+  STAR_EQ    = _ "*="  _ @1;
+  SLASH_EQ   = _ "/="  _ @1;
+  PERCENT_EQ = _ "%="  _ @1;
+  TILDE_SLASH_EQ = _ "~/=" _ @1;
+  LT_LT_EQ   = _ "<<=" _ @1;
+  GT_GT_EQ   = _ ">>=" _ @1;
+  GT_GT_GT_EQ = _ ">>>=" _ @1;
+  AMP_EQ     = _ "&="  _ @1;
+  CARET_EQ   = _ "^="  _ @1;
+  BAR_EQ     = _ "|="  _ @1;
+  PLUS_PLUS  = _ "++"  _ @1;
+  MINUS_MINUS = _ "--"  _ @1;
+  LT_LT      = _ "<<"  _ @1;
+  GT_GT      = _ ">>"  _ @1;
+  GT_GT_GT   = _ ">>>" _ @1;
+  TILDE_SLASH = _ "~/"  _ @1;
+  DOT_DOT    = _ ".."  _ @1;
+  DOT_DOT_DOT = _ "..." _ @1;
+  QUEST_DOT_DOT = _ "?.." _ @1;
+  DOT_DOT_DOT_QUEST = _ "...?" _ @1;
+  ARROW      = _ "=>"  _ @1;
+  QUEST_DOT  = _ "?."  _ @1;
+  QUEST_SQUARE = _ "?[" _ @1;
+
+  /// Literals
+  NUMBER = _ <digits (DOT digits)? exponent?> _ @1;
+  HEX_NUMBER = _ <("0x" | "0X") hex_digits> _ @1;
+  
+  @inline digits = [0-9] ("_"* [0-9])*;
+  @inline hex_digits = [a-fA-F0-9] ("_"* [a-fA-F0-9])*;
+  @inline exponent = [eE] [+-]? digits;
+
+  IDENTIFIER = _ <[a-zA-Z_$] [a-zA-Z0-9_$]*> _ @1;
+
+  FEFF = "\uFEFF";
+  SCRIPT_TAG = "#!" ~[\r\n]*;
+
+  /// String literals (Simplified)
+  stringLiteral = _ (singleLineString | multiLineString)+ _ @1;
+  
+  singleLineString =
+    | "r'" ~['\r\n']* "'"
+    | 'r"' ~['\r\n']* '"'
+    | "'" (~['\\'\r\n$] | "\\" .)* "'"
+    | '"' (~['\\"'\r\n$] | "\\" .)* '"';
+
+  multiLineString =
+    | "r'''" (~"'''")* "'''"
+    | 'r"""' (~'"""')* '"""'
+    | "'''" (~"'''")* "'''"
+    | '"""' (~'"""')* '"""';
+
+  _ = (std::whitespace | &"/" comment)*;
+  comment = 
+    | "//" ~[\r\n]*
+    | "/*" (~"*/")* "*/";
 }
